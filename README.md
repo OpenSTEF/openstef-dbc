@@ -9,7 +9,7 @@ SPDX-License-Identifier: MPL-2.0
 
 
 # Openstf-db-connector - Database connector for OpenSTF (reference)
-This repository houses the python package `openstf-dbc`, which provides an interface to OpenSTF (reference) databases. 
+This repository houses the python package [openstf-dbc](https://pypi.org/project/openstf-dbc/), which provides an interface to OpenSTF (reference) databases. 
 Related projects:
 - [OpenSTF-reference](https://github.com/alliander-opensource/openstf-reference)
 - [OpenSTF](https://github.com/alliander-opensource/short-term-forecasting)
