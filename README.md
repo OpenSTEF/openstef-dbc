@@ -30,7 +30,7 @@ from openstf_dbc.database import DataBase
 
 db = DataBase()
 
-pj = db.get_prediction_jon(307)
+pj = db.get_prediction_job(307)
 ```
 
 ## Contributing
