@@ -1,46 +1,59 @@
-# SPDX-FileCopyrightText: 2021 2017-2021 Alliander N.V. <korte.termijn.prognoses@alliander.com>
+# SPDX-FileCopyrightText: 2017-2021 Alliander N.V. <korte.termijn.prognoses@alliander.com> # noqa E501>
 #
 # SPDX-License-Identifier: MPL-2.0
 
-import setuptools
-import os
-from setuptools import setup
+from pathlib import Path
+from setuptools import setup, find_packages
+
+pkg_dir = Path(__file__).parent.absolute()
 
 
-pkg_dir = os.path.dirname(os.path.realpath(__file__))
-# package description
-with open(os.path.join(pkg_dir, "README.md")) as f:
-    long_description = f.read()
-with open(os.path.join(pkg_dir, "requirements.txt")) as f:
-    requirements = []
-    for line in f:
-        line = line.strip()
-        if "#" in line:
-            line = line[: line.index("#")].strip()
-        if len(line) == 0:
-            continue
-        requirements.append(line)
-with open(os.path.join(pkg_dir, "PACKAGENAME")) as f:
-    pkg_name = f.read().strip().strip("\n")
-with open(os.path.join(pkg_dir, "VERSION")) as f:
-    version = f.read().strip().strip("\n")
-    if "BETA" in os.environ:
-        version += f"b-{version}"
-        print(f"Make beta version number: {version}")
+def read_requirements_from_file():
+    with open(pkg_dir / "requirements.txt") as fh:
+        requirements = []
+        for line in fh:
+            line = line.strip()
+            if "#" in line:
+                line = line[: line.index("#")].strip()
+            if len(line) == 0:
+                continue
+            requirements.append(line)
+        return requirements
+
+
+def read_long_description_from_readme():
+    with open("README.md", "r", encoding="utf-8") as fh:
+        return fh.read()
+
 
 setup(
-    name=pkg_name,
-    version=version,
-    author="KTP",
-    author_email="ktprognoses@alliander.com",
-    description="Database connector package for openstf (reference)",
-    long_description=long_description,
+    name="openstf_dbc",
+    version="1.0.0",
+    packages=find_packages(include=["openstf_dbc", "openstf_dbc.*"]),
+    description="Database Connection for OpenSTF",
+    long_description=read_long_description_from_readme(),
     long_description_content_type="text/markdown",
-    url="https://github.com/Alliander-opensource/openstf-db-connector",
-    packages=setuptools.find_packages(),
-    install_requires=requirements,
+    url="https://github.com/alliander-opensource/openstf-db-connector",
+    author="Alliander N.V",
+    author_email="korte.termijn.prognoses@alliander.com",
+    license="MPL-2.0",
+    keywords=["database", "energy", "forecasting", "machinelearning"],
+    # See https://setuptools.readthedocs.io/en/latest/userguide/datafiles.html
+    # for more information
+    package_data={
+        # Include anything in the data directory
+        "openstf_dbc": ["data/*", "*.license"]
+    },
+    python_requires=">=3.7.0",
+    install_requires=read_requirements_from_file(),
+    setup_requires=["wheel", "Cython"],
+    tests_require=["pytest", "pytest-cov", "flake8"],
     classifiers=[
-        "Programming Language :: Python :: 3",
-        "Operating System :: OS Independent",
+        r"Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        r"License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
     ],
 )
