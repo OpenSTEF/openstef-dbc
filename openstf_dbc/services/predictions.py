@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 import re
 
-from ktpbase.data_interface import _DataInterface
+from openstf_dbc.data_interface import _DataInterface
 
 
 class Predictions:

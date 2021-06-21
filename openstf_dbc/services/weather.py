@@ -6,8 +6,8 @@ import geopy.distance
 import geopy
 import pytz
 
-from ktpbase.data_interface import _DataInterface
-from ktpbase.services.write import Write
+from openstf_dbc.data_interface import _DataInterface
+from openstf_dbc.services.write import Write
 
 
 class Weather():

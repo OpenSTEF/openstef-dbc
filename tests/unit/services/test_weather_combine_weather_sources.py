@@ -4,7 +4,7 @@ from unittest import mock
 from pathlib import Path
 
 from pandas.testing import assert_frame_equal
-from ktpbase.services.weather import Weather
+from openstf_dbc.services.weather import Weather
 
 
 def __init__(self, *args):

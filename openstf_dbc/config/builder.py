@@ -4,9 +4,9 @@ import collections
 
 import yaml
 
-import ktpbase.config.utils as utils
-from ktpbase.config.enums import RuntimeEnv
-from ktpbase.log import logging
+import openstf_dbc.config.utils as utils
+from openstf_dbc.config.enums import RuntimeEnv
+from openstf_dbc.log import logging
 
 LOCAL_KTP_CONFIG_DIR = Path.home() / "ktp"
 

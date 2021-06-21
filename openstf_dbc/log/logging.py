@@ -71,7 +71,7 @@ import structlog
 import structlog.threadlocal
 import warnings
 
-import ktpbase.log.processors as custom_processors
+import openstf_dbc.log.processors as custom_processors
 
 __configured = False
 __loggers = {}

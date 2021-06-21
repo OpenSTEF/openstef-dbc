@@ -3,11 +3,11 @@ from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
 
-from ktpbase.data_interface import _DataInterface
-from ktpbase.services.weather import Weather
-from ktpbase.services.systems import Systems
-from ktpbase.services.ems import Ems
-from ktpbase.services.predictor import Predictor
+from openstf_dbc.data_interface import _DataInterface
+from openstf_dbc.services.weather import Weather
+from openstf_dbc.services.systems import Systems
+from openstf_dbc.services.ems import Ems
+from openstf_dbc.services.predictor import Predictor
 
 
 

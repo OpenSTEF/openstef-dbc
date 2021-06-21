@@ -3,8 +3,8 @@ import unittest
 from unittest.mock import patch, MagicMock
 
 # import project modules
-from ktpbase.config.config import ConfigManager
-from ktpbase.config.enums import RuntimeEnv
+from openstf_dbc.config.config import ConfigManager
+from openstf_dbc.config.enums import RuntimeEnv
 
 
 @patch("openstf_dbc.config.config.logging", MagicMock())

@@ -1,13 +1,13 @@
-from ktpbase.data_interface import _DataInterface
-from ktpbase.services.prediction_job import PredictionJob
-from ktpbase.services.weather import Weather
-from ktpbase.services.ems import Ems
-from ktpbase.services.predictor import Predictor
-from ktpbase.services.write import Write
-from ktpbase.services.splitting import Splitting
-from ktpbase.services.predictions import Predictions
-from ktpbase.services.model_input import ModelInput
-from ktpbase.services.systems import Systems
+from openstf_dbc.data_interface import _DataInterface
+from openstf_dbc.services.prediction_job import PredictionJob
+from openstf_dbc.services.weather import Weather
+from openstf_dbc.services.ems import Ems
+from openstf_dbc.services.predictor import Predictor
+from openstf_dbc.services.write import Write
+from openstf_dbc.services.splitting import Splitting
+from openstf_dbc.services.predictions import Predictions
+from openstf_dbc.services.model_input import ModelInput
+from openstf_dbc.services.systems import Systems
 
 
 class DataBase:

@@ -8,7 +8,7 @@ import pandas as pd
 import pytz
 from pytz import timezone
 
-from ktpbase.ktp_api import KtpApi
+from openstf_dbc.ktp_api import KtpApi
 
 customers_list = [
     {"id": 300, "name": "Flex_ZPP", "vip": True, "active": True},

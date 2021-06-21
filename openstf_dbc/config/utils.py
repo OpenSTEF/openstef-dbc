@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from ktpbase.config.enums import RuntimeEnv, Namespace
+from openstf_dbc.config.enums import RuntimeEnv, Namespace
 
 
 def determine_runtime_environment():

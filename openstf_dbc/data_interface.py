@@ -5,9 +5,9 @@ import pymysql
 import requests
 import sqlalchemy
 
-from ktpbase.config.config import ConfigManager
-from ktpbase.ktp_api import KtpApi
-from ktpbase.log import logging
+from openstf_dbc.config.config import ConfigManager
+from openstf_dbc.ktp_api import KtpApi
+from openstf_dbc.log import logging
 
 
 # Define abstract interface

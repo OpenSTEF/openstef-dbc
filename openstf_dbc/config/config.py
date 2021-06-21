@@ -1,9 +1,9 @@
 from types import SimpleNamespace
 
-import ktpbase.config.utils as utils
-from ktpbase.config.builder import ConfigBuilder
-from ktpbase.config.enums import RuntimeEnv
-from ktpbase.log import logging
+import openstf_dbc.config.utils as utils
+from openstf_dbc.config.builder import ConfigBuilder
+from openstf_dbc.config.enums import RuntimeEnv
+from openstf_dbc.log import logging
 
 
 class ConfigManager:

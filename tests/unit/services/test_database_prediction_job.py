@@ -2,7 +2,7 @@
 import unittest
 from unittest.mock import patch
 
-from ktpbase.services.prediction_job import PredictionJob
+from openstf_dbc.services.prediction_job import PredictionJob
 
 @patch("openstf_dbc.services.predictions._DataInterface")
 class TestPredictionJob(unittest.TestCase):

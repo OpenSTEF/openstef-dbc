@@ -5,8 +5,8 @@ from json.decoder import JSONDecodeError
 import requests
 import pandas as pd
 
-from ktpbase.config.config import ConfigManager
-from ktpbase.log import logging
+from openstf_dbc.config.config import ConfigManager
+from openstf_dbc.log import logging
 
 
 class ApiException(Exception):

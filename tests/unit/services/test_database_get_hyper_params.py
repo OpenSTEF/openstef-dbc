@@ -8,8 +8,8 @@ Tests for reading and writing the hyperparameters to the sql-database
 import pandas as pd
 from unittest import mock
 
-from ktpbase.database import DataBase
-from ktpbase.data_interface import _DataInterface
+from openstf_dbc.database import DataBase
+from openstf_dbc.data_interface import _DataInterface
 
 # Define tests data
 data = {

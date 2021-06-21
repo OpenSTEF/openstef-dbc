@@ -5,7 +5,7 @@ import os
 import pandas as pd
 
 from tests.utils.base import BaseTestCase
-from ktpbase.services.weather import Weather
+from openstf_dbc.services.weather import Weather
 
 unit_test_path = os.path.join(
     os.path.dirname(__file__), os.path.pardir

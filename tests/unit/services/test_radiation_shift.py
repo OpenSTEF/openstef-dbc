@@ -4,7 +4,7 @@ from unittest.mock import patch, Mock
 import pandas as pd
 import numpy as np
 
-from ktpbase.services.weather import Weather
+from openstf_dbc.services.weather import Weather
 
 @patch("openstf_dbc.data_interface._DataInterface")
 class TestRadiationShift(unittest.TestCase):

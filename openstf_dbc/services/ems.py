@@ -3,8 +3,8 @@ from datetime import timedelta
 import pandas as pd
 import structlog
 
-from ktpbase.data_interface import _DataInterface
-from ktpbase.services.systems import Systems
+from openstf_dbc.data_interface import _DataInterface
+from openstf_dbc.services.systems import Systems
 
 
 class Ems():

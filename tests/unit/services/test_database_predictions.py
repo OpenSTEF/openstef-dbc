@@ -3,7 +3,7 @@ import unittest
 from unittest.mock import patch
 from datetime import datetime, timedelta
 
-from ktpbase.services.predictions import Predictions
+from openstf_dbc.services.predictions import Predictions
 
 pj = {
     "id": 298,

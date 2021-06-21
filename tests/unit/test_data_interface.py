@@ -3,7 +3,7 @@ from unittest.mock import patch, MagicMock
 
 import pandas as pd
 
-from ktpbase.data_interface import _DataInterface
+from openstf_dbc.data_interface import _DataInterface
 
 
 @patch("openstf_dbc.data_interface.ConfigManager", MagicMock())

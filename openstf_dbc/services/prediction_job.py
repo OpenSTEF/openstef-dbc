@@ -1,9 +1,9 @@
 import json
 
-from ktpbase.data_interface import _DataInterface
-from ktpbase.services.systems import Systems
-from ktpbase.log import logging
-from ktpbase.data.featuresets import FEATURESETS, FEATURESET_NAMES
+from openstf_dbc.data_interface import _DataInterface
+from openstf_dbc.services.systems import Systems
+from openstf_dbc.log import logging
+from openstf_dbc.data.featuresets import FEATURESETS, FEATURESET_NAMES
 
 
 class PredictionJob():
