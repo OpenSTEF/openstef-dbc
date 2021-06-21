@@ -104,7 +104,7 @@ def mocked_config_instance(*args, **kwargs):
 @mock.patch("requests.get", side_effect=mocked_requests_get)
 class TestKtpApi(TestCase):
     def test_ktp_api(self, mock_get):
-        with warnings.catch_warnings(record=True) as w:
+        with warnings.catch_warnings(record=True):
             KtpApi()
 
     def test_get_customers(self, mock_get):
@@ -220,8 +220,8 @@ class TestKtpApi(TestCase):
         patch_ret.json.return_value = ret_string
         mock_patch.return_value = patch_ret
 
-        with warnings.catch_warnings(record=True) as w:
-            ktp_api = KtpApi()
+        with warnings.catch_warnings(record=True):
+            KtpApi()
 
     @mock.patch("requests.post")
     def test_add_tracy_job(self, mock_post, mock_get):
@@ -236,7 +236,7 @@ class TestKtpApi(TestCase):
         post_ret.status_code = 200
         mock_post.return_value = post_ret
 
-        with warnings.catch_warnings(record=True) as w:
+        with warnings.catch_warnings(record=True):
             ktp_api = KtpApi()
             # New Tracy Job
 
@@ -301,14 +301,14 @@ class TestKtpApi(TestCase):
 
     @mock.patch("requests.put")
     def test_update_tracy_job(self, mock_put, mock_get):
-        id = tracy_jobs_list[0]["id"]
+        t_id = tracy_jobs_list[0]["id"]
         arguments = tracy_jobs_list[0]["args"]
         function = tracy_jobs_list[0]["function"]
         inprogess = 2
 
         put_ret = Mock()
         put_ret.json.return_value = {
-            "id": id,
+            "id": t_id,
             "args": arguments,
             "function": function,
             "inprogress": inprogess,
@@ -316,9 +316,9 @@ class TestKtpApi(TestCase):
         put_ret.status_code = 200
         mock_put.return_value = put_ret
 
-        with warnings.catch_warnings(record=True) as w:
+        with warnings.catch_warnings(record=True):
             ktp_api = KtpApi()
-            job = ktp_api.update_tracy_job(
+            ktp_api.update_tracy_job(
                 {
                     "id": id,
                     "args": arguments,
@@ -329,15 +329,12 @@ class TestKtpApi(TestCase):
 
     @mock.patch("requests.put")
     def test_update_tracy_job_fail(self, mock_put, mock_get):
-        arguments = tracy_jobs_list[0]["args"]
-        function = tracy_jobs_list[0]["function"]
-
         put_ret = Mock()
         put_ret.status_code = 500
         mock_put.return_value = put_ret
 
-        with warnings.catch_warnings(record=True) as w:
-            ktp_api = KtpApi()
+        with warnings.catch_warnings(record=True):
+            KtpApi()
 
     @mock.patch("requests.delete")
     def test_delete_tracy_job(self, mock_delete, mock_get):
@@ -345,7 +342,7 @@ class TestKtpApi(TestCase):
         put_del.status_code = 204
         mock_delete.return_value = put_del
 
-        with warnings.catch_warnings(record=True) as w:
+        with warnings.catch_warnings(record=True):
             ktp_api = KtpApi()
             ktp_api.delete_tracy_job({"id": 4})
 

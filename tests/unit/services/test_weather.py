@@ -73,6 +73,7 @@ class TestWeather(BaseTestCase):
         expected_response = combined_weatherdata_nomissing
         self.assertDataframeEqual(expected_response, response)
 
+    @unittest.skip('TO FIX: assert fails pressure column is of type object (str) in response')
     def test_different_source_order(self):
         """Data: dataframe contains weather data of multiple sources for same timpestamp with nan-values
 
@@ -84,8 +85,7 @@ class TestWeather(BaseTestCase):
             source_order=["DSN", "harmonie", "harm_arome"],
         )
         expected_response = combined_weatherdata_DSN
-        # FIXME assert fails pressure column is of type object (str) in response
-        # self.assertDataframeEqual(expected_response, response)
+        self.assertDataframeEqual(expected_response, response)
 
     def test_non_optimum_source(self):
         """Data: dataframe contains weather data of one source
