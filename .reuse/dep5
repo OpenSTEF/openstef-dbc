@@ -3,8 +3,7 @@ Upstream-Name: openstf-db-connector
 Upstream-Contact: Korte Termijn Prognoses <korte.termijn.prognoses@alliander.com>
 Source: https://github.com/alliander-opensource/openstf-db-connector
 
-# Sample paragraph, commented out:
-#
-# Files: src/*
-# Copyright: $YEAR $NAME <$CONTACT>
-# License: ...
+Files: tests/*
+Copyright: 2017-2021 Alliander N.V. <korte.termijn.prognoses@alliander.com>
+License: MPL-2.0
+
