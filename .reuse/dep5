@@ -1,0 +1,10 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: openstf-db-connector
+Upstream-Contact: Korte Termijn Prognoses <korte.termijn.prognoses@alliander.com>
+Source: https://github.com/alliander-opensource/openstf-db-connector
+
+# Sample paragraph, commented out:
+#
+# Files: src/*
+# Copyright: $YEAR $NAME <$CONTACT>
+# License: ...
