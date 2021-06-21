@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2021 2017-2021 Alliander N.V. <korte.termijn.prognoses@alliander.com>
+#
+# SPDX-License-Identifier: MPL-2.0
+
 from types import SimpleNamespace
 
 import openstf_dbc.config.utils as utils
