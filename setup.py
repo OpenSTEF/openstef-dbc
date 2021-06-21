@@ -27,9 +27,9 @@ def read_long_description_from_readme():
 
 
 setup(
-    name="openstf-dbc",
+    name="openstf_dbc",
     version="1.0.0",
-    packages=find_packages(include=["openstf-dbc", "openstf-dbc.*"]),
+    packages=find_packages(include=["openstf_dbc", "openstf_dbc.*"]),
     description="Database Connection for OpenSTF",
     long_description=read_long_description_from_readme(),
     long_description_content_type="text/markdown",
