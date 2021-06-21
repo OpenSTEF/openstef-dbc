@@ -54,7 +54,7 @@ jobs:
     - name: Test with pytest
       run: |
         pip install pytest pytest-cov
-        pytest --cov-report=xml --cov=openstf/ test/unit/ --junitxml=pytest-report.xml
+        pytest --cov-report=xml --cov=openstf_dbc/ tests/unit/ --junitxml=pytest-report.xml
     # Fix relative paths in coverage file
     # Known bug: https://community.sonarsource.com/t/sonar-on-github-actions-with-python-coverage-source-issue/36057
     - name: fix code coverage paths
