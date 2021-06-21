@@ -33,4 +33,3 @@ def rename_forbidden_keys(logger, method_name, event_dict):
         event_dict[f"log.{key}"] = event_dict.pop(key)
 
     return event_dict
-

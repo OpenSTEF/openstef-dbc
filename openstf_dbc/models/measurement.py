@@ -12,9 +12,8 @@ class MeasurementData:
 
     def __post_init__(self):
         # try to convert str back to datatime to check format
-        datetime.strptime(
-            self.datetime, DATETIME_FMT
-        )
+        datetime.strptime(self.datetime, DATETIME_FMT)
+
 
 @dataclass
 class Measurement:

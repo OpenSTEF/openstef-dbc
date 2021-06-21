@@ -6,8 +6,7 @@ from openstf_dbc.log import logging
 from openstf_dbc.data.featuresets import FEATURESETS, FEATURESET_NAMES
 
 
-class PredictionJob():
-
+class PredictionJob:
     def __init__(self):
         self.logger = logging.get_logger(self.__class__.__name__)
 
@@ -17,7 +16,9 @@ class PredictionJob():
     def _add_description_to_prediction_jobs(self, prediction_jobs):
 
         for prediction_job in prediction_jobs:
-            systems = Systems().get_systems_by_pid(pid=prediction_job["id"], return_list=True)
+            systems = Systems().get_systems_by_pid(
+                pid=prediction_job["id"], return_list=True
+            )
             systems_str = "+".join([s["system_id"] for s in systems])
             prediction_job["description"] = systems_str
 
@@ -139,7 +140,9 @@ class PredictionJob():
         return prediction_jobs
 
     @staticmethod
-    def build_get_prediction_jobs_query(pid=None, model_type=None, is_active=None, only_ato = False):
+    def build_get_prediction_jobs_query(
+        pid=None, model_type=None, is_active=None, only_ato=False
+    ):
         where_criteria = []
 
         if pid is not None:
@@ -269,7 +272,7 @@ class PredictionJob():
             # Execute query
             result = _DataInterface.get_instance().exec_sql_query(query)
             # Convert result datetime instance
-            last = result['last'][0].to_pydatetime()
+            last = result["last"][0].to_pydatetime()
             # If dictionary is empty raise exception and fall back to defaults
         except Exception as e:
             print(
@@ -309,7 +312,8 @@ class PredictionJob():
         except Exception as e:
             self.logger.error(
                 "Error occured while retrieving hyper parameters",
-                exc_info=e, pid=pj["id"]
+                exc_info=e,
+                pid=pj["id"],
             )
 
         return params

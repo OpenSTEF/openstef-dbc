@@ -7,19 +7,18 @@ from openstf_dbc.data_interface import _DataInterface
 from openstf_dbc.services.systems import Systems
 
 
-class Ems():
-
+class Ems:
     def __init__(self) -> None:
         self.logger = structlog.get_logger(self.__class__.__name__)
 
     def get_load_sid(
-            self,
-            sid,
-            datetime_start,
-            datetime_end,
-            forecast_resolution,
-            aggregated=True,
-            average_output=False,
+        self,
+        sid,
+        datetime_start,
+        datetime_end,
+        forecast_resolution,
+        aggregated=True,
+        average_output=False,
     ):
         """Get the load for a single or multiple system id's.
 
@@ -57,7 +56,7 @@ class Ems():
 
         # Prepare query
         if aggregated:
-            query = '''
+            query = """
                 SELECT sum("output") as load, count("output") as nEntries
                 FROM (
                     SELECT mean("output") as output
@@ -67,7 +66,7 @@ class Ems():
                 )
                 WHERE time <= NOW()
                 GROUP BY time({})
-            '''.format(
+            """.format(
                 sidsection,
                 datetime_start,
                 datetime_end,
@@ -75,11 +74,13 @@ class Ems():
                 forecast_resolution.replace("T", "m"),
             )
         else:
-            query = '''
+            query = """
                 SELECT "output" as load, "system"
                 FROM "realised".."power"
                 WHERE "system" {} AND time >= \'{}\' and time < \'{}\' fill(null)
-            '''.format(sidsection, datetime_start, datetime_end)
+            """.format(
+                sidsection, datetime_start, datetime_end
+            )
 
         # Query load
         result = _DataInterface.get_instance().exec_influx_query(query)
@@ -93,9 +94,7 @@ class Ems():
         if aggregated:
             result = result[["load", "nEntries"]]
         else:
-            result = result.pivot_table(index=result.index, columns="system")[
-                "load"
-            ]
+            result = result.pivot_table(index=result.index, columns="system")["load"]
             result = result.resample(forecast_resolution).mean()
             return result
 
@@ -105,7 +104,6 @@ class Ems():
 
         outputcols = ["load"]
         return result[outputcols]
-
 
     def get_load_created_after(self, sid, created_after, group_by_time="5m"):
         query = f"""
@@ -118,13 +116,13 @@ class Ems():
         return load
 
     def get_load_pid(
-            self,
-            pid,
-            datetime_start,
-            datetime_end,
-            forecast_resolution="15T",
-            aggregated=True,
-            ignore_factor=False
+        self,
+        pid,
+        datetime_start,
+        datetime_end,
+        forecast_resolution="15T",
+        aggregated=True,
+        ignore_factor=False,
     ):
         """Get load(s) for a given prediction job id.
 
@@ -156,8 +154,11 @@ class Ems():
 
         # obtain load for all systems
         systems_load = self.get_load_sid(
-            list(systems.system_id), datetime_start, datetime_end, forecast_resolution,
-            aggregated=False
+            list(systems.system_id),
+            datetime_start,
+            datetime_end,
+            forecast_resolution,
+            aggregated=False,
         )
 
         # if load is empty, raise a warning and return empty dataframe
@@ -167,7 +168,9 @@ class Ems():
 
         # Check if all requested systems have a historic load, otherwise, give a warning
         # and ignore 'missing' systems
-        missing_systems = [x for x in systems.system_id if x not in systems_load.columns]
+        missing_systems = [
+            x for x in systems.system_id if x not in systems_load.columns
+        ]
         num_missing_systems = len(missing_systems)
         if num_missing_systems > 0:
             msg = (
@@ -178,7 +181,7 @@ class Ems():
                 msg,
                 pid=pid,
                 num_missing_systems=num_missing_systems,
-                missing_systems=missing_systems
+                missing_systems=missing_systems,
             )
             systems = systems[~systems.system_id.isin(missing_systems)]
 
@@ -187,7 +190,9 @@ class Ems():
 
             polarity = systems.loc[systems.system_id == system_id].polarity.iloc[0]
             if polarity == 0:
-                self.logger.warning("Polarity not set use 1 by default", system_id=system_id)
+                self.logger.warning(
+                    "Polarity not set use 1 by default", system_id=system_id
+                )
                 polarity = 1
             systems_load[system_id] *= polarity
 
@@ -226,7 +231,10 @@ class Ems():
             WHERE ("curtailment_name" = '{}') AND time >= \'{}\' and time < \'{}\'
             GROUP BY time({}) fill(null)
         """.format(
-            name, datetime_start, datetime_end, resolution.replace("T", "m"),
+            name,
+            datetime_start,
+            datetime_end,
+            resolution.replace("T", "m"),
         )
 
         # Excecute query
@@ -237,11 +245,11 @@ class Ems():
             return res["curtailments"].dropna().tz_localize("UTC")
 
     def _get_states_from_db(
-            self,
-            datetime_start,
-            datetime_end,
-            forecast_resolution="15T",
-            flexnet_name="BEMMEL_9017589K_10-1V2LS",
+        self,
+        datetime_start,
+        datetime_end,
+        forecast_resolution="15T",
+        flexnet_name="BEMMEL_9017589K_10-1V2LS",
     ):
         query = """
             SELECT last("output")
@@ -260,20 +268,18 @@ class Ems():
 
         # Check if we got a DataFrame with the column name we expect
         if "power" in res:
-            states = pd.DataFrame(res["power"]).rename(
-                columns={"last": "state"}
-            )
+            states = pd.DataFrame(res["power"]).rename(columns={"last": "state"})
 
             return states
         else:
             return pd.DataFrame()
 
     def get_states_flexnet(
-            self,
-            datetime_start,
-            datetime_end,
-            forecast_resolution="15T",
-            flexnet_name="BEMMEL_9017589K_10-1V2LS",
+        self,
+        datetime_start,
+        datetime_end,
+        forecast_resolution="15T",
+        flexnet_name="BEMMEL_9017589K_10-1V2LS",
     ):
         """Get flexnet states for given flexnet name.
         If no result is found, return empty dataframe.

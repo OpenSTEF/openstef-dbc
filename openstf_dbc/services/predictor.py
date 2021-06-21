@@ -1,8 +1,7 @@
 from openstf_dbc.data_interface import _DataInterface
 
 
-class Predictor():
-
+class Predictor:
     def get_apx(self, datetime_start, datetime_end):
         query = 'SELECT "Price" FROM "forecast_latest".."marketprices" \
         WHERE "Name" = \'APX\' AND time >= \'{}\' AND time <= \'{}\''.format(

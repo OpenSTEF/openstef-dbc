@@ -20,7 +20,6 @@ pj = {
 
 @patch("openstf_dbc.services.predictions._DataInterface")
 class TestPredictions(unittest.TestCase):
-
     def test_get_predicted_load(self, data_interface_mock):
         pass
 
@@ -29,8 +28,11 @@ class TestPredictions(unittest.TestCase):
         end_time = datetime.utcnow()
         predictions_service = Predictions()
         predictions_service.get_predicted_load_tahead(
-            pj=pj, start_time=start_time, end_time=end_time,
-            t_ahead=None, component=False
+            pj=pj,
+            start_time=start_time,
+            end_time=end_time,
+            t_ahead=None,
+            component=False,
         )
         # get the _DataInterface mock (returned from get_instance)
         di = data_interface_mock.get_instance.return_value
@@ -40,7 +42,12 @@ class TestPredictions(unittest.TestCase):
         args, kwargs = di.exec_influx_query.call_args
         self.assertEqual(len(args), 1)
         query = args[0]
-        should_contain = ["forecast", "stdev","forecast_latest..prediction_tAheads", "demand"]
+        should_contain = [
+            "forecast",
+            "stdev",
+            "forecast_latest..prediction_tAheads",
+            "demand",
+        ]
         should_not_containe = ["forecast_solar"]
 
         for contains in should_contain:

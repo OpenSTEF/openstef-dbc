@@ -114,7 +114,7 @@ class TestKtpApi(TestCase):
 
     @mock.patch("requests.post")
     def test_post_measurements_with_tz(self, mock_post, mock_get):
-        """ Test with a timezone"""
+        """Test with a timezone"""
 
         sampleSID = "sampleSID"
         sampleKey = "sampleKey"
@@ -145,7 +145,7 @@ class TestKtpApi(TestCase):
 
     @mock.patch("requests.post")
     def test_post_measurements_without_tz(self, mock_post, mock_get):
-        """ Test without a timezone"""
+        """Test without a timezone"""
 
         sampleSID = "sampleSID"
         sampleKey = "sampleKey"
@@ -335,7 +335,6 @@ class TestKtpApi(TestCase):
         with warnings.catch_warnings(record=True) as w:
             ktp_api = KtpApi()
 
-
     @mock.patch("requests.delete")
     def test_delete_tracy_job(self, mock_delete, mock_get):
         put_del = Mock()
@@ -347,5 +346,5 @@ class TestKtpApi(TestCase):
             ktp_api.delete_tracy_job({"id": 4})
 
 
-if __name__=='__main__':
+if __name__ == "__main__":
     unittest.main()

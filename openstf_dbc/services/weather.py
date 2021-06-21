@@ -10,8 +10,7 @@ from openstf_dbc.data_interface import _DataInterface
 from openstf_dbc.services.write import Write
 
 
-class Weather():
-
+class Weather:
     def get_weather_forecast_locations(self, country="NL", active=1):
         """Get weather forecast locations.
 
@@ -38,20 +37,20 @@ class Weather():
     ):
         """Find the nearest weather forecast location.
 
-            Function that, given an location, finds the nearest location for which a
-            weatherforecast is available. A warning is generated when the distance is
-            greater than a certain distance (threshold).
+        Function that, given an location, finds the nearest location for which a
+        weatherforecast is available. A warning is generated when the distance is
+        greater than a certain distance (threshold).
 
-            If multiple weather locations have the same distance, only one is returned.
+        If multiple weather locations have the same distance, only one is returned.
 
-            Args:
-                location (str, tuple): Name of the location/city or coordinates (lat, lon).
-                threshold (int): Maximum distance [km] before a warning is generated.
-                country (str):  Country code (2-letter: ISO 3166-1).
-                active (int): Use only active weather location if 1.
+        Args:
+            location (str, tuple): Name of the location/city or coordinates (lat, lon).
+            threshold (int): Maximum distance [km] before a warning is generated.
+            country (str):  Country code (2-letter: ISO 3166-1).
+            active (int): Use only active weather location if 1.
 
-            Returns:
-                str: The name of the weather forecast location.
+        Returns:
+            str: The name of the weather forecast location.
         """
         # Get all available cities
         weather_locations = self.get_weather_forecast_locations(country="NL", active=1)
@@ -63,24 +62,27 @@ class Weather():
             location_coordinates = location
 
         # Now we have the coordinates of the input_city. Next, find nearest weather location
-        distances = pd.DataFrame(columns=['distance', 'input_city'])
+        distances = pd.DataFrame(columns=["distance", "input_city"])
         for weather_location in weather_locations:
-            coordinates = (weather_location['lat'], weather_location['lon'])
+            coordinates = (weather_location["lat"], weather_location["lon"])
 
             if np.nan in coordinates:
-                raise ValueError("No coordinates found, pleas make sure a prope location "
-                                "is configured in the mySQL database")
+                raise ValueError(
+                    "No coordinates found, pleas make sure a prope location "
+                    "is configured in the mySQL database"
+                )
 
             distance = round(
-                geopy.distance.geodesic(coordinates, location_coordinates).km)
-            city = weather_location['city']
+                geopy.distance.geodesic(coordinates, location_coordinates).km
+            )
+            city = weather_location["city"]
             distances = distances.append(
                 {"distance": distance, "input_city": city}, ignore_index=True
             )
 
-        distances = distances.set_index('distance')
+        distances = distances.set_index("distance")
 
-        nearest_location = distances['input_city'][distances.index.min()]
+        nearest_location = distances["input_city"][distances.index.min()]
 
         # Find closest weather location
         if distances.index.min() < threshold:

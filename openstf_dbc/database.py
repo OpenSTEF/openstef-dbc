@@ -13,8 +13,8 @@ from openstf_dbc.services.systems import Systems
 class DataBase:
     """Provides a high-level interface to various data sources.
 
-        All user/client code should use this class to get or write data. Under the hood
-        this class uses various services to interfact with its datasource.
+    All user/client code should use this class to get or write data. Under the hood
+    this class uses various services to interfact with its datasource.
     """
 
     # services
@@ -51,7 +51,9 @@ class DataBase:
     # weather methods
     get_weather_forecast_locations = _weather.get_weather_forecast_locations
     get_weather_data = _weather.get_weather_data
-    get_datetime_last_stored_knmi_weatherdata = _weather.get_datetime_last_stored_knmi_weatherdata
+    get_datetime_last_stored_knmi_weatherdata = (
+        _weather.get_datetime_last_stored_knmi_weatherdata
+    )
     # predictor methods
     get_apx = _predictor.get_apx
     get_gas_price = _predictor.get_gas_price
@@ -62,7 +64,9 @@ class DataBase:
     get_load_pid = _historic_cdb_data_service.get_load_pid
     get_states_flexnet = _historic_cdb_data_service.get_states_flexnet
     get_curtailments = _historic_cdb_data_service.get_curtailments
-    get_load_created_datetime_sid = _historic_cdb_data_service.get_load_created_datetime_sid
+    get_load_created_datetime_sid = (
+        _historic_cdb_data_service.get_load_created_datetime_sid
+    )
     # splitting methods
     get_wind_ref = _splitting.get_wind_ref
     get_energy_split_coefs = _splitting.get_energy_split_coefs
@@ -78,11 +82,12 @@ class DataBase:
     # systems methods
     get_systems_near_location = _systems.get_systems_near_location
     get_systems_by_pid = _systems.get_systems_by_pid
-    get_pv_systems_with_incorrect_location = _systems.get_pv_systems_with_incorrect_location
+    get_pv_systems_with_incorrect_location = (
+        _systems.get_pv_systems_with_incorrect_location
+    )
     get_random_pv_systems = _systems.get_random_pv_systems
 
     def __init__(self):
         """Init the stuff that also performs actions on init"""
         # Ktp api
         self.ktp_api = _DataInterface.get_instance().ktp_api
-

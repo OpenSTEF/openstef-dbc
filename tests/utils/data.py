@@ -63,7 +63,6 @@ class TestData:
 
         return self._load_stored_dataframe(name, self._PICKLED_DF_FILES, pd.read_pickle)
 
-
     def _get_csv_dataframe(self, name):
         return self._load_stored_dataframe(name, self._CSV_DF_FILES, pd.read_csv)
 
@@ -76,6 +75,6 @@ class TestData:
         file_path = self.DATA_FILES_FOLDER / filenames_map[name]
         df = read_func(file_path)
         if name == "INPUT_DATA":
-            df.index.freq="15T"
+            df.index.freq = "15T"
         setattr(self, name, df)
         return df

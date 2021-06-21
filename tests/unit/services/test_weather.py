@@ -7,14 +7,10 @@ import pandas as pd
 from tests.utils.base import BaseTestCase
 from openstf_dbc.services.weather import Weather
 
-unit_test_path = os.path.join(
-    os.path.dirname(__file__), os.path.pardir
-)
+unit_test_path = os.path.join(os.path.dirname(__file__), os.path.pardir)
 
 noncombined_weatherdata = pd.read_csv(
-    os.path.join(
-        unit_test_path, "data/noncombined_weatherdata_test_data.csv"
-    ),
+    os.path.join(unit_test_path, "data/noncombined_weatherdata_test_data.csv"),
     sep=";",
     index_col=0,
     parse_dates=["datetime"],
@@ -38,18 +34,14 @@ noncombined_weatherdata_nomissing = pd.read_csv(
 )
 
 combined_weatherdata_nomissing = pd.read_csv(
-    os.path.join(
-        unit_test_path, "data/combined_weatherdata_nomissing_test_data.csv"
-    ),
+    os.path.join(unit_test_path, "data/combined_weatherdata_nomissing_test_data.csv"),
     sep=";",
     index_col=0,
     parse_dates=["datetime"],
 )
 
 combined_weatherdata_DSN = pd.read_csv(
-    os.path.join(
-        unit_test_path, "data/combined_weatherdata_DSN_test_data.csv"
-    ),
+    os.path.join(unit_test_path, "data/combined_weatherdata_DSN_test_data.csv"),
     sep=";",
     index_col=0,
     parse_dates=["datetime"],
@@ -59,7 +51,6 @@ combined_weatherdata_DSN = pd.read_csv(
 @patch("openstf_dbc.services.weather._DataInterface", MagicMock())
 @patch("openstf_dbc.services.weather.Write", MagicMock())
 class TestWeather(BaseTestCase):
-
     def test_combine_weather_sources_fill_nan_values(self):
         """Data: dataframe contains weather data of multiple sources for same timpestamp with nan-values
 
@@ -89,7 +80,8 @@ class TestWeather(BaseTestCase):
         """
         database = Weather()
         response = database._combine_weather_sources(
-            result=noncombined_weatherdata, source_order=["DSN", "harmonie", "harm_arome"]
+            result=noncombined_weatherdata,
+            source_order=["DSN", "harmonie", "harm_arome"],
         )
         expected_response = combined_weatherdata_DSN
         # FIXME assert fails pressure column is of type object (str) in response
@@ -108,4 +100,3 @@ class TestWeather(BaseTestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

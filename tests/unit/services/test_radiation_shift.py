@@ -6,6 +6,7 @@ import numpy as np
 
 from openstf_dbc.services.weather import Weather
 
+
 @patch("openstf_dbc.data_interface._DataInterface")
 class TestRadiationShift(unittest.TestCase):
     def test(self, data_interface_mock):
@@ -16,10 +17,13 @@ class TestRadiationShift(unittest.TestCase):
         index = pd.date_range(start, end, freq="15T")
         values = np.arange(index.size)
 
-        df_test = pd.DataFrame({
-            "temp": values,
-            "radiation": values,
-        }, index=index)
+        df_test = pd.DataFrame(
+            {
+                "temp": values,
+                "radiation": values,
+            },
+            index=index,
+        )
 
         data_interface_mock._instance.exec_influx_query.return_value = {
             "weather": df_test
@@ -39,6 +43,7 @@ class TestRadiationShift(unittest.TestCase):
         self.assertEqual(df_check.index[-1], end)
         np.testing.assert_array_equal(df_check["temp"], values[4:])
         np.testing.assert_array_equal(df_check["radiation"], values[4:] - 2)
+
 
 if __name__ == "__main__":
     unittest.main()

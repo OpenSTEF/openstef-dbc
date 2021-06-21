@@ -11,7 +11,6 @@ from openstf_dbc.config.enums import RuntimeEnv
 @patch("openstf_dbc.config.config.ConfigBuilder", MagicMock())
 @patch("openstf_dbc.config.utils.determine_runtime_environment")
 class TestConfigManager(unittest.TestCase):
-
     def setUp(self):
         # reset singleton before every tests
         ConfigManager._loaded_config = None
@@ -37,4 +36,3 @@ class TestConfigManager(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

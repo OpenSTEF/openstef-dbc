@@ -38,7 +38,10 @@ class ConfigBuilder:
         if env is RuntimeEnv.LOCAL:
             namespace = utils.determine_local_namespace()
             cls.logger.info(
-                "Build config for development", runtime_env=env.value, namespace=namespace.value)
+                "Build config for development",
+                runtime_env=env.value,
+                namespace=namespace.value,
+            )
             main_config, local_config, user_config = cls._build_project_config_paths(
                 project_root=project_root, namespace=namespace
             )
@@ -46,8 +49,7 @@ class ConfigBuilder:
             secrets = cls._load_local_secrets(namespace)
             return cls._interpolate_secrets(config, secrets)
 
-        cls.logger.info(
-            "Build config for production", runtime_env=env.value)
+        cls.logger.info("Build config for production", runtime_env=env.value)
         config = cls._load_cluster_config()
         secrets = cls._load_cluster_secrets()
 
@@ -61,7 +63,11 @@ class ConfigBuilder:
         if env is RuntimeEnv.CONTAINER:
             raise ValueError("No default config for production")
 
-        cls.logger.info("Build config for local use", runtime_env=env.value, namespace=namespace.value)
+        cls.logger.info(
+            "Build config for local use",
+            runtime_env=env.value,
+            namespace=namespace.value,
+        )
         main_config = Path(MAIN_LOCAL_CONFIG_PATH.format(namespace=namespace.value))
         config = cls._load_local_config(main_config)
         secrets = cls._load_local_secrets(namespace)
@@ -69,8 +75,12 @@ class ConfigBuilder:
 
     @classmethod
     def _build_project_config_paths(cls, project_root, namespace):
-        main_config = project_root / MAIN_CONFIG_REL_PATH.format(namespace=namespace.value)
-        local_config = project_root / LOCAL_CONFIG_REL_PATH.format(namespace=namespace.value)
+        main_config = project_root / MAIN_CONFIG_REL_PATH.format(
+            namespace=namespace.value
+        )
+        local_config = project_root / LOCAL_CONFIG_REL_PATH.format(
+            namespace=namespace.value
+        )
         user_config = project_root / USER_CONFIG_REL_PATH
         return main_config, local_config, user_config
 
@@ -120,8 +130,12 @@ class ConfigBuilder:
         return config
 
     @classmethod
-    def _load_cluster_secrets(cls, ):
-        secrets = {k: v for k, v in os.environ.items() if k.startswith(SECRETS_ENV_VAR_PREFIX)}
+    def _load_cluster_secrets(
+        cls,
+    ):
+        secrets = {
+            k: v for k, v in os.environ.items() if k.startswith(SECRETS_ENV_VAR_PREFIX)
+        }
         return secrets
 
     @classmethod

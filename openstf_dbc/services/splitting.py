@@ -10,11 +10,8 @@ from openstf_dbc.services.ems import Ems
 from openstf_dbc.services.predictor import Predictor
 
 
-
-
-#TODO check if this functionality should be transfered to a data preparation step for energy splitting in ktprognoses
+# TODO check if this functionality should be transfered to a data preparation step for energy splitting in ktprognoses
 class Splitting:
-
     def get_energy_split_coefs(self, pj, mean=False):
         """
             Method to retrieve latest energy splitting coefficients from the database.
@@ -34,7 +31,7 @@ class Splitting:
             query = (
                 "SELECT ec.coef_name, AVG(ec.coef_value) FROM energy_split_coefs as ec "
                 "WHERE ec.pid = {} AND ec.created > '{}' GROUP BY ec.coef_name ".format(
-                    pj['id'], start_date.date()
+                    pj["id"], start_date.date()
                 )
             )
         # Retrieve latest coefficients otherwise
@@ -42,7 +39,7 @@ class Splitting:
             query = (
                 "SELECT ec.coef_name,ec.coef_value FROM energy_split_coefs as ec WHERE  ec.pid = {pid} "
                 "AND ec.created = (SELECT max(energy_split_coefs.created) from energy_split_coefs "
-                "WHERE energy_split_coefs.pid = {pid})".format(pid=pj['id'])
+                "WHERE energy_split_coefs.pid = {pid})".format(pid=pj["id"])
             )
         # Execute query
         result = _DataInterface.get_instance().exec_sql_query(query)
@@ -78,11 +75,13 @@ class Splitting:
             source="optimum",
         )
 
-        wind_ref = self._calculate_windspeed_at_hubheight(self, windspeed=wind_speed['windspeed_100m'], fromheight=100, hub_height=100)
+        wind_ref = self._calculate_windspeed_at_hubheight(
+            self, windspeed=wind_speed["windspeed_100m"], fromheight=100, hub_height=100
+        )
         wind_ref = wind_ref / np.abs(np.amax(wind_ref))
 
         result = pd.DataFrame()
-        result['windspeed'] = wind_ref
+        result["windspeed"] = wind_ref
 
         # Return result
         return result
@@ -139,7 +138,9 @@ class Splitting:
         sjv = Predictor().get_tdcv_load_profiles(datetime_start, datetime_end)
 
         # Get windpower reference
-        wind_ref = self.get_wind_ref((pj["lat"], pj["lon"]), datetime_start, datetime_end)
+        wind_ref = self.get_wind_ref(
+            (pj["lat"], pj["lon"]), datetime_start, datetime_end
+        )
 
         # Get load data
         load = Ems().get_load_pid(
@@ -190,7 +191,9 @@ class Splitting:
         return input_split_function
 
     @staticmethod
-    def _calculate_windspeed_at_hubheight(self, windspeed, fromheight=10, hub_height=100):
+    def _calculate_windspeed_at_hubheight(
+        self, windspeed, fromheight=10, hub_height=100
+    ):
         """
         function that extrapolates a wind from a certain height to 100m
         According to the wind power law (https://en.wikipedia.org/wiki/Wind_profile_power_law)

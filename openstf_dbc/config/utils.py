@@ -33,10 +33,7 @@ def determine_local_namespace():
     for path in os.environ.get("PATH").split(os.pathsep):
         path = Path(path)
         # Two possible locations, depening on your path setup
-        locations = [
-            path / "icarus-scripts" / "namespace.txt",
-            path / "namespace.txt"
-        ]
+        locations = [path / "icarus-scripts" / "namespace.txt", path / "namespace.txt"]
         for location in locations:
             if location.is_file() is False:
                 continue
@@ -49,8 +46,7 @@ def determine_local_namespace():
 
 
 def merge(source, overrides):
-    """Merge a nested dictionary in place.
-    """
+    """Merge a nested dictionary in place."""
     # initialize empty dict when source is None
     if source is None:
         source = {}

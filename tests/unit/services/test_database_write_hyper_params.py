@@ -35,17 +35,15 @@ df = (
         },
         orient="index",
     )
-        .reset_index()
-        .rename(columns={"index": "name", 0: "id"})
+    .reset_index()
+    .rename(columns={"index": "name", 0: "id"})
 )
 
 data_interface_mock = mock.MagicMock()
 get_instance_mock = mock.MagicMock(return_value=data_interface_mock)
 
 # Test conversion to proper dataformat
-@mock.patch.object(
-    _DataInterface, "get_instance", get_instance_mock
-)
+@mock.patch.object(_DataInterface, "get_instance", get_instance_mock)
 def test_mock_query(*args):
     params = dict()
     params["subsample"] = 0.9

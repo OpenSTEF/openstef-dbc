@@ -77,9 +77,8 @@ def test_proper_data_format(*args):
 
 # Test fall back on default parameters
 
-@mock.patch.object(
-    _DataInterface, "get_instance", get_instance_mock
-)
+
+@mock.patch.object(_DataInterface, "get_instance", get_instance_mock)
 def test_empty_data_frame(*args):
     """This tests tests if the default parameters are returned if the database returns an empty dataframe"""
     data_interface_mock.exec_sql_query.return_value = empty_data_frame
@@ -89,9 +88,7 @@ def test_empty_data_frame(*args):
 
 
 # Test if query went wrong
-@mock.patch.object(
-    _DataInterface, "get_instance", get_instance_mock
-)
+@mock.patch.object(_DataInterface, "get_instance", get_instance_mock)
 def test_error_in_query(*args):
     """This tests tests if the default hyperparameters are returned in case of an error"""
     data_interface_mock.exec_sql_query.return_value = None

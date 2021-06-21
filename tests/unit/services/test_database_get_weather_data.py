@@ -35,8 +35,7 @@ weatherdata = pd.DataFrame(
 
 
 @mock.patch(
-    "openstf_dbc.database.DataBase",
-    **{"get_weatherdata.return_value": weatherdata}
+    "openstf_dbc.database.DataBase", **{"get_weatherdata.return_value": weatherdata}
 )
 def test_mock_query(db_mock):
     # Variables

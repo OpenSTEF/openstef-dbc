@@ -6,7 +6,6 @@ from openstf_dbc.database import DataBase
 
 @patch("openstf_dbc.database._DataInterface", MagicMock())
 class TestDatabase(unittest.TestCase):
-
     def test_init(self):
         DataBase()
 

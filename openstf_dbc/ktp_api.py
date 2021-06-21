@@ -67,12 +67,15 @@ class KtpApi:
         credentials = self._get_credentials(path)
 
         r = requests.get(
-            endpoint, auth=credentials, proxies=self.proxies, params=params,
-            timeout=self.timeout
+            endpoint,
+            auth=credentials,
+            proxies=self.proxies,
+            params=params,
+            timeout=self.timeout,
         )
         if r.status_code != 200:
             warnings.warn(
-                    "GET for url {} failed with status {} and message: {}".format(
+                "GET for url {} failed with status {} and message: {}".format(
                     endpoint, r.status_code, r.text
                 )
             )
@@ -92,8 +95,12 @@ class KtpApi:
         credentials = self._get_credentials(path)
 
         p = requests.post(
-            endpoint, json=payload, auth=credentials, proxies=self.proxies,
-            params=params, timeout=self.timeout
+            endpoint,
+            json=payload,
+            auth=credentials,
+            proxies=self.proxies,
+            params=params,
+            timeout=self.timeout,
         )
         return p
 
@@ -110,8 +117,11 @@ class KtpApi:
         credentials = self._get_credentials(path)
 
         p = requests.patch(
-            endpoint, json=payload, auth=credentials, proxies=self.proxies,
-            timeout=self.timeout
+            endpoint,
+            json=payload,
+            auth=credentials,
+            proxies=self.proxies,
+            timeout=self.timeout,
         )
 
         if p.status_code != 200:
@@ -128,8 +138,11 @@ class KtpApi:
         credentials = self._get_credentials(path)
 
         u = requests.put(
-            endpoint, json=payload, auth=credentials, proxies=self.proxies,
-            timeout=self.timeout
+            endpoint,
+            json=payload,
+            auth=credentials,
+            proxies=self.proxies,
+            timeout=self.timeout,
         )
 
         if u.status_code != 200:
@@ -156,7 +169,9 @@ class KtpApi:
         try:
             r = self._get(KtpApi.__INFLUX_TEST_URL)
         except Exception as e:
-            warnings.warn(f"Could not establish connection with ktp-api. Continuing anyway... {e}")
+            warnings.warn(
+                f"Could not establish connection with ktp-api. Continuing anyway... {e}"
+            )
             r = dict(status=200)
         return r
 
@@ -312,7 +327,9 @@ class KtpApi:
             # Raise exception of no valid response.
             # Alternatively, we could chose to return empty job list.
             # Lets try this first
-            raise ConnectionError('API endpoint to retrieve tracy jobs was not available')
+            raise ConnectionError(
+                "API endpoint to retrieve tracy jobs was not available"
+            )
         jobs = self._tracy_function_tolower(r.json())
 
         # No filter
@@ -408,6 +425,4 @@ class KtpApi:
         )
 
     def _build_api_exception_from_requests_exception(self, e):
-        return ApiException(
-            f"An exception occured while making an API requests: {e}"
-        )
+        return ApiException(f"An exception occured while making an API requests: {e}")

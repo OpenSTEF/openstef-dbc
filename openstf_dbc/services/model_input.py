@@ -12,7 +12,6 @@ from openstf_dbc.services.predictor import Predictor
 
 # TODO refactor and include in preprocessing and make uniform for making predictions and training models
 class ModelInput:
-
     def get_model_input(
         self,
         pid=295,
@@ -49,7 +48,9 @@ class ModelInput:
             datetime_end = str(datetime.utcnow().date() + timedelta(3))
 
         # Get load data
-        load = Ems().get_load_pid(pid, datetime_start, datetime_end, forecast_resolution)
+        load = Ems().get_load_pid(
+            pid, datetime_start, datetime_end, forecast_resolution
+        )
         if len(load) == 0:
             raise Warning("Historic load is empty.")
 
@@ -150,6 +151,7 @@ class ModelInput:
             )
 
         return result
+
     def get_solar_input(
         self,
         location,
@@ -172,7 +174,7 @@ class ModelInput:
             - forecastResolution: time resolution of forecast in minutes [int]
             - datetime_start: datetime of forecast
             - source: preferred weather source as a string, default for wind is DSN
-            """
+        """
         if datetime_start is None:
             datetime_start = datetime.utcnow()
 
@@ -186,7 +188,9 @@ class ModelInput:
                 sid = systems.loc[0].sid  # select nearest system
             # print("Using system", sid, "for this prediction.")
         else:
-            systems = systems_service.get_systems_near_location(location, radius, freq=5)
+            systems = systems_service.get_systems_near_location(
+                location, radius, freq=5
+            )
             sid = systems.sid
             # print("Found", len(systems), "systems for this prediction.")
 
@@ -263,8 +267,11 @@ class ModelInput:
         datetime_end = datetime_start + timedelta(minutes=forecast_horizon)
 
         windspeed = Weather().get_weather_data(
-            location=location, weatherparams="windspeed_100m",
-            datetime_start=datetime_start, datetime_end=datetime_end, source=source
+            location=location,
+            weatherparams="windspeed_100m",
+            datetime_start=datetime_start,
+            datetime_end=datetime_end,
+            source=source,
         )
 
         # WindSpeedhubheight - not neccesary because windspeed_100m forecast is used
@@ -281,7 +288,7 @@ class ModelInput:
         return pd.DataFrame(windspeed.windspeed_100m)
 
     def get_power_curve(self, turbine_type):
-        """"This function retrieves the power curve coefficients from the genericpowercurves table,
+        """ "This function retrieves the power curve coefficients from the genericpowercurves table,
         using the turbine type as input."""
         query = "SELECT * FROM genericpowercurves WHERE name = '" + turbine_type + "'"
 
@@ -293,5 +300,3 @@ class ModelInput:
             result.steepness = float(result.steepness)
 
             return result.to_dict(orient="records")[0]
-
-

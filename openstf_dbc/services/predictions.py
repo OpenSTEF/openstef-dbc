@@ -7,7 +7,6 @@ from openstf_dbc.data_interface import _DataInterface
 
 
 class Predictions:
-
     def get_predicted_load(self, pj, start_time=None, end_time=None):
         """Get historic load predictions for given pid.
 
@@ -21,7 +20,7 @@ class Predictions:
         Returns:
             pandas.Series: Forecast column with the predicted values
 
-                """
+        """
         # Apply default parameters if none are provided
         if start_time is None:
             start_time = datetime.utcnow()
@@ -39,7 +38,7 @@ class Predictions:
             ) AND time >= '{}' AND time < '{}'
             GROUP BY time(15m)
         """.format(
-            pj['id'], start_time, end_time
+            pj["id"], start_time, end_time
         )
 
         # Query the database
@@ -84,14 +83,18 @@ class Predictions:
                     FROM forecast_latest..prediction_tAheads
                     WHERE ("pid" = '{}' AND "type" = '{}') AND time >= '{}' AND time < '{}'
                     GROUP BY time(15m), "tAhead"
-                """.format(pj['id'], "demand", start_time, end_time)
+                """.format(
+                    pj["id"], "demand", start_time, end_time
+                )
             else:
                 query = """
                     SELECT mean("forecast") as forecast, mean("stdev") as stdev
                     FROM forecast_latest..prediction_tAheads
                     WHERE ("pid" = '{}' AND "type" = '{}') AND time >= '{}' AND time < '{}'
                     GROUP BY time(15m), "tAhead"
-                """.format(pj['id'], "demand", start_time, end_time)
+                """.format(
+                    pj["id"], "demand", start_time, end_time
+                )
 
         # For a selection of t_aheads a custom query is generated
         else:
@@ -123,7 +126,9 @@ class Predictions:
                 FROM forecast_latest..prediction_tAheads
                 WHERE ("pid" = '{}' AND "type" = '{}' AND ({})) AND time >= '{}' AND time < '{}'
                 GROUP BY time(15m), "tAhead"
-            """.format(pj['id'], "demand", t_aheads, start_time, end_time)
+            """.format(
+                pj["id"], "demand", t_aheads, start_time, end_time
+            )
 
         # Query the database
         result = _DataInterface.get_instance().exec_influx_query(query)
@@ -133,9 +138,7 @@ class Predictions:
 
         for t_ahead in list(result):
             h_ahead = str(t_ahead[1][0][1])
-            renames = dict(
-                forecast=f"forecast_{h_ahead}h", stdev=f"stdev_{h_ahead}h"
-            )
+            renames = dict(forecast=f"forecast_{h_ahead}h", stdev=f"stdev_{h_ahead}h")
             predicted_load = predicted_load.merge(
                 result[t_ahead].rename(columns=renames),
                 how="outer",

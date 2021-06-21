@@ -8,8 +8,7 @@ from openstf_dbc.data_interface import _DataInterface
 from openstf_dbc.log import logging
 
 
-class Write():
-
+class Write:
     def __init__(self):
         self.logger = logging.get_logger(self.__class__.__name__)
 
@@ -94,8 +93,11 @@ class Write():
             num_rows = str(len(forecast))
             self.logger.info(
                 "Succesfully written Forecast to database",
-                num_rows=num_rows, database=dbname, measurement=influxtable,
-                tag_columns=tag_columns, field_columns=field_columns
+                num_rows=num_rows,
+                database=dbname,
+                measurement=influxtable,
+                tag_columns=tag_columns,
+                field_columns=field_columns,
             )
             message += f"Written {num_rows} rows to {dbname}.{influxtable}"
 
@@ -108,12 +110,18 @@ class Write():
     def _write_t_ahead_series(self, forecast, dbname="forecast_latest"):
         self.logger.info("Store t ahead series")
         allowed_columns = [
-            "tAhead", "pid", "forecast", "stdev", "customer",
-            "description", "type", "quality",
+            "tAhead",
+            "pid",
+            "forecast",
+            "stdev",
+            "customer",
+            "description",
+            "type",
+            "quality",
         ]
 
         # Extract quantile column names and add to allowed columns
-        quantile_forecasts = [name for name in forecast.columns if 'quantile_' in name]
+        quantile_forecasts = [name for name in forecast.columns if "quantile_" in name]
         allowed_columns = allowed_columns + quantile_forecasts
 
         influxtable = "prediction_tAheads"
@@ -124,8 +132,7 @@ class Write():
         # Add tAhead column, round to hour
         t_adf = forecast.copy()
         t_adf["tAhead"] = np.floor(
-            (t_adf.index.tz_localize(None) - datetime.utcnow()).total_seconds()
-            / 3600
+            (t_adf.index.tz_localize(None) - datetime.utcnow()).total_seconds() / 3600
         )
         # floor all tAheads to first tAhead lower than or equal to calculated tAhead
         # 1000 as a fill value if all else fails
@@ -154,8 +161,11 @@ class Write():
         num_rows = str(len(t_adf))
         self.logger.info(
             "Succesfully written t ahead series to database",
-            num_rows=num_rows, database=dbname, measurement=influxtable,
-            tag_columns=tag_columns, field_columns=field_columns
+            num_rows=num_rows,
+            database=dbname,
+            measurement=influxtable,
+            tag_columns=tag_columns,
+            field_columns=field_columns,
         )
         return f"Written {num_rows} rows to {dbname}.{influxtable}"
 
@@ -275,7 +285,6 @@ class Write():
             )
         )
 
-
     def write_hyper_params(self, pj, hyper_params):
         """Writes site- and model specific hyperparameters to the MySQL database.
 
@@ -327,7 +336,7 @@ class Write():
         _DataInterface.get_instance().exec_sql_write(query)
 
     def write_kpi(self, pj, kpis):
-        """ Method that writes the key performance indicators of a pid to an influx DB.
+        """Method that writes the key performance indicators of a pid to an influx DB.
 
         Args:
             pj: a KTP prediction job
@@ -339,7 +348,7 @@ class Write():
         """
         df = pd.DataFrame(pd.DataFrame(kpis)).T
         df["tAhead"] = [float(x.replace("h", "")) for x in df.index]
-        df["pid"] = pj['id']
+        df["pid"] = pj["id"]
         # add date
         df = df.set_index("date")
 
@@ -367,7 +376,7 @@ class Write():
             tag_columns=tags,
         )
         # Let user know everything went well
-        self.logger.info("Succesfully wrote KPIs for pid: {}".format(str(pj['id'])))
+        self.logger.info("Succesfully wrote KPIs for pid: {}".format(str(pj["id"])))
 
     def write_apx_market_data(self, apx_data):
         success = _DataInterface.get_instance().exec_influx_write(
@@ -377,7 +386,7 @@ class Write():
             tag_columns=["Name"],
             field_columns=["Price"],
             time_precision="s",
-            protocol="json"
+            protocol="json",
         )
         return success
 

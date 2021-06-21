@@ -1,8 +1,7 @@
 from openstf_dbc.data_interface import _DataInterface
 
 
-class Systems():
-
+class Systems:
     def get_systems_near_location(
         self, location, radius=15, quality=0.75, freq=None, lag_systems=None
     ):
@@ -18,7 +17,7 @@ class Systems():
 
         Return:
             - pd.DataFrame(sid, lat, lon, region, distance)
-            """
+        """
 
         # Define base query
         # use Great-circle calculation to determine systems within radius (6371 is radius of Earth)
@@ -69,7 +68,9 @@ class Systems():
         WHERE predictions_systems.prediction_id=%(pid)s
         """
 
-        systems = _DataInterface.get_instance().exec_sql_query(query, params={"pid": pid})
+        systems = _DataInterface.get_instance().exec_sql_query(
+            query, params={"pid": pid}
+        )
 
         if return_list is False:
             return systems

@@ -81,7 +81,7 @@ class _DataInterface:
             pw=self.config.mysql.password,
             host=self.config.mysql.host,
             port=self.config.mysql.port,
-            db_name=self.config.mysql.database_name
+            db_name=self.config.mysql.database_name,
         )
         try:
             return sqlalchemy.create_engine(database_url)
@@ -97,8 +97,7 @@ class _DataInterface:
             raise
         except Exception as e:
             self.logger.error(
-                "Error occured during executing InfluxDB query",
-                query=query, exc_info=e
+                "Error occured during executing InfluxDB query", query=query, exc_info=e
             )
             raise
 
@@ -160,7 +159,8 @@ class _DataInterface:
             raise
         except sqlalchemy.exc.ProgrammingError as e:
             self.logger.error(
-                "Error occured during executing query", query=query, exc_info=e)
+                "Error occured during executing query", query=query, exc_info=e
+            )
             raise
         except sqlalchemy.exc.DatabaseError as e:
             self.logger.error("Can't connecto to MySQL database", exc_info=e)
@@ -172,7 +172,8 @@ class _DataInterface:
                 connection.execute(statement)
         except Exception as e:
             self.logger.error(
-                "Error occured during executing query", query=statement, exc_info=e)
+                "Error occured during executing query", query=statement, exc_info=e
+            )
             raise
 
     def exec_sql_dataframe_write(self, dataframe, table, **kwargs):

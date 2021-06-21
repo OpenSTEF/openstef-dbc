@@ -124,7 +124,7 @@ def _disable_third_party_loggers():
         "parso.cache",
         "asyncio",
         "urllib3.connectionpool",
-        "cfgrid.dataset"
+        "cfgrid.dataset",
     ]
     for name in annoying_loggers:
         logging.getLogger(name).setLevel(annoying_loggers_level)
@@ -136,17 +136,16 @@ def _configure_logging_development(loglevel):
         # threadlocal processors
         structlog.threadlocal.merge_threadlocal_context,
         structlog.stdlib.add_log_level,
-        structlog.stdlib.add_logger_name,   # ConsoleRendered has a fixed positions
+        structlog.stdlib.add_logger_name,  # ConsoleRendered has a fixed positions
         structlog.processors.StackInfoRenderer(),
         structlog.processors.format_exc_info,
         structlog.processors.UnicodeDecoder(),
         structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M:%S"),
     ]
 
-    processors = (
-        shared_processors +
-        [structlog.stdlib.ProcessorFormatter.wrap_for_formatter]
-    )
+    processors = shared_processors + [
+        structlog.stdlib.ProcessorFormatter.wrap_for_formatter
+    ]
 
     structlog.configure(
         processors=processors,
@@ -181,14 +180,14 @@ def _configure_logging_deployed(loglevel):
         # threadlocal processors
         structlog.threadlocal.merge_threadlocal_context,
         # stdlib processors
-        structlog.stdlib.add_log_level,                 # add log level to event_dict
-        structlog.stdlib.add_logger_name,               # add name to event_dict
+        structlog.stdlib.add_log_level,  # add log level to event_dict
+        structlog.stdlib.add_logger_name,  # add name to event_dict
         # structlog processors
         structlog.processors.format_exc_info,
         structlog.processors.UnicodeDecoder(),
         structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M:%S"),
         # custom processors
-        custom_processors.add_application_metadata,     #
+        custom_processors.add_application_metadata,  #
         custom_processors.rename_forbidden_keys,
     ]
 
@@ -216,18 +215,18 @@ def _configure_logging_deployed(loglevel):
             },
             "loggers": {
                 "": {
-                        "handlers": ["default"],
-                        "level": loglevel,
-                        "propagate": True,
-                    }
+                    "handlers": ["default"],
+                    "level": loglevel,
+                    "propagate": True,
+                }
             },
         }
     )
 
     processors = (
-        [structlog.stdlib.filter_by_level] +
-        shared_processors +
-        [structlog.stdlib.ProcessorFormatter.wrap_for_formatter]
+        [structlog.stdlib.filter_by_level]
+        + shared_processors
+        + [structlog.stdlib.ProcessorFormatter.wrap_for_formatter]
     )
 
     structlog.configure(
@@ -255,14 +254,15 @@ def get_logger(name=__name__):
 def initialize_logging(name, log_level=None):
     """Empty placeholder for backward compatibility"""
     warnings.warn(
-        f'DEPRECATION WARNING: initialize_logging({name}) will be depreciated soon.'
-        f'please use the new get_logger function. log_level argument not used: {log_level}'
+        f"DEPRECATION WARNING: initialize_logging({name}) will be depreciated soon."
+        f"please use the new get_logger function. log_level argument not used: {log_level}"
     )
 
     return get_logger(name)
 
+
 def set_log_level(level):
     """Placeholder for backward compatibility"""
-    if level is None or level == 'None':
-        level = 'INFO'
+    if level is None or level == "None":
+        level = "INFO"
     configure_logging(level)
