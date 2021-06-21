@@ -175,7 +175,7 @@ class Write:
         source,
         table="weather",
         dbname="forecast_latest",
-        tag_columns=["input_city", "source"],
+            tag_columns=None,
     ):
         """This function should be used to write data directly to our database.
         Do not use this function for Measurements data (pvdata, demanddata, winddata).
@@ -194,6 +194,9 @@ class Write:
 
         # These names are forbidden to be used as fields, as thy will break everything!
         # Influx is very picky about fields vs tags
+        if tag_columns is None:
+            tag_columns = ["input_city", "source"]
+
         forbidden_fields = ["input_city", "source"]
 
         message = ""  # Create string placeholder for return message

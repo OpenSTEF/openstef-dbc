@@ -113,7 +113,7 @@ class Predictions:
             # Loop over requested t_aheads and add them to the query
             for item in t_ahead:
                 # Get rid of hour symbols
-                item = re.sub("h|H", "", item)
+                item = re.sub("[hH]", "", item)
                 # Make string for this t_ahead
                 t_aheads = t_aheads + """ "tAhead" = '{}' OR""".format(str(item) + ".0")
 

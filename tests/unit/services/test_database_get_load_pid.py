@@ -1,6 +1,6 @@
 import unittest
 import pandas as pd
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 # from openstf_dbc.services.systems import Systems
 from openstf_dbc.services.ems import Ems as EmsService

@@ -136,7 +136,7 @@ class Weather:
         return location
 
     def _combine_weather_sources(
-        self, result, source_order=["harm_arome", "GFS_50", "harmonie", "DSN"]
+        self, result, source_order=None
     ):
         """
         Function that complete's the weatherdata from the influx database retrieved using get_weatherdata
@@ -163,6 +163,9 @@ class Weather:
         ####
         # step 1: Create list of multiple dataframes,
         # check which of the 'optimum' sources are actually in the list
+        if source_order is None:
+            source_order = ["harm_arome", "GFS_50", "harmonie", "DSN"]
+
         active_sources = [s for s in source_order if s in set(result.source)]
         # for each source a seperate dataframe
         df_list = [result[result.source == s] for s in active_sources]

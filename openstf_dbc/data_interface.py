@@ -1,7 +1,6 @@
-import influxdb
 import geopy
+import influxdb
 import pandas as pd
-import pymysql
 import requests
 import sqlalchemy
 
@@ -107,11 +106,13 @@ class _DataInterface:
         database,
         measurement,
         tag_columns,
-        field_columns=[],
+        field_columns=None,
         time_precision="s",
         protocol="json",
     ):
 
+        if field_columns is None:
+            field_columns = []
         if type(tag_columns) is not list:
             raise ValueError("'tag_columns' should be a list")
 
