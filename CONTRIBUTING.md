@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2021 2017-2021 Alliander N.V. <korte.termijn.prognoses@alliander.com>
+
+SPDX-License-Identifier: MPL-2.0
+-->
+
 # Contributing
 
 When contributing to this repository, please first discuss the change you wish to make via issue,

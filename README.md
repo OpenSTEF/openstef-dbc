@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2021 2017-2021 Alliander N.V. <korte.termijn.prognoses@alliander.com>
+
+SPDX-License-Identifier: MPL-2.0
+-->
+
 # icarus-base - Korte Termijn Prognoses
 
 [Documentation (master)](https://jenkins-eba-ktp-ops.appx.cloud/job/icarus-tools/job/master/Code_20Documentation/)

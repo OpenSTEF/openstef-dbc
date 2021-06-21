@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2021 2017-2021 Alliander N.V. <korte.termijn.prognoses@alliander.com>
+#
+# SPDX-License-Identifier: MPL-2.0
+
 # -*- coding: utf-8 -*-
 """
 Created on Tue Jul 16 10:09:56 2019
