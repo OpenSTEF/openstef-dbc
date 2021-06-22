@@ -17,9 +17,8 @@ Related projects:
 
 ## Install
 
-1. Clone repository
-2. Install by running `pip install openstf_dbc`
-3. Enjoy!
+1. Install by running `pip install openstf_dbc`
+2. Enjoy!
 
 ## Usage
 
@@ -31,7 +30,7 @@ from openstf_dbc.database import DataBase
 
 db = DataBase()
 
-pj = db.get_prediction_jon(307)
+pj = db.get_prediction_job(307)
 ```
 
 ## Contributing
