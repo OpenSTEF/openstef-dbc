@@ -5,7 +5,7 @@
 from importlib.metadata import version, PackageNotFoundError
 
 try:
-    __version__ = version("package-name")
+    __version__ = version("openstf_dbc")
 except PackageNotFoundError:
     # package is not installed
     pass
