@@ -17,7 +17,7 @@ Related projects:
 
 ## Install
 
-1. Install by running `pip install openstf_dbc`
+1. Install by running `pip install openstf-dbc`
 2. Enjoy!
 
 ## Usage
