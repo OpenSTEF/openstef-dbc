@@ -28,6 +28,19 @@ class PredictionJob:
 
         return prediction_jobs
 
+    def _add_model_type_group_to_prediction_jobs(self, prediction_jobs):
+        for prediction_job in prediction_jobs:
+            # TODO this needs to be changed in the
+            if "quantile" in prediction_job["model"]:
+                prediction_job["model_type_group"] = "quantile"
+            else:
+                prediction_job["model_type_group"] = "default"
+
+        return prediction_jobs
+
+    def _add_model_type_group_to_prediction_job(self, prediction_job):
+        return self._add_model_type_group_to_prediction_jobs([prediction_job])[0]
+
     def _add_quantiles_to_prediciton_job(self, prediction_job):
         return self._add_quantiles_to_prediciton_jobs([prediction_job])[0]
 
@@ -105,11 +118,8 @@ class PredictionJob:
         # Add quantiles
         prediction_job = self._add_quantiles_to_prediciton_job(prediction_job)
 
-        # TODO this needs to be changed in the
-        if "quantile" in prediction_job["model"]:
-            prediction_job["model_type_group"] = "quantile"
-        else:
-            prediction_job["model_type_group"] = "default"
+        # Add model group
+        prediction_job = self._add_model_type_group_to_prediction_job(prediction_job)
 
         return prediction_job
 
@@ -140,6 +150,9 @@ class PredictionJob:
 
         # Add quantiles
         prediction_jobs = self._add_quantiles_to_prediciton_jobs(prediction_jobs)
+
+        # Add model group
+        prediction_jobs = self._add_model_type_group_to_prediction_jobs(prediction_jobs)
 
         return prediction_jobs
 

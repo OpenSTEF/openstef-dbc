@@ -179,7 +179,7 @@ class Write:
         source,
         table="weather",
         dbname="forecast_latest",
-            tag_columns=None,
+        tag_columns=None,
     ):
         """This function should be used to write data directly to our database.
         Do not use this function for Measurements data (pvdata, demanddata, winddata).

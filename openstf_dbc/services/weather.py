@@ -139,9 +139,7 @@ class Weather:
 
         return location
 
-    def _combine_weather_sources(
-        self, result, source_order=None
-    ):
+    def _combine_weather_sources(self, result, source_order=None):
         """
         Function that complete's the weatherdata from the influx database retrieved using get_weatherdata
         Additionally, weatherdata from several sources is combined to a single forecast.
