@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
+
 def add_application_metadata(logger, method_name, event_dict):
     """Add additional API metadata to the passed event dictionary.
     Note:
