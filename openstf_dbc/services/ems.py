@@ -218,6 +218,58 @@ class Ems:
 
         return total_load
 
+    def get_load_pid_optimized(
+        self,
+        pid,
+        datetime_start,
+        datetime_end,
+        forecast_resolution="15T",
+    ):
+        """Gets load data for a pid.
+        This method optimizes the way it retrieves data and is therefore less flexible as get_load_pid.
+        It is however much faster for prediction jobs with a large amount of sid's.
+
+        Args:
+            pid (int): id of the prediction job
+            datetime_start (str): Datetime start range
+            datetime_end (str): Datetime end range
+            forecast_resolution: timeresolution of result in pd.resample() format
+
+        Returns:
+            (pd.DataFrame): Load
+
+        """
+        # Get systems that belong to this prediction
+        systems = Systems().get_systems_by_pid(pid)
+
+        # Determine sign of each system
+        systems["sign"] = systems["factor"] * systems["polarity"]
+
+        # Get sum of all posisitve systems
+        positive_sids = systems[systems["sign"] >= 0][
+            "sid"
+        ].to_list()  # Greater than or equal is important here as systems without polarity will have sign = 0 and need to be counted positive
+        positive_load = self.get_load_sid(
+            positive_sids,
+            datetime_start,
+            datetime_end,
+            forecast_resolution,
+            aggregated=True,
+        )
+
+        # Get sum of all negative systems
+        negative_sids = systems[systems["sign"] < 0]["sid"].to_list()
+        negative_load = self.get_load_sid(
+            negative_sids,
+            datetime_start,
+            datetime_end,
+            forecast_resolution,
+            aggregated=True,
+        )
+
+        #  Return sum of positive and negative systems
+        return pd.DataFrame(positive_load["load"] - negative_load["load"])
+
     def get_curtailments(self, datetime_start, datetime_end, name, resolution="15T"):
         """Get curtailments from influx
         input:
