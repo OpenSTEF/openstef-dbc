@@ -70,7 +70,9 @@ class TestEmsService(unittest.TestCase):
 
         # multiply the first column (first system) by -1
         self.systems_load.iloc[:, 0] *= -1
-        expected_load = pd.DataFrame(data={"load": self.systems_load.sum(axis=1)}) - pd.DataFrame(data={"load": self.systems_load.sum(axis=1)})
+        expected_load = pd.DataFrame(
+            data={"load": self.systems_load.sum(axis=1)}
+        ) - pd.DataFrame(data={"load": self.systems_load.sum(axis=1)})
 
         pd.testing.assert_frame_equal(load, expected_load)
 
@@ -110,7 +112,9 @@ class TestEmsService(unittest.TestCase):
 
         # multiply the first column (first system) by -1
         self.systems_load.iloc[:, 0] *= -1
-        expected_load = pd.DataFrame(data={"load": self.systems_load.sum(axis=1)}) - pd.DataFrame(data={"load": self.systems_load.sum(axis=1)})
+        expected_load = pd.DataFrame(
+            data={"load": self.systems_load.sum(axis=1)}
+        ) - pd.DataFrame(data={"load": self.systems_load.sum(axis=1)})
 
         pd.testing.assert_frame_equal(load, expected_load)
 
