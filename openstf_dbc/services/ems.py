@@ -263,7 +263,7 @@ class Ems:
         for effective_factor, sids in effective_factors.items():
             load = (
                 self.get_load_sid(
-                    sids.sid.to_list(),
+                    sids.system_id.to_list(),
                     datetime_start,
                     datetime_end,
                     forecast_resolution,

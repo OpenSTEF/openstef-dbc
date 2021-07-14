@@ -15,7 +15,7 @@ class TestEMS(unittest.TestCase):
         load = Ems().get_load_pid(
             pid=pid, datetime_start=start, datetime_end=end, forecast_resolution="15T"
         )
-        load_optimized = Ems().get_load_pid_optimized(
+        load_optimized = Ems()._get_load_pid_optimized(
             pid=pid, datetime_start=start, datetime_end=end, forecast_resolution="15T"
         )
 
