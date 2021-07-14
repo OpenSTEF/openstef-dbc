@@ -271,6 +271,7 @@ class Ems:
                 )
                 * effective_factor
             )
+            print(effective_factor)
             # Combine individual results
             load = load.rename(columns=dict(load=effective_factor))
 

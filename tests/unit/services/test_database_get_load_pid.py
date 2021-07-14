@@ -27,9 +27,9 @@ class TestEmsService(unittest.TestCase):
         self.systems_load = pd.DataFrame(
             index=pd.to_datetime([datetime_start, datetime_end]),
             data={
-                "NrynRS_10-G_V12_P": [15, 20],
-                "NrynRS_10-G_V13_P": [11, 13],
-                "NrynRS_10-G_V14_P": [9, 7],
+                "NrynRS_10-G_V12_P": [15.0, 20.0],
+                "NrynRS_10-G_V13_P": [11.0, 13.0],
+                "NrynRS_10-G_V14_P": [9.0, 7.0],
             },
         )
         return super().setUp()
@@ -104,17 +104,15 @@ class TestEmsService(unittest.TestCase):
     def test_get_load_pid_factor_mixed(self, get_load_sid_mock, get_systems_mock):
         """Get load pid for systems with a negative factor"""
         # make polarity of first system negative
-        self.systems.at[0, "factor"] = -1
+        self.systems.loc[0, "factor"] = -0.5
         get_systems_mock.return_value = self.systems
         get_load_sid_mock.return_value = self.systems_load.copy()
 
         load = EmsService().get_load_pid(123, datetime_start, datetime_end)
 
-        # multiply the first column (first system) by -1
-        self.systems_load.iloc[:, 0] *= -1
         expected_load = pd.DataFrame(
             data={"load": self.systems_load.sum(axis=1)}
-        ) - pd.DataFrame(data={"load": self.systems_load.sum(axis=1)})
+        ) - 0.5 * pd.DataFrame(data={"load": self.systems_load.sum(axis=1)})
 
         pd.testing.assert_frame_equal(load, expected_load)
 
