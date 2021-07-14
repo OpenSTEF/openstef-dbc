@@ -153,6 +153,11 @@ class Ems:
         Returns:
             (pd.DataFrame): Load
         """
+
+        # Use optimized load retrieval if possible
+        if aggregated and not ignore_factor:
+            return self._get_load_pid_optimized(pid, datetime_start, datetime_end)
+
         # Get systems that belong to this prediction
         systems = Systems().get_systems_by_pid(pid)
 
@@ -217,6 +222,66 @@ class Ems:
         total_load["load"] = systems_load.sum(axis=1)
 
         return total_load
+
+    def _get_load_pid_optimized(
+        self,
+        pid,
+        datetime_start,
+        datetime_end,
+        forecast_resolution="15T",
+    ):
+        """Gets load data for a pid.
+        This method optimizes the way it retrieves data and is therefore less flexible as get_load_pid.
+        It is however much faster for prediction jobs with a large amount of sid's.
+
+        Args:
+            pid (int): id of the prediction job
+            datetime_start (str): Datetime start range
+            datetime_end (str): Datetime end range
+            forecast_resolution: timeresolution of result in pd.resample() format
+
+        Returns:
+            (pd.DataFrame): Load
+
+        """
+        # Get systems that belong to this prediction
+        systems = Systems().get_systems_by_pid(pid)
+
+        # Set factor or polarity of 0 to 1
+        systems.loc[systems["factor"] == 0, "factor"] = 1
+        systems.loc[systems["polarity"] == 0, "polarity"] = 1
+        systems["effective_factor"] = systems["factor"] * systems["polarity"]
+
+        # Build dict with unique effective factors as keys and lists of corresponding systems as values
+        effective_factors = {
+            effective_factor: systems[systems["effective_factor"] == effective_factor]
+            for effective_factor in set(systems["effective_factor"])
+        }
+
+        combined_load = pd.DataFrame()
+        # Retrieve load for each unique effective_factor
+        for effective_factor, sids in effective_factors.items():
+            load = (
+                self.get_load_sid(
+                    sids.system_id.to_list(),
+                    datetime_start,
+                    datetime_end,
+                    forecast_resolution,
+                    aggregated=True,
+                )
+                * effective_factor
+            )
+
+            # Combine individual results
+            load = load.rename(columns=dict(load=effective_factor))
+
+            # Use merge so potential gaps in the individual timeseries do not cause issues
+            combined_load = combined_load.merge(
+                load, left_index=True, right_index=True, how="outer"
+            )
+
+        #  Return sum all load columns
+        return pd.DataFrame(combined_load.sum(axis=1).rename("load"))
 
     def get_curtailments(self, datetime_start, datetime_end, name, resolution="15T"):
         """Get curtailments from influx
