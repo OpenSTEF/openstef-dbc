@@ -275,10 +275,12 @@ class Ems:
             load = load.rename(columns=dict(load=effective_factor))
 
             # Use merge so potential gaps in the individual timeseries do not cause issues
-            combined_load = combined_load.merge(load, left_index=True, right_index=True, how='outer')
+            combined_load = combined_load.merge(
+                load, left_index=True, right_index=True, how="outer"
+            )
 
         #  Return sum all load columns
-        return pd.DataFrame(combined_load.sum(axis=1).rename('load'))
+        return pd.DataFrame(combined_load.sum(axis=1).rename("load"))
 
     def get_curtailments(self, datetime_start, datetime_end, name, resolution="15T"):
         """Get curtailments from influx
