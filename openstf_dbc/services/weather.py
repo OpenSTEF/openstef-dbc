@@ -16,7 +16,6 @@ from openstf_dbc.services.write import Write
 
 
 class Weather:
-
     def __init__(self) -> None:
         self.logger = structlog.get_logger(self.__class__.__name__)
 
