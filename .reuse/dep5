@@ -1,7 +1,7 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: openstf-db-connector
+Upstream-Name: openstf-dbc
 Upstream-Contact: Korte Termijn Prognoses <korte.termijn.prognoses@alliander.com>
-Source: https://github.com/alliander-opensource/openstf-db-connector
+Source: https://github.com/alliander-opensource/openstf-dbc
 
 Files: tests/*
 Copyright: 2017-2021 Alliander N.V. <korte.termijn.prognoses@alliander.com>
