@@ -33,7 +33,7 @@ setup(
     description="Database Connection for OpenSTF",
     long_description=read_long_description_from_readme(),
     long_description_content_type="text/markdown",
-    url="https://github.com/alliander-opensource/openstf-db-connector",
+    url="https://github.com/alliander-opensource/openstf-dbc",
     author="Alliander N.V",
     author_email="korte.termijn.prognoses@alliander.com",
     license="MPL-2.0",
