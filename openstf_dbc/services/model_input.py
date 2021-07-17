@@ -7,6 +7,7 @@ import pytz
 
 import numpy as np
 import pandas as pd
+import structlog
 
 from openstf_dbc.data_interface import _DataInterface
 from openstf_dbc.services.weather import Weather

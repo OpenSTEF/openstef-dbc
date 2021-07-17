@@ -4,17 +4,22 @@
 
 from datetime import datetime, timedelta
 
+import geopy
+import geopy.distance
 import numpy as np
 import pandas as pd
-import geopy.distance
-import geopy
 import pytz
+import structlog
 
 from openstf_dbc.data_interface import _DataInterface
 from openstf_dbc.services.write import Write
 
 
 class Weather:
+
+    def __init__(self) -> None:
+        self.logger = structlog.get_logger(self.__class__.__name__)
+
     def get_weather_forecast_locations(self, country="NL", active=1):
         """Get weather forecast locations.
 
@@ -274,12 +279,12 @@ class Weather:
             result = result["weather"]
             result.index.name = "datetime"
         else:
-            print("No weatherdata found. Returning empty dataframe")
+            self.logger.warning("No weatherdata found. Returning empty dataframe")
             return pd.DataFrame()
 
         # Create a single dataframe with combined sources
         if combine_sources:
-            print("Combining sources into single dataframe")
+            self.logger.info("Combining sources into single dataframe")
             result = self._combine_weather_sources(result)
 
         # Interpolate if nescesarry
