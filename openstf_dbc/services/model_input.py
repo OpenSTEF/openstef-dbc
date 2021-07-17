@@ -16,6 +16,10 @@ from openstf_dbc.services.predictor import Predictor
 
 # TODO refactor and include in preprocessing and make uniform for making predictions and training models
 class ModelInput:
+
+    def __init__(self) -> None:
+        self.logger = structlog.get_logger(self.__class__.__name__)
+
     def get_model_input(
         self,
         pid=295,
@@ -128,7 +132,7 @@ class ModelInput:
                 axis=1,
             )
         else:
-            print("Warning: No load data returned!")
+            self.logger.warning("No load data returned.")
             result["load"] = np.nan
         if apx_data is not None:
             result = pd.concat(
@@ -187,16 +191,16 @@ class ModelInput:
         # sid selection for pvdata
         if radius == 0:
             if sid is None:
-                # print("radius is zero and no sid was given, selecting nearest system")
+                self.logger.debug("Radius is zero and no sid was given, selecting nearest system")
                 systems = systems_service.get_systems_near_location(location, freq=5)
                 sid = systems.loc[0].sid  # select nearest system
-            # print("Using system", sid, "for this prediction.")
+                self.logger.debug("Nearest system is {sid}")
         else:
             systems = systems_service.get_systems_near_location(
                 location, radius, freq=5
             )
             sid = systems.sid
-            # print("Found", len(systems), "systems for this prediction.")
+            self.logger.debug(f"Found {len(systems)} systems near this location")
 
         # Get weather data
         weather_params = ["radiation", "clouds"]
