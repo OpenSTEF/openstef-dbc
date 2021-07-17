@@ -17,7 +17,6 @@ from openstf_dbc.services.predictor import Predictor
 
 # TODO refactor and include in preprocessing and make uniform for making predictions and training models
 class ModelInput:
-
     def __init__(self) -> None:
         self.logger = structlog.get_logger(self.__class__.__name__)
 
@@ -192,7 +191,9 @@ class ModelInput:
         # sid selection for pvdata
         if radius == 0:
             if sid is None:
-                self.logger.debug("Radius is zero and no sid was given, selecting nearest system")
+                self.logger.debug(
+                    "Radius is zero and no sid was given, selecting nearest system"
+                )
                 systems = systems_service.get_systems_near_location(location, freq=5)
                 sid = systems.loc[0].sid  # select nearest system
                 self.logger.debug("Nearest system is {sid}")

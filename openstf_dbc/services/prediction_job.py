@@ -295,8 +295,9 @@ class PredictionJob:
             # If dictionary is empty raise exception and fall back to defaults
         except Exception as e:
             self.logger.error(
-                'Could not retrieve last hyperparemeters from database '
-                f'for pid {pj["id"]}', exc_info=e
+                "Could not retrieve last hyperparemeters from database "
+                f'for pid {pj["id"]}',
+                exc_info=e,
             )
 
         return last
