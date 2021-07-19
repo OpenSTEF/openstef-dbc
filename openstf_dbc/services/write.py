@@ -17,13 +17,14 @@ class Write:
         self.logger = logging.get_logger(self.__class__.__name__)
 
     def write_location(self, location_name, location):
-        statement = 'INSERT INTO NameToLatLon (regionInput, lat,lon) VALUES ("{loc}", {lat}, {lon})'.format(
-            loc=location_name, lat=location[0], lon=location[1]
+        table_name = "NameToLatLon"
+        statement = 'INSERT INTO {table_name} (regionInput, lat,lon) VALUES ("{loc}", {lat}, {lon})'.format(
+            table_name=table_name, loc=location_name, lat=location[0], lon=location[1]
         )
 
         _DataInterface.get_instance().exec_sql_write(statement)
 
-        print("DB Write: Added {loc} to `NameToLatLon` table".format(loc=location_name))
+        self.logger.info("Added {location_name} to {table_name} table")
 
     def write_forecast(
         self,
@@ -205,7 +206,8 @@ class Write:
 
         message = ""  # Create string placeholder for return message
 
-        print("Writing forecast to Influx database")
+        self.logger.info("Write weather data to database")
+
         influx_df = data.copy()
         influx_df["source"] = source
         # Add created to data
@@ -229,23 +231,25 @@ class Write:
 
         if result:
             message += "Written " + str(len(influx_df)) + " rows to influx"
-            print(
-                "written the following columns as field_columns to influx: ",
-                field_columns,
+            self.logger.info(
+                "Succesfully written fields to database", field_columns=field_columns
             )
-            print("with the following tag_columns: ", tag_columns)
+            self.logger.info(
+                "Successfully written tags to database", tag_columns=tag_columns
+            )
 
         return message
 
     def write_realised_pvdata(self, df, region):
-        """Method that writes realised pv data to the influx database. This function also adds systems to the systems table in mysql if they do not yet excist.
+        """Method that writes realised pv data to the influx database. This function
+        also adds systems to the systems table in mysql if they do not yet excist.
 
         Args:
             df: pd.DataFrame(index = "datetime", columns = ['output','system'])
             region: (str) String with the pvdata.org region to which the systems in the df belong
-        Returns:
-            Null
 
+        Returns:
+            None
         """
         df["type"] = "solar"
         df["created"] = int(time.time())
@@ -259,13 +263,13 @@ class Write:
             field_columns=["output", "created"],
             time_precision="s",
         )
-        if result:
-            print(
-                "Wrote pv data for {} systems to influx".format(df["system"].nunique())
-            )
-        else:
-            print("Something wend wrong with writing pv data to influx")
+        if not result:
+            self.logger.error("Something wend wrong while writing pvdata to influx")
             return
+
+        self.logger.info(
+            "Wrote pv data for {} systems to influx".format(df["system"].nunique())
+        )
 
         # Prepare dataframe for writing systems to the systems table in mysql
         systems_for_sql = df[["system"]].drop_duplicates()
@@ -286,8 +290,8 @@ class Write:
         # Execute query
         response = _DataInterface.get_instance().sql_engine.execute(query)
 
-        print(
-            "Added {} new systems to the systems table in the mySQL database".format(
+        self.logger.info(
+            "Added {} new systems to the systems table in the MySQL database".format(
                 response.rowcount
             )
         )

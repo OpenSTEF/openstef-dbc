@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import json
+from sys import exc_info
 
 from openstf_dbc.data_interface import _DataInterface
 from openstf_dbc.services.systems import Systems
@@ -278,12 +279,13 @@ class PredictionJob:
         Returns:
             (datetime) last: Datetime of last hyperparameters
         """
-        query = f""" SELECT MAX(hpv.created) as last
-                    FROM hyper_params hp
-                    LEFT JOIN hyper_param_values hpv
-                        ON hpv.hyper_params_id=hp.id
-                    WHERE hpv.prediction_id={pj["id"]} AND hp.model="{pj["model"]}"
-                    """
+        query = f"""
+            SELECT MAX(hpv.created) as last
+            FROM hyper_params hp
+            LEFT JOIN hyper_param_values hpv
+                ON hpv.hyper_params_id=hp.id
+            WHERE hpv.prediction_id={pj["id"]} AND hp.model="{pj["model"]}"
+        """
         last = None
         try:
             # Execute query
@@ -292,13 +294,12 @@ class PredictionJob:
             last = result["last"][0].to_pydatetime()
             # If dictionary is empty raise exception and fall back to defaults
         except Exception as e:
-            print(
-                "Could not retrieve last hyperparemeters from database for pid {}\n".format(
-                    pj["id"]
-                ),
-                "Exception: ",
-                e,
+            self.logger.error(
+                "Could not retrieve last hyperparemeters from database "
+                f'for pid {pj["id"]}',
+                exc_info=e,
             )
+
         return last
 
     def get_hyper_params(self, pj):
