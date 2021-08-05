@@ -8,7 +8,7 @@ SPDX-License-Identifier: MPL-2.0
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_openstf-dbc&metric=alert_status)](https://sonarcloud.io/dashboard?id=alliander-opensource_openstf-dbc)
 
 
-# openstf-dbc - Database connector for openstf (reference)
+# Openstf-dbc - Database connector for openstf (reference)
 
 This repository houses the python package [openstf-dbc](https://pypi.org/project/openstf-dbc/), which provides an interface to openstf (reference) databases.
 
@@ -34,6 +34,12 @@ db = DataBase()
 
 pj = db.get_prediction_job(307)
 ```
+
+## License
+This project is licensed under the Mozilla Public License, version 2.0 - see LICENSE for details.
+
+## Licenses third-party libraries
+This project includes third-party libraries, which are licensed under their own respective Open-Source licenses. SPDX-License-Identifier headers are used to show which license is applicable. The concerning license files can be found in the LICENSES directory.
 
 ## Contributing
 
