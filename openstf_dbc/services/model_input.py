@@ -60,7 +60,7 @@ class ModelInput:
             pid, datetime_start, datetime_end, forecast_resolution
         )
         if len(load) == 0:
-            raise Warning("Historic load is empty.")
+            self.logger.warning("Length of load data was 0")
 
         # Get APX price data
         apx_data = Predictor().get_apx(datetime_start, datetime_end)
