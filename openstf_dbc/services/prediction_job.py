@@ -195,7 +195,7 @@ class PredictionJob:
 
         query = f"""
             SELECT
-                p.id, p.typ, p.model, p.horizon_minutes, p.resolution_minutes,
+                p.id, p.forecast_type, p.model, p.horizon_minutes, p.resolution_minutes,
                 p.train_components, p.name,
                 min(s.lat) as lat,
                 min(s.lon) as lon,
@@ -214,7 +214,7 @@ class PredictionJob:
     def get_prediction_jobs_wind(self):
         query = """
             SELECT
-                p.id, p.typ, p.model, p.horizon_minutes, p.resolution_minutes,
+                p.id, p.forecast_type, p.model, p.horizon_minutes, p.resolution_minutes,
                 p.name,
                 min(s.sid) as sid,
                 w.lat as lat,
@@ -226,7 +226,7 @@ class PredictionJob:
             LEFT JOIN predictions_systems as ps ON p.id = ps.prediction_id
             LEFT JOIN systems as s ON s.sid = ps.system_id
             LEFT JOIN windspecs as w ON p.id = w.pid
-            WHERE p.typ = 'wind' AND p.active = 1
+            WHERE p.forecast_type = 'wind' AND p.active = 1
             GROUP BY p.id
         """
 
@@ -244,7 +244,7 @@ class PredictionJob:
     def get_prediction_jobs_solar(self):
         query = """
             SELECT
-                p.id, p.typ, p.model, p.horizon_minutes, p.resolution_minutes,
+                p.id, p.forecast_type, p.model, p.horizon_minutes, p.resolution_minutes,
                 p.name,
                 min(s.lat) as lat,
                 min(s.lon) as lon,
@@ -257,7 +257,7 @@ class PredictionJob:
             LEFT JOIN predictions_systems as ps ON p.id = ps.prediction_id
             LEFT JOIN systems as s ON s.sid = ps.system_id
             LEFT JOIN solarspecs as ss ON p.id = ss.pid
-            WHERE p.typ = 'solar' AND p.active = 1
+            WHERE p.forecast_type = 'solar' AND p.active = 1
             GROUP BY p.id
         """
 

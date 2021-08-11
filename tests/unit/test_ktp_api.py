@@ -15,8 +15,18 @@ from pytz import timezone
 from openstf_dbc.ktp_api import KtpApi
 
 customers_list = [
-    {"id": 300, "name": "Flex_ZPP", "vip": True, "active": True},
-    {"id": 301, "name": "Flex_WLS", "vip": True, "active": True},
+    {
+        "id": 300,
+        "name": "Flex_ZPP",
+        "active": True,
+        "created": datetime.utcnow().isoformat(),
+    },
+    {
+        "id": 301,
+        "name": "Flex_WLS",
+        "active": True,
+        "created": datetime.utcnow().isoformat(),
+    },
 ]
 
 tracy_jobs_list = [
