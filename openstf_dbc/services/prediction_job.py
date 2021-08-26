@@ -4,11 +4,12 @@
 
 import json
 from sys import exc_info
+from typing import List, Optional, Union
 
+from openstf_dbc.data.featuresets import FEATURESET_NAMES, FEATURESETS
 from openstf_dbc.data_interface import _DataInterface
-from openstf_dbc.services.systems import Systems
 from openstf_dbc.log import logging
-from openstf_dbc.data.featuresets import FEATURESETS, FEATURESET_NAMES
+from openstf_dbc.services.systems import Systems
 
 
 class PredictionJob:
@@ -124,7 +125,14 @@ class PredictionJob:
 
         return prediction_job
 
-    def get_prediction_jobs(self, model_type=None, is_active=1, only_ato=False):
+    def get_prediction_jobs(
+        self,
+        model_type: Optional[str] = None,
+        is_active: int = 1,
+        only_ato: bool = False,
+        external_id: Union[str, List[str], None] = None,
+        limit: Optional[int] = None,
+    ):
         """Get all prediction jobs from the database.
 
         Args:
@@ -132,12 +140,19 @@ class PredictionJob:
                 if None, all jobs are retrieved
             is_active (int): Only retrieve jobs where active == is_active.
                 if None, all jobs are retrieved
+            only_ato (bool): Only retrieve ATO jobs
+            external_id (str): Only retrieve jobs with the external_id given.
+            limit (int): Limit the number of jobs to given value.
 
         Returns:
-            list: List of prediction jobs
+            List[dict]: List of prediction jobs
         """
         query = self.build_get_prediction_jobs_query(
-            model_type=model_type, is_active=is_active, only_ato=only_ato
+            model_type=model_type,
+            is_active=is_active,
+            only_ato=only_ato,
+            external_id=external_id,
+            limit=limit,
         )
 
         # TODO check length results
@@ -159,7 +174,12 @@ class PredictionJob:
 
     @staticmethod
     def build_get_prediction_jobs_query(
-        pid=None, model_type=None, is_active=None, only_ato=False
+        pid: Union[int, str, List[int], List[str], None] = None,
+        model_type: Union[str, List[str], None] = None,
+        is_active: Optional[int] = None,
+        only_ato: bool = False,
+        external_id: Union[str, List[str], None] = None,
+        limit: Optional[int] = None,
     ):
         where_criteria = []
 
@@ -189,9 +209,23 @@ class PredictionJob:
         if only_ato:
             where_criteria.append("`name` LIKE 'ATO%' AND `name` NOT LIKE '%HS%'")
 
-        where = ""
+        if external_id is not None:
+            if isinstance(external_id, list):
+                external_ids = ", ".join([f"'{id_}'" for id_ in external_id])
+            elif isinstance(external_id, str):
+                external_ids = f"'{external_id}'"
+            else:
+                raise ValueError("external_id should be str or list of str")
+            where_criteria.append(f"p.external_id IN ({external_ids})")
+
+        where_clause = ""
+        limit_clause = ""
+
         if len(where_criteria) > 0:
-            where = f"WHERE {' AND '.join(where_criteria)}"
+            where_clause = f"WHERE {' AND '.join(where_criteria)}"
+
+        if limit:
+            limit_clause = f"LIMIT {limit}"
 
         query = f"""
             SELECT
@@ -206,8 +240,9 @@ class PredictionJob:
                 predictions_systems as ps ON p.id = ps.prediction_id
             LEFT JOIN
                 systems as s ON s.sid = ps.system_id
-            {where}
-            GROUP BY p.id;
+            {where_clause}
+            GROUP BY p.id
+            {limit_clause};
         """
         return query
 
