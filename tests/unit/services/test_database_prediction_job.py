@@ -15,6 +15,22 @@ class TestPredictionJob(unittest.TestCase):
         super().setUp()
         self.service = PredictionJob()
 
+    def test_build_get_prediction_jobs_query(self):
+        kwargs = {
+            "pid": 123,
+            "model_type": "xgb",
+            "active": 1,
+            "only_ato": True,
+            "external_id": "e179c450-30cc-4fb8-a9c8-1cd6feee2cbd",
+            "limit": 999,
+        }
+        query = PredictionJob.build_get_prediction_jobs_query(**kwargs)
+        for key, value in kwargs.items():
+            if key == "only_ato":
+                self.assertTrue("ATO" in query)
+                continue
+            self.assertTrue(value in query)
+
     def test_get_featureset(self, data_interface_mock):
         featureset_names = self.service.get_featureset_names()
         for name in featureset_names:
