@@ -229,8 +229,9 @@ class PredictionJob:
 
         query = f"""
             SELECT
-                p.id, p.forecast_type, p.model, p.horizon_minutes, p.resolution_minutes,
-                p.train_components, p.name,
+                p.id, p.name,
+                p.forecast_type, p.model, p.horizon_minutes, p.resolution_minutes,
+                p.train_components, p.external_id
                 min(s.lat) as lat,
                 min(s.lon) as lon,
                 min(s.sid) as sid,
