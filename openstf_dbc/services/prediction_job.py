@@ -181,48 +181,34 @@ class PredictionJob:
         external_id: Union[str, List[str], None] = None,
         limit: Optional[int] = None,
     ):
-        where_criteria = []
+        where_condition = []
 
         if pid is not None:
-            if isinstance(pid, list):
-                prediction_ids = ", ".join([f"'{p}'" for p in pid])
-            elif isinstance(pid, int) or isinstance(pid, str):
-                prediction_ids = f"'{pid}'"
-            else:
-                raise ValueError("pid should be int or str or list of int or str")
-            where_criteria.append(f"p.id IN ({prediction_ids})")
+            where_condition.append(PredictionJob._build_pid_where_condition(pid))
 
         if model_type is not None:
-            if isinstance(model_type, list):
-                model_types = ", ".join([f"'{m}'" for m in model_type])
-            elif isinstance(model_type, str):
-                model_types = f"'{model_type}'"
-            else:
-                raise ValueError("model_type should be str or list of str")
-            where_criteria.append(f"p.model IN ({model_types})")
+            where_condition.append(
+                PredictionJob._build_model_type_where_condition(model_type)
+            )
 
         if is_active is not None:
-            # make sure we always get 0 or 1 (anything not 0 -> 1)
-            is_active = int(is_active != 0)
-            where_criteria.append(f"p.active = {is_active}")
+            where_condition.append(
+                PredictionJob._build_active_where_condition(is_active)
+            )
 
         if only_ato:
-            where_criteria.append("`name` LIKE 'ATO%' AND `name` NOT LIKE '%HS%'")
+            where_condition.append("`name` LIKE 'ATO%' AND `name` NOT LIKE '%HS%'")
 
         if external_id is not None:
-            if isinstance(external_id, list):
-                external_ids = ", ".join([f"'{id_}'" for id_ in external_id])
-            elif isinstance(external_id, str):
-                external_ids = f"'{external_id}'"
-            else:
-                raise ValueError("external_id should be str or list of str")
-            where_criteria.append(f"p.external_id IN ({external_ids})")
+            where_condition.append(
+                PredictionJob._build_external_id_where_condition(external_id)
+            )
 
         where_clause = ""
         limit_clause = ""
 
-        if len(where_criteria) > 0:
-            where_clause = f"WHERE {' AND '.join(where_criteria)}"
+        if len(where_condition) > 0:
+            where_clause = f"WHERE {' AND '.join(where_condition)}"
 
         if limit:
             limit_clause = f"LIMIT {limit}"
@@ -231,7 +217,7 @@ class PredictionJob:
             SELECT
                 p.id, p.name,
                 p.forecast_type, p.model, p.horizon_minutes, p.resolution_minutes,
-                p.train_components, p.external_id
+                p.train_components, p.external_id,
                 min(s.lat) as lat,
                 min(s.lon) as lon,
                 min(s.sid) as sid,
@@ -246,6 +232,42 @@ class PredictionJob:
             {limit_clause};
         """
         return query
+
+    @staticmethod
+    def _build_pid_where_condition(pid):
+        if isinstance(pid, list):
+            in_values = ", ".join([f"'{p}'" for p in pid])
+        elif isinstance(pid, int) or isinstance(pid, str):
+            in_values = f"'{pid}'"
+        else:
+            raise ValueError("pid should be int, str, list of int or list of str")
+        return f"p.id IN ({in_values})"
+
+    @staticmethod
+    def _build_model_type_where_condition(model_type):
+        if isinstance(model_type, list):
+            in_values = ", ".join([f"'{v}'" for v in model_type])
+        elif isinstance(model_type, str):
+            in_values = f"'{model_type}'"
+        else:
+            raise ValueError("model_type should be str or list of str")
+        return f"p.model IN ({in_values})"
+
+    @staticmethod
+    def _build_active_where_condition(active):
+        # make sure we always get 0 or 1 (anything not 0 -> 1)
+        active = int(active != 0)
+        return f"p.active = {active}"
+
+    @staticmethod
+    def _build_external_id_where_condition(external_id):
+        if isinstance(external_id, list):
+            in_values = ", ".join([f"'{v}'" for v in external_id])
+        elif isinstance(external_id, str):
+            in_values = f"'{external_id}'"
+        else:
+            raise ValueError("external_id should be str or list of str")
+        return f"p.external_id IN ({in_values})"
 
     def get_prediction_jobs_wind(self):
         query = """
