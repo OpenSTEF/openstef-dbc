@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import json
-from sys import exc_info
 from typing import List, Optional, Union
 
 from openstf_dbc.data.featuresets import FEATURESET_NAMES, FEATURESETS
