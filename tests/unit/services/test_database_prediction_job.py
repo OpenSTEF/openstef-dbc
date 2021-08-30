@@ -44,6 +44,12 @@ class TestPredictionJob(unittest.TestCase):
 
         self.service.get_prediction_jobs()
 
+    def test_get_prediction_jobs_wind_result_size_is_zero(self, data_interface_mock):
+        self.service.get_prediction_jobs_wind()
+
+    def test_get_prediction_jobs_solar_result_size_is_zero(self, data_interface_mock):
+        self.service.get_prediction_jobs_solar()
+
     def test_build_get_prediction_jobs_query(self, *args, **kwargs):
         kwargs = {
             "pid": 123,
@@ -65,6 +71,10 @@ class TestPredictionJob(unittest.TestCase):
         for name in featureset_names:
             featureset = self.service.get_featureset(name)
             self.assertEqual(type(featureset), list)
+
+    def test_get_featureset_wrong_name(self, data_interface_mock):
+        with self.assertRaises(KeyError):
+            self.service.get_featureset("wrong_name")
 
     def test_get_featuresets(self, data_interface_mock):
         self.assertEqual(type(self.service.get_featuresets()), dict)
