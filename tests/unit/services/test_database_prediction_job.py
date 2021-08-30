@@ -6,14 +6,43 @@
 import unittest
 from unittest.mock import patch
 
+import pandas
+import pandas as pd
 from openstf_dbc.services.prediction_job import PredictionJob
 
+prediction_job = {
+    "id": 307,
+    "name": "Neerijnen",
+    "forecast_type": "demand",
+    "model": "xgb",
+    "horizon_minutes": 2880,
+    "resolution_minutes": 15,
+    "train_components": 1,
+    "external_id": None,
+    "lat": 51.8336647,
+    "lon": 5.2137814,
+    "sid": "LC_Neerijnen",
+    "created": pd.Timestamp("2019-04-05 12:08:23"),
+}
 
-@patch("openstf_dbc.services.predictions._DataInterface")
+
+@patch("openstf_dbc.services.prediction_job._DataInterface")
 class TestPredictionJob(unittest.TestCase):
     def setUp(self):
         super().setUp()
         self.service = PredictionJob()
+
+    def test_get_prediction_job_result_size_is_zero(self, data_interface_mock):
+        data_interface_mock.get_instance.return_value.exec_sql_query.return_value = (
+            pd.DataFrame()
+        )
+
+        with self.assertRaises(ValueError):
+            self.service.get_prediction_job(pid=307)
+
+    def test_get_prediction_jobs_result_size_is_zero(self, data_interface_mock):
+
+        self.service.get_prediction_jobs()
 
     def test_build_get_prediction_jobs_query(self, *args, **kwargs):
         kwargs = {
