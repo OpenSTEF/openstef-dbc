@@ -117,16 +117,15 @@ class PredictionJob:
             GROUP BY p.id
         """
 
-        result = _DataInterface.get_instance().exec_sql_query(query)
+        results = _DataInterface.get_instance().exec_sql_query(query)
 
         # Convert to list of dictionaries
-        result = result.to_dict(orient="records")
+        prediction_jobs = results.to_dict(orient="records")
 
-        # Add description field
-        for pj in result:
-            systems = Systems().get_systems_by_pid(pj["id"])
-            pj["description"] = "+".join(list(systems.system_id))
-        return result
+        # Add description to all prediction jobs
+        prediction_jobs = self._add_description_to_prediction_jobs(prediction_jobs)
+
+        return prediction_jobs
 
     def get_prediction_jobs_solar(self):
         query = """
@@ -148,16 +147,15 @@ class PredictionJob:
             GROUP BY p.id
         """
 
-        result = _DataInterface.get_instance().exec_sql_query(query)
+        results = _DataInterface.get_instance().exec_sql_query(query)
 
         # Convert to list of dictionaries
-        result = result.to_dict(orient="records")
+        prediction_jobs = results.to_dict(orient="records")
 
-        # Add description field
-        for pj in result:
-            systems = Systems().get_systems_by_pid(pj["id"])
-            pj["description"] = "+".join(list(systems.system_id))
-        return result
+        # Add description to all prediction jobs
+        prediction_jobs = self._add_description_to_prediction_jobs(prediction_jobs)
+
+        return prediction_jobs
 
     def get_hyper_params(self, pj):
         """Method that finds the latest hyperparameters for a specific prediction job.
