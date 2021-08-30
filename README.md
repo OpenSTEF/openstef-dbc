@@ -5,9 +5,9 @@ SPDX-License-Identifier: MPL-2.0
 -->
 [![Python Build](https://github.com/alliander-opensource/openstf-dbc/actions/workflows/python-build.yaml/badge.svg?branch=master)](https://github.com/alliander-opensource/openstf-dbc/actions/workflows/python-build.yaml)
 [![REUSE Compliance Check](https://github.com/alliander-opensource/openstf-dbc/actions/workflows/reuse-compliance.yml/badge.svg?branch=master)](https://github.com/alliander-opensource/openstf-dbc/actions/workflows/reuse-compliance.yml)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_openstf-dbc&metric=alert_status)](https://sonarcloud.io/dashboard?id=alliander-opensource_openstf-dbc)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_openstf-db-connector&metric=alert_status)](https://sonarcloud.io/dashboard?id=alliander-opensource_openstf-db-connector)
 
-
+```
 # Openstf-dbc - Database connector for openstf (reference)
 
 This repository houses the python package [openstf-dbc](https://pypi.org/project/openstf-dbc/), which provides an interface to openstf (reference) databases.
