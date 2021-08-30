@@ -2,12 +2,12 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
-import pytz
 import warnings
 from json.decoder import JSONDecodeError
 
-import requests
 import pandas as pd
+import pytz
+import requests
 
 from openstf_dbc.config.config import ConfigManager
 from openstf_dbc.log import logging
@@ -37,6 +37,7 @@ class KtpApi:
         self.credentials = config.api.username, config.api.password
         self.admin_credentials = config.api.admin_username, config.api.admin_password
         self.proxies = config.proxies
+        breakpoint()
 
         self.timeout = timeout
         # Test if the connection works
@@ -342,7 +343,7 @@ class KtpApi:
 
         return list(filter(lambda x: (x.get("inprogress", 0) == inprogress), jobs))
 
-    def get_tracy_job(self, pid, function="train_specific_model"):
+    def get_tracy_job(self, pid, function="train_model"):
         """
         Return the tracy job from the database
 
@@ -363,7 +364,7 @@ class KtpApi:
 
         return None
 
-    def add_tracy_job(self, pid, function="train_specific_model"):
+    def add_tracy_job(self, pid, function="train_model"):
         """
         Adds the function to the tracy todo list
 
