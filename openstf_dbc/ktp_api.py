@@ -37,7 +37,6 @@ class KtpApi:
         self.credentials = config.api.username, config.api.password
         self.admin_credentials = config.api.admin_username, config.api.admin_password
         self.proxies = config.proxies
-        breakpoint()
 
         self.timeout = timeout
         # Test if the connection works
