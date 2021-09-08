@@ -13,6 +13,7 @@ from openstf_dbc.services.ems import Ems
 from openstf_dbc.services.predictor import Predictor
 from openstf_dbc.services.systems import Systems
 from openstf_dbc.services.weather import Weather
+from openstf_dbc.utils.utils import get_datetime_index
 
 
 # TODO refactor and include in preprocessing and make uniform for making predictions and training models
@@ -55,115 +56,32 @@ class ModelInput:
         if datetime_end is None:
             datetime_end = str(datetime.utcnow().date() + timedelta(3))
 
-        # Get load data
+        # Get load
         load = Ems().get_load_pid(
             pid, datetime_start, datetime_end, forecast_resolution
         )
-        if len(load) == 0:
-            self.logger.warning("Length of load data was 0")
-
-        # Get APX price data
-        apx_data = Predictor().get_electricity_price(datetime_start, datetime_end)
-
-        # Get gas price data
-        gas_data = Predictor().get_gas_price(datetime_start, datetime_end)
-
-        # Get SJV data
-        sjv_data = Predictor().get_load_profiles(datetime_start, datetime_end)
-
-        # Get weather data
-        weather_params = [
-            "clouds",
-            "radiation",
-            "temp",
-            "winddeg",
-            "windspeed",
-            "windspeed_100m",
-            "pressure",
-            "humidity",
-            "rain",
-            "mxlD",
-            "snowDepth",
-            "clearSky_ulf",
-            "clearSky_dlf",
-            "ssrunoff",
-        ]
-
-        weather_data = Weather().get_weather_data(
-            location,
-            weather_params,
-            datetime_start,
-            datetime_end,
-            source="optimum",
+        load = load.resample(forecast_resolution).mean().interpolate(limit=3)
+        # Get predictors
+        predictors = Predictor().get_predictors(
+            datetime_start=datetime_start,
+            datetime_end=datetime_end,
+            forecast_resolution=forecast_resolution,
+            location=location,
         )
-
-        # Post process weather data
-        if "source_1" in list(weather_data):
-            weather_data["source"] = weather_data.source_1
-            weather_data = weather_data.drop("source_1", axis=1)
-        if "input_city_1" in list(weather_data):
-            del weather_data["input_city_1"]
-        else:
-            del weather_data["input_city"]
-        del weather_data["source"]
-
-        # Combine data
-        model_input = (
-            pd.DataFrame(
-                index=pd.date_range(
-                    start=datetime_start,
-                    end=datetime_end,
-                    freq=forecast_resolution,
-                    tz="UTC",
-                )
-            )
-            .resample(forecast_resolution)
-            .ffill()
+        # create model input with datetime index
+        model_input = pd.DataFrame(
+            index=get_datetime_index(datetime_start, datetime_end, forecast_resolution)
         )
         model_input.index.name = "index"
 
-        # Fill return dataframe with all data collected
-        if len(load) > 0:
-            model_input = pd.concat(
-                [
-                    model_input,
-                    load.resample(forecast_resolution).mean().interpolate(limit=3),
-                ],
-                axis=1,
-            )
+        # Add load
+        if load.empty is False:
+            model_input = pd.concat([model_input, load], axis=1)
         else:
-            self.logger.warning("No load data returned.")
+            self.logger.warning("No load data returned, fill with NaN.")
             model_input["load"] = np.nan
-
-        if apx_data is not None:
-            model_input = pd.concat(
-                [model_input, apx_data.resample(forecast_resolution).ffill()], axis=1
-            )
-
-        if len(gas_data) > 0:
-            model_input = pd.concat(
-                [model_input, gas_data.resample(forecast_resolution).ffill()], axis=1
-            )
-
-        if weather_data is not None:
-            model_input = pd.concat(
-                [
-                    model_input,
-                    weather_data.resample(forecast_resolution).interpolate(
-                        limit=11
-                    ),  # 11 as GFS data has data every 3 hours
-                ],
-                axis=1,
-            )
-
-        if sjv_data is not None:
-            model_input = pd.concat(
-                [
-                    model_input,
-                    sjv_data.resample(forecast_resolution).interpolate(limit=3),
-                ],
-                axis=1,
-            )
+        # Add predictors
+        model_input = pd.concat([model_input, predictors], axis=1)
 
         return model_input
 

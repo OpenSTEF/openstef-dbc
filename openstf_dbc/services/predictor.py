@@ -8,6 +8,7 @@ from typing import List, Optional, Tuple, Union
 import pandas as pd
 from openstf_dbc.data_interface import _DataInterface
 from openstf_dbc.services.weather import Weather
+from openstf_dbc.utils.utils import get_datetime_index
 
 
 class PredictorGroups(Enum):
@@ -21,6 +22,7 @@ class Predictor:
         self,
         datetime_start,
         datetime_end,
+        forecast_resolution: Optional[str] = None,
         location: Union[str, Tuple[float, float]] = None,
         predictor_groups: Optional[List[str]] = None,
     ):
@@ -36,7 +38,7 @@ class Predictor:
                 to include. Defaults to None.
 
         Returns:
-            pd.DataFrame: Requested predictors.
+            pd.DataFrame: Requested predictors with timezone aware datetime index.
         """
         if predictor_groups is None:
             predictor_groups = [p for p in PredictorGroups]
@@ -46,49 +48,90 @@ class Predictor:
                 "Need to provide a location when weather data predictors are requested."
             )
 
-        predictors = pd.DataFrame()
+        predictors = pd.DataFrame(
+            index=get_datetime_index(datetime_start, datetime_end, forecast_resolution)
+        )
 
         if PredictorGroups.WEATHER_DATA in predictor_groups:
-            predictors.concat(Weather().get_weather_data(location=location))
+            weather_data_predictors = self.get_weather_data(
+                datetime_start,
+                datetime_end,
+                location=location,
+                forecast_resolution=forecast_resolution,
+            )
+            predictors = pd.concat([predictors, weather_data_predictors], axis=1)
 
         if PredictorGroups.MARKET_DATA in predictor_groups:
-            predictors.concat(self.get_market_data(datetime_start, datetime_end))
+            market_data_predictors = self.get_market_data(
+                datetime_start, datetime_end, forecast_resolution=forecast_resolution
+            )
+            predictors = pd.concat([predictors, market_data_predictors], axis=1)
 
         if PredictorGroups.LOAD_PROFILES in predictor_groups:
-            predictors.concat(self.get_load_profiles(datetime_start, datetime_end))
+            load_profiles_predictors = self.get_load_profiles(
+                datetime_start, datetime_end, forecast_resolution=forecast_resolution
+            )
+            predictors = pd.concat([predictors, load_profiles_predictors], axis=1)
 
         return predictors
 
-    def get_market_data(self, datetime_start, datetime_end):
-        electricity_price = self.get_electricity_price(datetime_start, datetime_end)
-        gas_price = self.get_gas_price(datetime_start, datetime_end)
-        return pd.concat(electricity_price, gas_price)
+    def get_market_data(self, datetime_start, datetime_end, forecast_resolution=None):
+        electricity_price = self.get_electricity_price(
+            datetime_start, datetime_end, forecast_resolution
+        )
+        gas_price = self.get_gas_price(
+            datetime_start, datetime_end, forecast_resolution
+        )
 
-    def get_electricity_price(self, datetime_start, datetime_end):
+        if electricity_price.empty is False and gas_price.empty is True:
+            return electricity_price
+
+        if electricity_price.empty is True and gas_price.empty is False:
+            return gas_price
+
+        if electricity_price.empty is True and gas_price.empty is True:
+            return pd.DataFrame(
+                index=get_datetime_index(
+                    datetime_start, datetime_end, forecast_resolution
+                )
+            )
+
+        return pd.concat([electricity_price, gas_price], axis=1)
+
+    def get_electricity_price(
+        self, datetime_start, datetime_end, forecast_resolution=None
+    ):
         query = 'SELECT "Price" FROM "forecast_latest".."marketprices" \
         WHERE "Name" = \'APX\' AND time >= \'{}\' AND time <= \'{}\''.format(
             datetime_start, datetime_end
         )
 
-        result = _DataInterface.get_instance().exec_influx_query(query)
+        electricity_price = _DataInterface.get_instance().exec_influx_query(query)
 
-        if result:
-            result = result["marketprices"]
-            result.rename(columns=dict(Price="APX"), inplace=True)
-            return result
+        electricity_price = electricity_price["marketprices"]
 
-    def get_gas_price(self, datetime_start, datetime_end):
+        electricity_price.rename(columns=dict(Price="APX"), inplace=True)
+
+        if forecast_resolution and electricity_price.empty is False:
+            electricity_price = electricity_price.resample(forecast_resolution).ffill()
+
+        return electricity_price
+
+    def get_gas_price(self, datetime_start, datetime_end, forecast_resolution=None):
         query = "SELECT datetime, price FROM marketprices WHERE name = 'gasPrice' \
                     AND datetime BETWEEN '{start}' AND '{end}' ORDER BY datetime asc".format(
             start=str(datetime_start), end=str(datetime_end)
         )
 
-        result = _DataInterface.get_instance().exec_sql_query(query)
-        result.rename(columns={"price": "Elba"}, inplace=True)
+        gas_price = _DataInterface.get_instance().exec_sql_query(query)
+        gas_price.rename(columns={"price": "Elba"}, inplace=True)
 
-        return result
+        if forecast_resolution and gas_price.empty is False:
+            gas_price = gas_price.resample(forecast_resolution).ffill()
 
-    def get_load_profiles(self, datetime_start, datetime_end):
+        return gas_price
+
+    def get_load_profiles(self, datetime_start, datetime_end, forecast_resolution=None):
         """Get load profiles.
 
             Get the TDCV (Typical Domestic Consumption Values) load profiles from the
@@ -111,7 +154,59 @@ class Predictor:
             WHERE time >= '{datetime_start}' AND time <= '{datetime_end}'
         """
 
-        result = _DataInterface.get_instance().exec_influx_query(query)
+        load_profiles = _DataInterface.get_instance().exec_influx_query(query)
 
-        if result:
-            return result[measurement]
+        load_profiles = load_profiles[measurement]
+
+        if forecast_resolution and load_profiles.empty is False:
+            load_profiles = load_profiles.resample(forecast_resolution).interpolate(
+                limit=3
+            )
+
+        return load_profiles
+
+    def get_weather_data(
+        self, datetime_start, datetime_end, location, forecast_resolution=None
+    ):
+        # Get weather data
+        weather_params = [
+            "clouds",
+            "radiation",
+            "temp",
+            "winddeg",
+            "windspeed",
+            "windspeed_100m",
+            "pressure",
+            "humidity",
+            "rain",
+            "mxlD",
+            "snowDepth",
+            "clearSky_ulf",
+            "clearSky_dlf",
+            "ssrunoff",
+        ]
+        weather_data = Weather().get_weather_data(
+            location,
+            weather_params,
+            datetime_start,
+            datetime_end,
+            source="optimum",
+        )
+
+        # Post process weather data
+        # This might not be required anymore?
+        if "source_1" in list(weather_data):
+            weather_data["source"] = weather_data.source_1
+            weather_data = weather_data.drop("source_1", axis=1)
+        if "input_city_1" in list(weather_data):
+            del weather_data["input_city_1"]
+        else:
+            del weather_data["input_city"]
+        del weather_data["source"]
+
+        if forecast_resolution and weather_data.empty is False:
+            weather_data = weather_data.resample(forecast_resolution).interpolate(
+                limit=11
+            )  # 11 as GFS data has data every 3 hours
+
+        return weather_data
