@@ -2,17 +2,16 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
-from datetime import datetime
-from unittest import TestCase, mock
-from unittest.mock import Mock, MagicMock
 import unittest
 import warnings
+from datetime import datetime
+from unittest import TestCase, mock
+from unittest.mock import MagicMock, Mock
 
 import pandas as pd
 import pytz
-from pytz import timezone
-
 from openstf_dbc.ktp_api import KtpApi
+from pytz import timezone
 
 customers_list = [
     {
@@ -30,17 +29,17 @@ customers_list = [
 ]
 
 tracy_jobs_list = [
-    {"id": 1, "args": "arguments", "function": "TRAIN_SPECIFIC_MODEL"},
+    {"id": 1, "args": "arguments", "function": "TRAIN_MODEL"},
     {
         "id": 2,
         "args": "arguments2",
-        "function": "OPTIMIZE_HYPERPARAMETERS_FOR_SPECIFIC_PID",
+        "function": "OPTIMIZE_HYPERPARAMETERS",
         "inprogress": 2,
     },
     {
         "id": 3,
         "args": "arguments2",
-        "function": "OPTIMIZE_HYPERPARAMETERS_FOR_SPECIFIC_PID",
+        "function": "OPTIMIZE_HYPERPARAMETERS",
     },
 ]
 
@@ -298,9 +297,7 @@ class TestKtpApi(TestCase):
         self.assertEqual(job["function"], function)
 
         # Job does not exist
-        job = ktp_api.get_tracy_job(
-            "MijnPID3", "optimize_hyperparameters_for_specific_pid"
-        )
+        job = ktp_api.get_tracy_job("MijnPID3", "optimize_hyperparameters")
         self.assertIsNone(job)
 
         # Job with default function
