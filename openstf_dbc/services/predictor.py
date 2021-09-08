@@ -9,7 +9,6 @@ from typing import List, Optional, Tuple, Union
 import pandas as pd
 from openstf_dbc.data_interface import _DataInterface
 from openstf_dbc.services.weather import Weather
-from openstf_dbc.utils.utils import get_datetime_index
 
 
 class PredictorGroups(Enum):
@@ -101,8 +100,11 @@ class Predictor:
 
         if electricity_price.empty is True and gas_price.empty is True:
             return pd.DataFrame(
-                index=get_datetime_index(
-                    datetime_start, datetime_end, forecast_resolution
+                index=pd.date_range(
+                    start=datetime_start,
+                    end=datetime_end,
+                    freq=forecast_resolution,
+                    tz="UTC",
                 )
             )
 
