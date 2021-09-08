@@ -29,7 +29,7 @@ def read_long_description_from_readme():
 
 setup(
     name="openstf_dbc",
-    version="1.2.0",
+    version="1.3.0",
     packages=find_packages(include=["openstf_dbc", "openstf_dbc.*"]),
     description="Database Connection for OpenSTF",
     long_description=read_long_description_from_readme(),
