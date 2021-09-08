@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
-import warnings
 from enum import Enum
 from typing import List, Optional, Tuple, Union
 

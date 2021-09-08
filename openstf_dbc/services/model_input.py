@@ -13,7 +13,6 @@ from openstf_dbc.services.ems import Ems
 from openstf_dbc.services.predictor import Predictor
 from openstf_dbc.services.systems import Systems
 from openstf_dbc.services.weather import Weather
-from openstf_dbc.utils.utils import get_datetime_index
 
 
 # TODO refactor and include in preprocessing and make uniform for making predictions and training models
