@@ -77,7 +77,7 @@ class ModelInput:
         model_input.index.name = "index"
 
         # Add load if available, else add nan column
-        if load.empty is False:
+        if not load.empty:
             load = load.resample(forecast_resolution).mean().interpolate(limit=3)
             model_input = pd.concat([model_input, load], axis=1)
         else:
