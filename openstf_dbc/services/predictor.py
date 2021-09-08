@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
+import warnings
 from enum import Enum
 from typing import List, Optional, Tuple, Union
 
@@ -53,7 +54,12 @@ class Predictor:
             )
 
         predictors = pd.DataFrame(
-            index=get_datetime_index(datetime_start, datetime_end, forecast_resolution)
+            index=pd.date_range(
+                start=datetime_start,
+                end=datetime_end,
+                freq=forecast_resolution,
+                tz="UTC",
+            )
         )
 
         if PredictorGroups.WEATHER_DATA in predictor_groups:

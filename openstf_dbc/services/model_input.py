@@ -69,7 +69,12 @@ class ModelInput:
         )
         # create model input with datetime index
         model_input = pd.DataFrame(
-            index=get_datetime_index(datetime_start, datetime_end, forecast_resolution)
+            index=pd.date_range(
+                start=datetime_start,
+                end=datetime_end,
+                freq=forecast_resolution,
+                tz="UTC",
+            )
         )
         model_input.index.name = "index"
 
