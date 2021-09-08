@@ -24,7 +24,7 @@ class Predictor:
         datetime_end,
         forecast_resolution: Optional[str] = None,
         location: Union[str, Tuple[float, float]] = None,
-        predictor_groups: Optional[List[str]] = None,
+        predictor_groups: Union[List[PredictorGroups], List[str], None] = None,
     ):
         """Get predictors.
 
@@ -42,6 +42,9 @@ class Predictor:
         """
         if predictor_groups is None:
             predictor_groups = [p for p in PredictorGroups]
+
+        # convert strings to enums if required
+        predictor_groups = [PredictorGroups(p) for p in predictor_groups]
 
         if PredictorGroups.WEATHER_DATA in predictor_groups and location is None:
             raise ValueError(
@@ -142,7 +145,7 @@ class Predictor:
             https://www.nedu.nl/documenten/verbruiksprofielen/
 
         Returns:
-            pandas.DataFrame or None: TDCV load profiles (if available)
+            pandas.DataFrame: TDCV load profiles (if available)
 
         """
         # select all fields which start with 'sjv'
@@ -198,11 +201,14 @@ class Predictor:
         if "source_1" in list(weather_data):
             weather_data["source"] = weather_data.source_1
             weather_data = weather_data.drop("source_1", axis=1)
+
+        if "source" in list(weather_data):
+            del weather_data["source"]
+
         if "input_city_1" in list(weather_data):
             del weather_data["input_city_1"]
-        else:
+        elif "input_city" in list(weather_data):
             del weather_data["input_city"]
-        del weather_data["source"]
 
         if forecast_resolution and weather_data.empty is False:
             weather_data = weather_data.resample(forecast_resolution).interpolate(

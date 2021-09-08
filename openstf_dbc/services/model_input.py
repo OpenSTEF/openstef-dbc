@@ -50,7 +50,6 @@ class ModelInput:
         """
 
         # TODO remove location as an argument and get location by pid from the sql database/API
-
         if datetime_start is None:
             datetime_start = str(datetime.utcnow().date() - timedelta(14))
         if datetime_end is None:
@@ -60,7 +59,7 @@ class ModelInput:
         load = Ems().get_load_pid(
             pid, datetime_start, datetime_end, forecast_resolution
         )
-        load = load.resample(forecast_resolution).mean().interpolate(limit=3)
+
         # Get predictors
         predictors = Predictor().get_predictors(
             datetime_start=datetime_start,
@@ -76,6 +75,7 @@ class ModelInput:
 
         # Add load
         if load.empty is False:
+            load = load.resample(forecast_resolution).mean().interpolate(limit=3)
             model_input = pd.concat([model_input, load], axis=1)
         else:
             self.logger.warning("No load data returned, fill with NaN.")
