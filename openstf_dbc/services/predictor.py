@@ -14,7 +14,7 @@ from openstf_dbc.utils.utils import get_datetime_index
 class PredictorGroups(Enum):
     MARKET_DATA = "market_data"
     WEATHER_DATA = "weather_data"
-    LOAD_PROFILES = "LOAD_PROFILES"
+    LOAD_PROFILES = "load_profiles"
 
 
 class Predictor:
