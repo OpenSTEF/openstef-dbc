@@ -3,17 +3,17 @@
 # SPDX-License-Identifier: MPL-2.0
 
 from datetime import datetime, timedelta
-import pytz
 
 import numpy as np
 import pandas as pd
+import pytz
 import structlog
-
 from openstf_dbc.data_interface import _DataInterface
-from openstf_dbc.services.weather import Weather
-from openstf_dbc.services.systems import Systems
 from openstf_dbc.services.ems import Ems
 from openstf_dbc.services.predictor import Predictor
+from openstf_dbc.services.systems import Systems
+from openstf_dbc.services.weather import Weather
+
 
 # TODO refactor and include in preprocessing and make uniform for making predictions and training models
 class ModelInput:
@@ -26,7 +26,7 @@ class ModelInput:
         location="Arnhem",
         datetime_start=None,
         datetime_end=None,
-        forecast_resolution="15T",
+        forecast_resolution="15min",
     ):
         """Based on the sid for a transformer this script gets data (with a 15min.
         resolution) of the past 7 days. It gets four kinds of data: the realised
@@ -63,13 +63,13 @@ class ModelInput:
             self.logger.warning("Length of load data was 0")
 
         # Get APX price data
-        apx_data = Predictor().get_apx(datetime_start, datetime_end)
+        apx_data = Predictor().get_electricity_price(datetime_start, datetime_end)
 
         # Get gas price data
         gas_data = Predictor().get_gas_price(datetime_start, datetime_end)
 
         # Get SJV data
-        sjv_data = Predictor().get_tdcv_load_profiles(datetime_start, datetime_end)
+        sjv_data = Predictor().get_load_profiles(datetime_start, datetime_end)
 
         # Get weather data
         weather_params = [
@@ -108,7 +108,7 @@ class ModelInput:
         del weather_data["source"]
 
         # Combine data
-        result = (
+        model_input = (
             pd.DataFrame(
                 index=pd.date_range(
                     start=datetime_start,
@@ -120,45 +120,52 @@ class ModelInput:
             .resample(forecast_resolution)
             .ffill()
         )
-        result.index.name = "index"
+        model_input.index.name = "index"
 
         # Fill return dataframe with all data collected
         if len(load) > 0:
-            result = pd.concat(
+            model_input = pd.concat(
                 [
-                    result,
+                    model_input,
                     load.resample(forecast_resolution).mean().interpolate(limit=3),
                 ],
                 axis=1,
             )
         else:
             self.logger.warning("No load data returned.")
-            result["load"] = np.nan
+            model_input["load"] = np.nan
+
         if apx_data is not None:
-            result = pd.concat(
-                [result, apx_data.resample(forecast_resolution).ffill()], axis=1
+            model_input = pd.concat(
+                [model_input, apx_data.resample(forecast_resolution).ffill()], axis=1
             )
+
         if len(gas_data) > 0:
-            result = pd.concat(
-                [result, gas_data.resample(forecast_resolution).ffill()], axis=1
+            model_input = pd.concat(
+                [model_input, gas_data.resample(forecast_resolution).ffill()], axis=1
             )
+
         if weather_data is not None:
-            result = pd.concat(
+            model_input = pd.concat(
                 [
-                    result,
+                    model_input,
                     weather_data.resample(forecast_resolution).interpolate(
                         limit=11
                     ),  # 11 as GFS data has data every 3 hours
                 ],
                 axis=1,
             )
+
         if sjv_data is not None:
-            result = pd.concat(
-                [result, sjv_data.resample(forecast_resolution).interpolate(limit=3)],
+            model_input = pd.concat(
+                [
+                    model_input,
+                    sjv_data.resample(forecast_resolution).interpolate(limit=3),
+                ],
                 axis=1,
             )
 
-        return result
+        return model_input
 
     def get_solar_input(
         self,

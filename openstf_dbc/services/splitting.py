@@ -139,7 +139,7 @@ class Splitting:
             datetime_end = datetime.utcnow()
 
         # Get standard load profiles (StandaardJaarVerbruik in Dutch)
-        sjv = Predictor().get_tdcv_load_profiles(datetime_start, datetime_end)
+        sjv = Predictor().get_load_profiles(datetime_start, datetime_end)
 
         # Get windpower reference
         wind_ref = self.get_wind_ref(

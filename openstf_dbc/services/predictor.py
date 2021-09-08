@@ -2,11 +2,69 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
+from enum import Enum
+from typing import List, Optional, Tuple, Union
+
+import pandas as pd
 from openstf_dbc.data_interface import _DataInterface
+from openstf_dbc.services.weather import Weather
+
+
+class PredictorGroups(Enum):
+    MARKET_DATA = "market_data"
+    WEATHER_DATA = "weather_data"
+    LOAD_PROFILES = "LOAD_PROFILES"
 
 
 class Predictor:
-    def get_apx(self, datetime_start, datetime_end):
+    def get_predictors(
+        self,
+        datetime_start,
+        datetime_end,
+        location: Union[str, Tuple[float, float]] = None,
+        predictor_groups: Optional[List[str]] = None,
+    ):
+        """Get predictors.
+
+        Get predictors for a given datetime range. Optionally predictor groups can be
+        selected. If the WEATHER_DATA group is included a location is required.
+
+        Args:
+            location (Union[str, Tuple[float, float]], optional): Location (for weather data).
+                Defaults to None.
+            predictor_groups (Optional[List[str]], optional): The groups of predictors
+                to include. Defaults to None.
+
+        Returns:
+            pd.DataFrame: Requested predictors.
+        """
+        if predictor_groups is None:
+            predictor_groups = [p for p in PredictorGroups]
+
+        if PredictorGroups.WEATHER_DATA in predictor_groups and location is None:
+            raise ValueError(
+                "Need to provide a location when weather data predictors are requested."
+            )
+
+        predictors = pd.DataFrame()
+
+        if PredictorGroups.WEATHER_DATA in predictor_groups:
+            predictors.concat(Weather().get_weather_data(location=location))
+
+        if PredictorGroups.MARKET_DATA in predictor_groups:
+            predictors.concat(self.get_market_data(datetime_start, datetime_end))
+
+        if PredictorGroups.LOAD_PROFILES in predictor_groups:
+            predictors.concat(self.get_load_profiles(datetime_start, datetime_end))
+
+        return predictors
+
+    def get_market_data(self, datetime_start, datetime_end):
+        electricity_price = self.get_electricity_price(datetime_start, datetime_end)
+        gas_price = self.get_gas_price(datetime_start, datetime_end)
+        return pd.concat(electricity_price, gas_price)
+
+    def get_electricity_price(self, datetime_start, datetime_end):
         query = 'SELECT "Price" FROM "forecast_latest".."marketprices" \
         WHERE "Name" = \'APX\' AND time >= \'{}\' AND time <= \'{}\''.format(
             datetime_start, datetime_end
@@ -30,8 +88,8 @@ class Predictor:
 
         return result
 
-    def get_tdcv_load_profiles(self, datetime_start, datetime_end):
-        """Get TDCV load profiles.
+    def get_load_profiles(self, datetime_start, datetime_end):
+        """Get load profiles.
 
             Get the TDCV (Typical Domestic Consumption Values) load profiles from the
             database for a given range.
