@@ -91,22 +91,6 @@ class Predictor:
             datetime_start, datetime_end, forecast_resolution
         )
 
-        if electricity_price.empty is False and gas_price.empty is True:
-            return electricity_price
-
-        if electricity_price.empty is True and gas_price.empty is False:
-            return gas_price
-
-        if electricity_price.empty is True and gas_price.empty is True:
-            return pd.DataFrame(
-                index=pd.date_range(
-                    start=datetime_start,
-                    end=datetime_end,
-                    freq=forecast_resolution,
-                    tz="UTC",
-                )
-            )
-
         return pd.concat([electricity_price, gas_price], axis=1)
 
     def get_electricity_price(
@@ -118,6 +102,16 @@ class Predictor:
         )
 
         electricity_price = _DataInterface.get_instance().exec_influx_query(query)
+
+        if not electricity_price:
+            return pd.DataFrame(
+                index=pd.date_range(
+                    start=datetime_start,
+                    end=datetime_end,
+                    freq=forecast_resolution,
+                    tz="UTC",
+                )
+            )
 
         electricity_price = electricity_price["marketprices"]
 
@@ -135,6 +129,18 @@ class Predictor:
         )
 
         gas_price = _DataInterface.get_instance().exec_sql_query(query)
+
+        # NOTE this is not an influx query and always returns a dataframe by default
+        if gas_price.empty:
+            return pd.DataFrame(
+                index=pd.date_range(
+                    start=datetime_start,
+                    end=datetime_end,
+                    freq=forecast_resolution,
+                    tz="UTC",
+                )
+            )
+
         gas_price.rename(columns={"price": "Elba"}, inplace=True)
 
         if forecast_resolution and gas_price.empty is False:
@@ -166,6 +172,16 @@ class Predictor:
         """
 
         load_profiles = _DataInterface.get_instance().exec_influx_query(query)
+
+        if not load_profiles:
+            return pd.DataFrame(
+                index=pd.date_range(
+                    start=datetime_start,
+                    end=datetime_end,
+                    freq=forecast_resolution,
+                    tz="UTC",
+                )
+            )
 
         load_profiles = load_profiles[measurement]
 

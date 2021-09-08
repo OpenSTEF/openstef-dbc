@@ -191,7 +191,7 @@ class Weather:
         datetime_start=None,
         datetime_end=None,
         source="optimum",
-        resolution="15T",
+        resolution="15min",
     ):
         """Get weather data from database.
 
@@ -278,7 +278,14 @@ class Weather:
             result.index.name = "datetime"
         else:
             self.logger.warning("No weatherdata found. Returning empty dataframe")
-            return pd.DataFrame()
+            return pd.DataFrame(
+                index=pd.date_range(
+                    start=datetime_start,
+                    end=datetime_end,
+                    freq=resolution,
+                    tz="UTC",
+                )
+            )
 
         # Create a single dataframe with combined sources
         if combine_sources:

@@ -12,7 +12,6 @@ from openstf_dbc.config.config import ConfigManager
 from openstf_dbc.ktp_api import KtpApi
 from openstf_dbc.log import logging
 
-
 # Define abstract interface
 
 
@@ -93,6 +92,17 @@ class _DataInterface:
             raise
 
     def exec_influx_query(self, query):
+        """Execute an InfluxDB query.
+
+        When there is data it returns a defaultdict with as key the measurement and
+        as value a DataFrame. When there is NO data it returns an empty dictionairy.
+
+        Args:
+            query (str): Influx query string.
+
+        Returns:
+            defaultdict: Query result.
+        """
         try:
             return self.influx_client.query(query, chunked=True, chunk_size=10000)
         except requests.exceptions.ConnectionError as e:
