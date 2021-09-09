@@ -59,7 +59,8 @@ class DataBase:
         _weather.get_datetime_last_stored_knmi_weatherdata
     )
     # predictor methods
-    get_apx = _predictor.get_electricity_price
+    get_predictors = _predictor.get_predictors
+    get_electricity_price = _predictor.get_electricity_price
     get_gas_price = _predictor.get_gas_price
     get_load_profiles = _predictor.get_load_profiles
     # historic cdb data service
