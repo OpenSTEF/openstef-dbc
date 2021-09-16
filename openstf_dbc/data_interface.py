@@ -8,26 +8,20 @@ import pandas as pd
 import requests
 import sqlalchemy
 
+from openstf_dbc import Singleton
 from openstf_dbc.ktp_api import KtpApi
 from openstf_dbc.log import logging
 
 # Define abstract interface
 
 
-class _DataInterface:
-
-    _instance = None
-
+class _DataInterface(metaclass=Singleton):
     def __init__(self, config):
         """Generic data interface.
 
         All connections and queries to the influx database, mysql databases and
         influx api are governed by this class
         """
-
-        # Check if we already have an instance
-        if _DataInterface._instance is not None:
-            raise RuntimeError("This is a singleton class, can only init once")
 
         self.logger = logging.get_logger(self.__class__.__name__)
 
@@ -69,12 +63,15 @@ class _DataInterface:
 
     @staticmethod
     def get_instance():
-        if _DataInterface._instance is None:
+        try:
+            return Singleton.get_instance(_DataInterface)
+        except KeyError as exc:
+            # if _DataInterface not in Singleton._instances:
             raise RuntimeError(
                 "No _DataInterface instance initialized. "
                 "Please call _DataInterface(config) first."
-            )
-        return _DataInterface._instance
+            ) from exc
+        # return Singleton._instances[_DataInterface]
 
     def _create_influx_client(self, username, password, host, port):
         """Create influx client, namespace-dependend"""

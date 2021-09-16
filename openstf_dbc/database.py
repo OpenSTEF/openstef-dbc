@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
+from openstf_dbc import Singleton
 from openstf_dbc.data_interface import _DataInterface
 from openstf_dbc.services.ems import Ems
 from openstf_dbc.services.model_input import ModelInput
@@ -14,7 +15,7 @@ from openstf_dbc.services.weather import Weather
 from openstf_dbc.services.write import Write
 
 
-class DataBase:
+class DataBase(metaclass=Singleton):
     """Provides a high-level interface to various data sources.
 
     All user/client code should use this class to get or write data. Under the hood
@@ -96,14 +97,14 @@ class DataBase:
 
     def __init__(self, config=None):
         """Init the stuff that also performs actions on init"""
-        # Check if we already have an instance
-        if DataBase._instance is not None and config is None:
-            return DataBase._instance
+        # # Check if we already have an instance
+        # if DataBase._instance is not None and config is None:
+        #     return DataBase._instance
 
-        if DataBase._instance is None and config is None:
-            raise RuntimeError(
-                "Singleton DataBase not initialized. Need to call DataBase(config) at least once"
-            )
+        # if DataBase._instance is None and config is None:
+        #     raise RuntimeError(
+        #         "Singleton DataBase not initialized. Need to call DataBase(config) at least once"
+        #     )
 
         self._datainterface = _DataInterface(config)
         # Ktp api
@@ -111,10 +112,10 @@ class DataBase:
 
         DataBase._instance = self
 
-    @staticmethod
-    def get_instance():
-        if DataBase._instance is None:
-            raise RuntimeError(
-                "No DataBase instance initialized. Please call DataBase(config) first."
-            )
-        return DataBase._instance
+    # @staticmethod
+    # def get_instance():
+    #     if DataBase._instance is None:
+    #         raise RuntimeError(
+    #             "No DataBase instance initialized. Please call DataBase(config) first."
+    #         )
+    #     return DataBase._instance

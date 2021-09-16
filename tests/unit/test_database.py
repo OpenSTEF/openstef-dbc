@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 from openstf_dbc.database import DataBase
 
@@ -11,7 +11,8 @@ from openstf_dbc.database import DataBase
 @patch("openstf_dbc.database._DataInterface", MagicMock())
 class TestDatabase(unittest.TestCase):
     def test_init(self):
-        DataBase()
+        config = MagicMock()
+        DataBase(config)
 
 
 if __name__ == "__main__":
