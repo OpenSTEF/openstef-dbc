@@ -28,9 +28,12 @@ This is a package with functionality to support the openstf workflow. Most impor
 This class give access to the data used by openstf-reference via a convenient interface. You can use it, for example, to retrieve a prediction job by running the following lines of code:
 
 ```python
+from openstf_dbc.config.config import ConfigManager
 from openstf_dbc.database import DataBase
 
-db = DataBase()
+config = ConfigManager.load_project_config(PROJECT_ROOT)
+
+db = DataBase(config)
 
 pj = db.get_prediction_job(307)
 ```
