@@ -2,18 +2,18 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
+from pathlib import Path
+from unittest import mock
+
 # -*- coding: utf-8 -*-
 import pandas as pd
-from unittest import mock
-from pathlib import Path
-
-from pandas.testing import assert_frame_equal
 from openstf_dbc.services.weather import Weather
+from pandas.testing import assert_frame_equal
 
 
 def __init__(self, *args):
-    self.sql_engine = lambda x: None
-    self.sql_engine.execute = mock.MagicMock()
+    self.mysql_engine = lambda x: None
+    self.mysql_engine.execute = mock.MagicMock()
 
 
 DATA_FOLDER = Path(__file__).absolute().parent.parent / "data"
