@@ -9,7 +9,6 @@ import pandas as pd
 import pytz
 import requests
 
-from openstf_dbc.config.config import ConfigManager
 from openstf_dbc.log import logging
 
 
@@ -27,16 +26,24 @@ class KtpApi:
 
     __ALL_TRACY_JOBS = -999
 
-    def __init__(self, timeout=None):
+    def __init__(
+        self,
+        username,
+        password,
+        url,
+        admin_username=None,
+        admin_password=None,
+        proxies=None,
+        timeout=None,
+    ):
         """Define api class"""
         # get config
-        config = ConfigManager.get_instance()
         self.logger = logging.get_logger(self.__class__.__name__)
 
-        self.base_url = config.api.url
-        self.credentials = config.api.username, config.api.password
-        self.admin_credentials = config.api.admin_username, config.api.admin_password
-        self.proxies = config.proxies
+        self.base_url = url
+        self.credentials = username, password
+        self.admin_credentials = admin_username, admin_password
+        self.proxies = proxies
 
         self.timeout = timeout
         # Test if the connection works

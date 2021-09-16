@@ -21,6 +21,8 @@ class DataBase:
     this class uses various services to interfact with its datasource.
     """
 
+    _instance = None
+
     # services
     _write = Write()
     _prediction_job = PredictionJob()
@@ -92,7 +94,27 @@ class DataBase:
     )
     get_random_pv_systems = _systems.get_random_pv_systems
 
-    def __init__(self):
+    def __init__(self, config=None):
         """Init the stuff that also performs actions on init"""
+        # Check if we already have an instance
+        if DataBase._instance is not None and config is None:
+            return DataBase._instance
+
+        if DataBase._instance is None and config is None:
+            raise RuntimeError(
+                "Singleton DataBase not initialized. Need to call DataBase(config) at least once"
+            )
+
+        self._datainterface = _DataInterface(config)
         # Ktp api
-        self.ktp_api = _DataInterface.get_instance().ktp_api
+        self.ktp_api = self._datainterface.ktp_api
+
+        DataBase._instance = self
+
+    @staticmethod
+    def get_instance():
+        if DataBase._instance is None:
+            raise RuntimeError(
+                "No DataBase instance initialized. Please call DataBase(config) first."
+            )
+        return DataBase._instance
