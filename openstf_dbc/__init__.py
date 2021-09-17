@@ -18,8 +18,7 @@ class Singleton(type):
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
             cls._instances[cls] = super().__call__(*args, **kwargs)
-
-        if len(args) > 0 or len(kwargs) > 0:
+        elif cls in cls._instances and len(args) > 0 or len(kwargs) > 0:
             warnings.warn(
                 f"Singleton class '{cls.__name__}'' already initialized, arguments are ignored"
             )
