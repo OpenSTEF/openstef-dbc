@@ -12,11 +12,10 @@ from tests.data.config import config
 
 @patch("openstf_dbc.database._DataInterface", MagicMock())
 class TestDatabase(unittest.TestCase):
-    pass
-    # def test_init(self):
-    #     with warnings.catch_warnings():
-    #         warnings.simplefilter("ignore")
-    #         DataBase(config)
+    def test_init(self):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            DataBase(config)
 
 
 if __name__ == "__main__":
