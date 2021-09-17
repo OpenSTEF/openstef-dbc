@@ -65,7 +65,7 @@ class ModelInput:
             forecast_resolution=forecast_resolution,
             location=location,
         )
-        # create model input with datetime index
+        # Create model input with datetime index
         model_input = pd.DataFrame(
             index=pd.date_range(
                 start=datetime_start,
