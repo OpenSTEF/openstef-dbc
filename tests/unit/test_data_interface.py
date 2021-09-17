@@ -41,6 +41,11 @@ class TestDataInterface(unittest.TestCase):
         # should be the same instance
         self.assertIs(data_interface_1, data_interface_2)
 
+    @patch("openstf_dbc.Singleton.get_instance", side_effect=KeyError)
+    def test_get_instance_error(self, get_instance_mock):
+        with self.assertRaises(RuntimeError):
+            _DataInterface.get_instance()
+
 
 if __name__ == "__main__":
     unittest.main()

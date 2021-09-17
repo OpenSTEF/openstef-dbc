@@ -2,16 +2,12 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
-import os
 from datetime import datetime, timedelta
 from pathlib import Path
 from unittest import mock
 
 import pandas as pd
 from pandas.testing import assert_frame_equal
-
-# from openstf_dbc.database import DataBase
-
 
 time = datetime.utcnow()
 
