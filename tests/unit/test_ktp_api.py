@@ -98,20 +98,9 @@ def mocked_requests_get_fail(*args, **kwargs):
     return MockResponse(error_string, 404)
 
 
-# def mocked_config(*args, **kwargs):
-#     mock_config = MagicMock()
-#     mock_config.api.url = "https://api.api"
-#     mock_config.api.username = "username"
-#     mock_config.api.password = "password"
-#     mock_config.api.admin_username = "admin_username"
-#     mock_config.api.admin_password = "admin_password"
-#     mock_config.proxies = None
-#     return mock_config
-
 api_kwargs = {"url": "https://api.api", "username": "username", "password": "password"}
 
 
-# @mock.patch("openstf_dbc.ktp_api.ConfigManager.get_instance", mocked_config)
 @mock.patch("requests.get", side_effect=mocked_requests_get)
 class TestKtpApi(TestCase):
     def test_ktp_api(self, mock_get):
