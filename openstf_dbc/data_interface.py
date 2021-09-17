@@ -19,8 +19,26 @@ class _DataInterface(metaclass=Singleton):
     def __init__(self, config):
         """Generic data interface.
 
-        All connections and queries to the influx database, mysql databases and
-        influx api are governed by this class
+        All connections and queries to the InfluxDB database, MySQL databases and
+        influx API are governed by this class.
+
+        Args:
+            config: Configuration object. with the following attributes:
+                api.username (str): API username.
+                api.password (str): API password.
+                api.admin_username (str): API admin username.
+                api.admin_password (str): API admin password.
+                api.url (str): API url.
+                influxdb.username (str): InfluxDB username.
+                influxdb.password (str): InfluxDB password.
+                influxdb.host (str): InfluxDB host.
+                influxdb.port (int): InfluxDB port.
+                mysql.username (str): MySQL username.
+                mysql.password (str): MySQL password.
+                mysql.host (str): MySQL host.
+                mysql.port (int): MYSQL port.
+                mysql.database_name (str): MySQL database name.
+                proxies Union[dict[str, str], None]: Proxies.
         """
 
         self.logger = logging.get_logger(self.__class__.__name__)
