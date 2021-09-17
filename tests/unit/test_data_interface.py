@@ -15,7 +15,7 @@ from openstf_dbc.data_interface import _DataInterface
 @patch("openstf_dbc.data_interface.sqlalchemy", MagicMock())
 class TestDataInterface(unittest.TestCase):
     def test_exec_influx_write(self):
-        di = _DataInterface(MagicMock())
+        di = _DataInterface()
         n = float("nan")
         # columns a, c contain nan
         df = pd.DataFrame({"a": [1, 2, n], "b": [3, 4, 5], "c": [n, 6, 7]})
@@ -36,7 +36,7 @@ class TestDataInterface(unittest.TestCase):
         self.assertTrue(str(["a", "c"]) in str(cm.exception))
 
     def test_get_instance(self):
-        data_interface_1 = _DataInterface(MagicMock())
+        data_interface_1 = _DataInterface()
         data_interface_2 = _DataInterface.get_instance()
         # should be the same instance
         self.assertIs(data_interface_1, data_interface_2)

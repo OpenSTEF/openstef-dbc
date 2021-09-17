@@ -6,7 +6,6 @@
 import unittest
 from unittest.mock import patch
 
-import pandas
 import pandas as pd
 from openstf_dbc.services.prediction_job import PredictionJob
 

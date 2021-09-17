@@ -7,6 +7,7 @@ from unittest import mock
 import pandas as pd
 from openstf_dbc.data_interface import _DataInterface
 from openstf_dbc.database import DataBase
+from tests.data.config import config
 
 # Define tests data
 data = {
@@ -57,18 +58,6 @@ pj = {
     "description": "NrynRS_10-G_V12_P+NrynRS_10-G_V13_P+NrynRS_10-G_V14_P+NrynRS_10-G_V15_P+NrynRS_10-G_V16_P+NrynRS_10-G_V17_P+NrynRS_10-G_V18_P+NrynRS_10-G_V20_P+NrynRS_10-G_V21_P+NrynRS_10-G_V22_P+NrynRS_10-G_V23_P+NrynRS_10-G_V24_P+NrynRS_10-G_V25_P",
 }
 
-config = mock.MagicMock()
-config.mysql.username = "username"
-config.mysql.password = "password"
-config.mysql.host = "host"
-config.mysql.port = 123
-config.mysql.database_name = "database_name"
-config.influxdb.username = "username"
-config.influxdb.password = "password"
-config.influxdb.host = "host"
-config.influxdb.port = 123
-
-
 data_interface_mock = mock.MagicMock()
 get_instance_mock = mock.MagicMock(return_value=data_interface_mock)
 
@@ -78,7 +67,7 @@ get_instance_mock = mock.MagicMock(return_value=data_interface_mock)
 def test_proper_data_format(*args):
     """This tests tests if the values are correctly converted from a pandas dataframe to a dictionary"""
     data_interface_mock.exec_sql_query.return_value = db_result_good_parameters
-    db = DataBase(config)
+    db = DataBase()
     params = db.get_hyper_params(pj)
     assert params == good_hyper_params
 
@@ -90,7 +79,7 @@ def test_proper_data_format(*args):
 def test_empty_data_frame(*args):
     """This tests tests if the default parameters are returned if the database returns an empty dataframe"""
     data_interface_mock.exec_sql_query.return_value = empty_data_frame
-    db = DataBase(config)
+    db = DataBase()
     params = db.get_hyper_params(pj)
     assert params == {}
 
@@ -100,7 +89,7 @@ def test_empty_data_frame(*args):
 def test_error_in_query(*args):
     """This tests tests if the default hyperparameters are returned in case of an error"""
     data_interface_mock.exec_sql_query.return_value = None
-    db = DataBase(config)
+    db = DataBase()
     params = db.get_hyper_params(pj)
     assert params == {}
 
