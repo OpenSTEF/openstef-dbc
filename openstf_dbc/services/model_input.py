@@ -3,162 +3,90 @@
 # SPDX-License-Identifier: MPL-2.0
 
 from datetime import datetime, timedelta
-import pytz
+from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
+import pytz
 import structlog
-
 from openstf_dbc.data_interface import _DataInterface
-from openstf_dbc.services.weather import Weather
-from openstf_dbc.services.systems import Systems
 from openstf_dbc.services.ems import Ems
 from openstf_dbc.services.predictor import Predictor
+from openstf_dbc.services.systems import Systems
+from openstf_dbc.services.weather import Weather
 
-# TODO refactor and include in preprocessing and make uniform for making predictions and training models
+
 class ModelInput:
     def __init__(self) -> None:
         self.logger = structlog.get_logger(self.__class__.__name__)
 
     def get_model_input(
         self,
-        pid=295,
-        location="Arnhem",
-        datetime_start=None,
-        datetime_end=None,
-        forecast_resolution="15T",
-    ):
-        """Based on the sid for a transformer this script gets data (with a 15min.
-        resolution) of the past 7 days. It gets four kinds of data: the realised
-        load, the weather data, the APX energy prices, and the prices of natural gas.
+        pid: int = 295,
+        location: Union[Tuple[int, int], str] = "Arnhem",
+        datetime_start: str = None,
+        datetime_end: str = None,
+        forecast_resolution: str = "15min",
+    ) -> pd.DataFrame:
+        """Get model input.
 
-        If the forecast_resolution is finer than the data resolution, the price data
-        is filled, while the weather and load data is interpolated.
+        Get load and predictors for given pid and datetime range. If the forecast_resolution
+        is lower than the data resolution, the price data is filled, while the weather
+        and load data is interpolated.
 
-        Keyword arguments:
-        name            --  the name (corresponding to an sid) of the transformers
-                            whose data we want to receive and predict (Default is Zvh_V161)
-                            Alternatively, the name can contain multiple sid's, split by a '+'
-        location        --  (lat, lon) tuple with coordinates.
-        datetime_start   --  start date of the data collection in string "YYYY-MM-DD"
-                            format (default is two weeks ago)
-        datetime_end     --  final date (non-inclusive) of the data collection in string
-                            "YYYY-MM-DD" format (default is two days from now)
-        forecast_resolution  --  time resolution that the data should have (type is
-                            string, default is 15min, format M W D T S)
+        Args:
+            pid (int, optional): Prediction job id. Defaults to 295.
+            location (str, optional): Location name or tuple with lat, lon. Defaults to "Arnhem".
+            datetime_start (str, optional): Start datetime in YY-MM-DD. Defaults to None.
+            datetime_end (str, optional): End datetime in YY-MM-DD. Defaults to None.
+            forecast_resolution (str, optional): Time resolution of model input
+                (see pandas Date Offset frequency strings). Defaults to "15min".
+
+        Returns:
+            pd.DataFrame: Model input.
         """
 
         # TODO remove location as an argument and get location by pid from the sql database/API
-
+        # or alternatively use a complete prediction job as input argument
         if datetime_start is None:
             datetime_start = str(datetime.utcnow().date() - timedelta(14))
         if datetime_end is None:
             datetime_end = str(datetime.utcnow().date() + timedelta(3))
 
-        # Get load data
+        # Get load
         load = Ems().get_load_pid(
             pid, datetime_start, datetime_end, forecast_resolution
         )
-        if len(load) == 0:
-            self.logger.warning("Length of load data was 0")
 
-        # Get APX price data
-        apx_data = Predictor().get_apx(datetime_start, datetime_end)
-
-        # Get gas price data
-        gas_data = Predictor().get_gas_price(datetime_start, datetime_end)
-
-        # Get SJV data
-        sjv_data = Predictor().get_tdcv_load_profiles(datetime_start, datetime_end)
-
-        # Get weather data
-        weather_params = [
-            "clouds",
-            "radiation",
-            "temp",
-            "winddeg",
-            "windspeed",
-            "windspeed_100m",
-            "pressure",
-            "humidity",
-            "rain",
-            "mxlD",
-            "snowDepth",
-            "clearSky_ulf",
-            "clearSky_dlf",
-            "ssrunoff",
-        ]
-
-        weather_data = Weather().get_weather_data(
-            location,
-            weather_params,
-            datetime_start,
-            datetime_end,
-            source="optimum",
+        # Get predictors
+        predictors = Predictor().get_predictors(
+            datetime_start=datetime_start,
+            datetime_end=datetime_end,
+            forecast_resolution=forecast_resolution,
+            location=location,
         )
-
-        # Post process weather data
-        if "source_1" in list(weather_data):
-            weather_data["source"] = weather_data.source_1
-            weather_data = weather_data.drop("source_1", axis=1)
-        if "input_city_1" in list(weather_data):
-            del weather_data["input_city_1"]
-        else:
-            del weather_data["input_city"]
-        del weather_data["source"]
-
-        # Combine data
-        result = (
-            pd.DataFrame(
-                index=pd.date_range(
-                    start=datetime_start,
-                    end=datetime_end,
-                    freq=forecast_resolution,
-                    tz="UTC",
-                )
+        # create model input with datetime index
+        model_input = pd.DataFrame(
+            index=pd.date_range(
+                start=datetime_start,
+                end=datetime_end,
+                freq=forecast_resolution,
+                tz="UTC",
             )
-            .resample(forecast_resolution)
-            .ffill()
         )
-        result.index.name = "index"
+        model_input.index.name = "index"
 
-        # Fill return dataframe with all data collected
-        if len(load) > 0:
-            result = pd.concat(
-                [
-                    result,
-                    load.resample(forecast_resolution).mean().interpolate(limit=3),
-                ],
-                axis=1,
-            )
+        # Add load if available, else add nan column
+        if not load.empty:
+            load = load.resample(forecast_resolution).mean().interpolate(limit=3)
+            model_input = pd.concat([model_input, load], axis=1)
         else:
-            self.logger.warning("No load data returned.")
-            result["load"] = np.nan
-        if apx_data is not None:
-            result = pd.concat(
-                [result, apx_data.resample(forecast_resolution).ffill()], axis=1
-            )
-        if len(gas_data) > 0:
-            result = pd.concat(
-                [result, gas_data.resample(forecast_resolution).ffill()], axis=1
-            )
-        if weather_data is not None:
-            result = pd.concat(
-                [
-                    result,
-                    weather_data.resample(forecast_resolution).interpolate(
-                        limit=11
-                    ),  # 11 as GFS data has data every 3 hours
-                ],
-                axis=1,
-            )
-        if sjv_data is not None:
-            result = pd.concat(
-                [result, sjv_data.resample(forecast_resolution).interpolate(limit=3)],
-                axis=1,
-            )
+            self.logger.warning("No load data returned, fill with NaN.")
+            model_input["load"] = np.nan
+        # Add predictors
+        model_input = pd.concat([model_input, predictors], axis=1)
 
-        return result
+        return model_input
 
     def get_solar_input(
         self,

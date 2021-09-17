@@ -3,15 +3,15 @@
 # SPDX-License-Identifier: MPL-2.0
 
 from openstf_dbc.data_interface import _DataInterface
-from openstf_dbc.services.prediction_job import PredictionJob
-from openstf_dbc.services.weather import Weather
 from openstf_dbc.services.ems import Ems
-from openstf_dbc.services.predictor import Predictor
-from openstf_dbc.services.write import Write
-from openstf_dbc.services.splitting import Splitting
-from openstf_dbc.services.predictions import Predictions
 from openstf_dbc.services.model_input import ModelInput
+from openstf_dbc.services.prediction_job import PredictionJob
+from openstf_dbc.services.predictions import Predictions
+from openstf_dbc.services.predictor import Predictor
+from openstf_dbc.services.splitting import Splitting
 from openstf_dbc.services.systems import Systems
+from openstf_dbc.services.weather import Weather
+from openstf_dbc.services.write import Write
 
 
 class DataBase:
@@ -59,9 +59,10 @@ class DataBase:
         _weather.get_datetime_last_stored_knmi_weatherdata
     )
     # predictor methods
-    get_apx = _predictor.get_apx
+    get_predictors = _predictor.get_predictors
+    get_electricity_price = _predictor.get_electricity_price
     get_gas_price = _predictor.get_gas_price
-    get_tdcv_load_profiles = _predictor.get_tdcv_load_profiles
+    get_load_profiles = _predictor.get_load_profiles
     # historic cdb data service
     get_load_sid = _historic_cdb_data_service.get_load_sid
     get_load_created_after = _historic_cdb_data_service.get_load_created_after
