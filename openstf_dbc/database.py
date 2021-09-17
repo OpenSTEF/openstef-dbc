@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
+from openstf_dbc import Singleton
 from openstf_dbc.data_interface import _DataInterface
 from openstf_dbc.services.ems import Ems
 from openstf_dbc.services.model_input import ModelInput
@@ -14,12 +15,14 @@ from openstf_dbc.services.weather import Weather
 from openstf_dbc.services.write import Write
 
 
-class DataBase:
+class DataBase(metaclass=Singleton):
     """Provides a high-level interface to various data sources.
 
     All user/client code should use this class to get or write data. Under the hood
     this class uses various services to interfact with its datasource.
     """
+
+    _instance = None
 
     # services
     _write = Write()
@@ -92,7 +95,35 @@ class DataBase:
     )
     get_random_pv_systems = _systems.get_random_pv_systems
 
-    def __init__(self):
-        """Init the stuff that also performs actions on init"""
+    def __init__(self, config):
+        """Construct the DataBase singleton.
+
+        Initialize the datainterface and api. WARNING: this is a singleton class when
+        calling multiple times with a config argument no new configuration will be
+        applied.
+
+        Args:
+            config: Configuration object. with the following attributes:
+                api.username (str): API username.
+                api.password (str): API password.
+                api.admin_username (str): API admin username.
+                api.admin_password (str): API admin password.
+                api.url (str): API url.
+                influxdb.username (str): InfluxDB username.
+                influxdb.password (str): InfluxDB password.
+                influxdb.host (str): InfluxDB host.
+                influxdb.port (int): InfluxDB port.
+                mysql.username (str): MySQL username.
+                mysql.password (str): MySQL password.
+                mysql.host (str): MySQL host.
+                mysql.port (int): MYSQL port.
+                mysql.database_name (str): MySQL database name.
+                proxies Union[dict[str, str], None]: Proxies.
+
+        """
+
+        self._datainterface = _DataInterface(config)
         # Ktp api
-        self.ktp_api = _DataInterface.get_instance().ktp_api
+        self.ktp_api = self._datainterface.ktp_api
+
+        DataBase._instance = self

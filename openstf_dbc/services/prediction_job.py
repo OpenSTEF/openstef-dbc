@@ -81,8 +81,10 @@ class PredictionJob:
             limit=limit,
         )
 
-        # TODO check length results
         results = _DataInterface.get_instance().exec_sql_query(query)
+
+        if len(results) == 0:
+            return []
 
         # Convert to list of dictionaries
         prediction_jobs = results.to_dict(orient="records")

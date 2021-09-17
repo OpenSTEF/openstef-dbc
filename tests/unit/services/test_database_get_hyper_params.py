@@ -2,18 +2,12 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Jul 16 10:09:56 2019
-Tests for reading and writing the hyperparameters to the sql-database
-@author: AL20305
-"""
-
-import pandas as pd
 from unittest import mock
 
-from openstf_dbc.database import DataBase
+import pandas as pd
 from openstf_dbc.data_interface import _DataInterface
+from openstf_dbc.database import DataBase
+from tests.data.config import config
 
 # Define tests data
 data = {
@@ -63,7 +57,6 @@ pj = {
     "created": "2019-04-05 12:08:23",
     "description": "NrynRS_10-G_V12_P+NrynRS_10-G_V13_P+NrynRS_10-G_V14_P+NrynRS_10-G_V15_P+NrynRS_10-G_V16_P+NrynRS_10-G_V17_P+NrynRS_10-G_V18_P+NrynRS_10-G_V20_P+NrynRS_10-G_V21_P+NrynRS_10-G_V22_P+NrynRS_10-G_V23_P+NrynRS_10-G_V24_P+NrynRS_10-G_V25_P",
 }
-
 
 data_interface_mock = mock.MagicMock()
 get_instance_mock = mock.MagicMock(return_value=data_interface_mock)

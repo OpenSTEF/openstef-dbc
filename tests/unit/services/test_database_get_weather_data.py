@@ -3,30 +3,25 @@
 # SPDX-License-Identifier: MPL-2.0
 
 from datetime import datetime, timedelta
-import os
-import pandas as pd
+from pathlib import Path
 from unittest import mock
 
+import pandas as pd
 from pandas.testing import assert_frame_equal
-
-# from openstf_dbc.database import DataBase
-
 
 time = datetime.utcnow()
 
+DATA_FOLDER = Path(__file__).absolute().parent.parent.parent / "data"
+
 noncombined_weatherdata = pd.read_csv(
-    os.path.join(
-        os.path.dirname(__file__), "..", "data/noncombined_weatherdata_test_data.csv"
-    ),
+    DATA_FOLDER / "noncombined_weatherdata_test_data.csv",
     sep=";",
     index_col=0,
     parse_dates=["datetime"],
 )
 
 combined_weatherdata = pd.read_csv(
-    os.path.join(
-        os.path.dirname(__file__), "..", "data/combined_weatherdata_test_data.csv"
-    ),
+    DATA_FOLDER / "combined_weatherdata_test_data.csv",
     sep=";",
     index_col=0,
     parse_dates=["datetime"],

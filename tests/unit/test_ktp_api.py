@@ -98,26 +98,17 @@ def mocked_requests_get_fail(*args, **kwargs):
     return MockResponse(error_string, 404)
 
 
-def mocked_config_instance(*args, **kwargs):
-    mock_config = MagicMock()
-    mock_config.api.url = "https://api.api"
-    mock_config.api.username = "username"
-    mock_config.api.password = "password"
-    mock_config.api.admin_username = "admin_username"
-    mock_config.api.admin_password = "admin_password"
-    mock_config.proxies = None
-    return mock_config
+api_kwargs = {"url": "https://api.api", "username": "username", "password": "password"}
 
 
-@mock.patch("openstf_dbc.ktp_api.ConfigManager.get_instance", mocked_config_instance)
 @mock.patch("requests.get", side_effect=mocked_requests_get)
 class TestKtpApi(TestCase):
     def test_ktp_api(self, mock_get):
         with warnings.catch_warnings(record=True):
-            KtpApi()
+            KtpApi(**api_kwargs)
 
     def test_get_customers(self, mock_get):
-        ktp_api = KtpApi()
+        ktp_api = KtpApi(**api_kwargs)
         customers = ktp_api.get_customers()
 
         # Check the correct URL is used
@@ -131,7 +122,7 @@ class TestKtpApi(TestCase):
 
         sampleSID = "sampleSID"
         sampleKey = "sampleKey"
-        ktp_api = KtpApi()
+        ktp_api = KtpApi(**api_kwargs)
         ret = ktp_api.post_measurements(measurements_pf, sampleSID, sampleKey)
 
         full_url = mock_post.call_args[0][0]
@@ -162,7 +153,7 @@ class TestKtpApi(TestCase):
 
         sampleSID = "sampleSID"
         sampleKey = "sampleKey"
-        ktp_api = KtpApi()
+        ktp_api = KtpApi(**api_kwargs)
         ret = ktp_api.post_measurements(measurements_no_tz_pf, sampleSID, sampleKey)
 
         full_url = mock_post.call_args[0][0]
@@ -196,7 +187,7 @@ class TestKtpApi(TestCase):
         post_ret.json.return_value = error_string
         mock_post.return_value = post_ret
 
-        ktp_api = KtpApi()
+        ktp_api = KtpApi(**api_kwargs)
         ret = ktp_api.post_measurements(measurements_no_tz_pf, "sampleSID", "sampleKey")
         assert ret == error_string
 
@@ -207,7 +198,7 @@ class TestKtpApi(TestCase):
         patch_ret.status_code = 200
         patch_ret.json.return_value = ret_string
         mock_patch.return_value = patch_ret
-        ktp_api = KtpApi()
+        ktp_api = KtpApi(**api_kwargs)
         sid = "Zwo_150_TR4_P"
         fields = {"lat": 99, "lon": -1, "brand": "beste"}
         r = ktp_api.update_system(sid, fields)
@@ -230,7 +221,7 @@ class TestKtpApi(TestCase):
         mock_patch.return_value = patch_ret
 
         with warnings.catch_warnings(record=True):
-            KtpApi()
+            KtpApi(**api_kwargs)
 
     @mock.patch("requests.post")
     def test_add_tracy_job(self, mock_post, mock_get):
@@ -246,7 +237,7 @@ class TestKtpApi(TestCase):
         mock_post.return_value = post_ret
 
         with warnings.catch_warnings(record=True):
-            ktp_api = KtpApi()
+            ktp_api = KtpApi(**api_kwargs)
             # New Tracy Job
 
             job = ktp_api.add_tracy_job(arguments, function)
@@ -267,7 +258,7 @@ class TestKtpApi(TestCase):
             post_ret.status_code = 500
 
     def test_get_all_tracy_jobs(self, mock_get):
-        ktp_api = KtpApi()
+        ktp_api = KtpApi(**api_kwargs)
 
         # Get all jobs
         jobs = ktp_api.get_all_tracy_jobs()
@@ -288,7 +279,7 @@ class TestKtpApi(TestCase):
         ].lower()  # SQL returns uppercase, python uses lower case
         arguments = tracy_jobs_list[1]["args"]
 
-        ktp_api = KtpApi()
+        ktp_api = KtpApi(**api_kwargs)
 
         # Existing Job
         job = ktp_api.get_tracy_job(arguments, function)
@@ -324,7 +315,7 @@ class TestKtpApi(TestCase):
         mock_put.return_value = put_ret
 
         with warnings.catch_warnings(record=True):
-            ktp_api = KtpApi()
+            ktp_api = KtpApi(**api_kwargs)
             ktp_api.update_tracy_job(
                 {
                     "id": id,
@@ -341,7 +332,7 @@ class TestKtpApi(TestCase):
         mock_put.return_value = put_ret
 
         with warnings.catch_warnings(record=True):
-            KtpApi()
+            KtpApi(**api_kwargs)
 
     @mock.patch("requests.delete")
     def test_delete_tracy_job(self, mock_delete, mock_get):
@@ -350,7 +341,7 @@ class TestKtpApi(TestCase):
         mock_delete.return_value = put_del
 
         with warnings.catch_warnings(record=True):
-            ktp_api = KtpApi()
+            ktp_api = KtpApi(**api_kwargs)
             ktp_api.delete_tracy_job({"id": 4})
 
 

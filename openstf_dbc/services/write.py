@@ -288,7 +288,7 @@ class Write:
         query = "INSERT IGNORE INTO `systems` (sid, region) VALUES " + values
 
         # Execute query
-        response = _DataInterface.get_instance().sql_engine.execute(query)
+        response = _DataInterface.get_instance().mysql_engine.execute(query)
 
         self.logger.info(
             "Added {} new systems to the systems table in the MySQL database".format(

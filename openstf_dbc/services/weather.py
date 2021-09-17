@@ -12,6 +12,7 @@ import pytz
 import structlog
 from openstf_dbc.data_interface import _DataInterface
 from openstf_dbc.services.write import Write
+from openstf_dbc.utils import genereate_datetime_index
 
 
 class Weather:
@@ -279,11 +280,10 @@ class Weather:
         else:
             self.logger.warning("No weatherdata found. Returning empty dataframe")
             return pd.DataFrame(
-                index=pd.date_range(
+                index=genereate_datetime_index(
                     start=datetime_start,
                     end=datetime_end,
                     freq=resolution,
-                    tz="UTC",
                 )
             )
 

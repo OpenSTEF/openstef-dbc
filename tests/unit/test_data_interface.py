@@ -3,21 +3,19 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pandas as pd
-
 from openstf_dbc.data_interface import _DataInterface
 
 
-@patch("openstf_dbc.data_interface.ConfigManager", MagicMock())
 @patch("openstf_dbc.data_interface.KtpApi", MagicMock())
 @patch("openstf_dbc.data_interface.logging", MagicMock())
 @patch("openstf_dbc.data_interface.influxdb", MagicMock())
 @patch("openstf_dbc.data_interface.sqlalchemy", MagicMock())
 class TestDataInterface(unittest.TestCase):
     def test_exec_influx_write(self):
-        di = _DataInterface.get_instance()
+        di = _DataInterface()
         n = float("nan")
         # columns a, c contain nan
         df = pd.DataFrame({"a": [1, 2, n], "b": [3, 4, 5], "c": [n, 6, 7]})
@@ -36,6 +34,17 @@ class TestDataInterface(unittest.TestCase):
 
         # check if exception msg mentions the columns with NaN'
         self.assertTrue(str(["a", "c"]) in str(cm.exception))
+
+    def test_get_instance(self):
+        data_interface_1 = _DataInterface()
+        data_interface_2 = _DataInterface.get_instance()
+        # should be the same instance
+        self.assertIs(data_interface_1, data_interface_2)
+
+    @patch("openstf_dbc.Singleton.get_instance", side_effect=KeyError)
+    def test_get_instance_error(self, get_instance_mock):
+        with self.assertRaises(RuntimeError):
+            _DataInterface.get_instance()
 
 
 if __name__ == "__main__":

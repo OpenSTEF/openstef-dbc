@@ -3,49 +3,45 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import unittest
+from pathlib import Path
 from unittest.mock import MagicMock, patch
-import os
 
 import pandas as pd
-
-from tests.utils.base import BaseTestCase
 from openstf_dbc.services.weather import Weather
+from tests.utils.base import BaseTestCase
 
-unit_test_path = os.path.join(os.path.dirname(__file__), os.path.pardir)
+DATA_FOLDER = Path(__file__).absolute().parent.parent.parent / "data"
 
 noncombined_weatherdata = pd.read_csv(
-    os.path.join(unit_test_path, "data/noncombined_weatherdata_test_data.csv"),
+    DATA_FOLDER / "noncombined_weatherdata_test_data.csv",
     sep=";",
     index_col=0,
     parse_dates=["datetime"],
 )
 
 combined_weatherdata = pd.read_csv(
-    os.path.join(unit_test_path, "data/combined_weatherdata_test_data.csv"),
+    DATA_FOLDER / "combined_weatherdata_test_data.csv",
     sep=";",
     index_col=0,
     parse_dates=["datetime"],
 )
 
 noncombined_weatherdata_nomissing = pd.read_csv(
-    os.path.join(
-        unit_test_path,
-        "data/noncombined_weatherdata_nomissing_test_data.csv",
-    ),
+    DATA_FOLDER / "noncombined_weatherdata_nomissing_test_data.csv",
     sep=";",
     index_col=0,
     parse_dates=["datetime"],
 )
 
 combined_weatherdata_nomissing = pd.read_csv(
-    os.path.join(unit_test_path, "data/combined_weatherdata_nomissing_test_data.csv"),
+    DATA_FOLDER / "combined_weatherdata_nomissing_test_data.csv",
     sep=";",
     index_col=0,
     parse_dates=["datetime"],
 )
 
 combined_weatherdata_DSN = pd.read_csv(
-    os.path.join(unit_test_path, "data/combined_weatherdata_DSN_test_data.csv"),
+    DATA_FOLDER / "combined_weatherdata_DSN_test_data.csv",
     sep=";",
     index_col=0,
     parse_dates=["datetime"],

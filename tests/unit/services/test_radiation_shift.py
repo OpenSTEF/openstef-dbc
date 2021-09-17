@@ -5,15 +5,14 @@
 import unittest
 from unittest.mock import patch
 
-import pandas as pd
 import numpy as np
-
+import pandas as pd
 from openstf_dbc.services.weather import Weather
 
 
-@patch("openstf_dbc.data_interface._DataInterface")
+@patch("openstf_dbc.data_interface._DataInterface.get_instance")
 class TestRadiationShift(unittest.TestCase):
-    def test(self, data_interface_mock):
+    def test(self, data_interface_get_instance_mock):
         # Mock database response
         start = pd.to_datetime("2077-01-01T02:00")
         end = pd.to_datetime("2077-01-01T04:00")
@@ -29,7 +28,7 @@ class TestRadiationShift(unittest.TestCase):
             index=index,
         )
 
-        data_interface_mock._instance.exec_influx_query.return_value = {
+        data_interface_get_instance_mock.return_value.exec_influx_query.return_value = {
             "weather": df_test
         }
 

@@ -14,6 +14,7 @@ from openstf_dbc.services.ems import Ems
 from openstf_dbc.services.predictor import Predictor
 from openstf_dbc.services.systems import Systems
 from openstf_dbc.services.weather import Weather
+from openstf_dbc.utils import genereate_datetime_index
 
 
 class ModelInput:
@@ -37,8 +38,8 @@ class ModelInput:
         Args:
             pid (int, optional): Prediction job id. Defaults to 295.
             location (str, optional): Location name or tuple with lat, lon. Defaults to "Arnhem".
-            datetime_start (str, optional): Start datetime in YY-MM-DD. Defaults to None.
-            datetime_end (str, optional): End datetime in YY-MM-DD. Defaults to None.
+            datetime_start (datetime, optional): Start datetime. Defaults to None.
+            datetime_end (datetime, optional): End datetime. Defaults to None.
             forecast_resolution (str, optional): Time resolution of model input
                 (see pandas Date Offset frequency strings). Defaults to "15min".
 
@@ -49,9 +50,10 @@ class ModelInput:
         # TODO remove location as an argument and get location by pid from the sql database/API
         # or alternatively use a complete prediction job as input argument
         if datetime_start is None:
-            datetime_start = str(datetime.utcnow().date() - timedelta(14))
+            datetime_start = datetime.utcnow().date() - timedelta(14)
+
         if datetime_end is None:
-            datetime_end = str(datetime.utcnow().date() + timedelta(3))
+            datetime_end = datetime.utcnow().date() + timedelta(3)
 
         # Get load
         load = Ems().get_load_pid(
@@ -65,13 +67,13 @@ class ModelInput:
             forecast_resolution=forecast_resolution,
             location=location,
         )
-        # create model input with datetime index
+
+        # Create model input with datetime index
         model_input = pd.DataFrame(
-            index=pd.date_range(
+            index=genereate_datetime_index(
                 start=datetime_start,
                 end=datetime_end,
                 freq=forecast_resolution,
-                tz="UTC",
             )
         )
         model_input.index.name = "index"

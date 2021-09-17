@@ -8,29 +8,64 @@ import pandas as pd
 import requests
 import sqlalchemy
 
-from openstf_dbc.config.config import ConfigManager
+from openstf_dbc import Singleton
 from openstf_dbc.ktp_api import KtpApi
 from openstf_dbc.log import logging
 
 # Define abstract interface
 
 
-class _DataInterface:
+class _DataInterface(metaclass=Singleton):
+    def __init__(self, config):
+        """Generic data interface.
 
-    _instance = None
+        All connections and queries to the InfluxDB database, MySQL databases and
+        influx API are governed by this class.
 
-    def __init__(self):
-        """All connections and queries to the influx and mysql databases
-        are governed by this class"""
+        Args:
+            config: Configuration object. with the following attributes:
+                api.username (str): API username.
+                api.password (str): API password.
+                api.admin_username (str): API admin username.
+                api.admin_password (str): API admin password.
+                api.url (str): API url.
+                influxdb.username (str): InfluxDB username.
+                influxdb.password (str): InfluxDB password.
+                influxdb.host (str): InfluxDB host.
+                influxdb.port (int): InfluxDB port.
+                mysql.username (str): MySQL username.
+                mysql.password (str): MySQL password.
+                mysql.host (str): MySQL host.
+                mysql.port (int): MYSQL port.
+                mysql.database_name (str): MySQL database name.
+                proxies Union[dict[str, str], None]: Proxies.
+        """
 
-        # Check if we already have an instance
-        if self._instance is not None:
-            raise RuntimeError("This is a singleton class, can only init once")
-        self._instance = self
-
-        self.config = ConfigManager.get_instance()
         self.logger = logging.get_logger(self.__class__.__name__)
-        self.ktp_api = KtpApi()
+
+        self.ktp_api = KtpApi(
+            username=config.api.username,
+            password=config.api.password,
+            admin_username=config.api.admin_username,
+            admin_password=config.api.admin_password,
+            url=config.api.url,
+            proxies=config.proxies,
+        )
+
+        self.influx_client = self._create_influx_client(
+            username=config.influxdb.username,
+            password=config.influxdb.password,
+            host=config.influxdb.host,
+            port=config.influxdb.port,
+        )
+
+        self.mysql_engine = self._create_mysql_engine(
+            username=config.mysql.username,
+            password=config.mysql.password,
+            host=config.mysql.host,
+            port=config.mysql.port,
+            db=config.mysql.database_name,
+        )
 
         # Set geopy proxies
         # https://geopy.readthedocs.io/en/stable/#geopy.geocoders.options
@@ -40,55 +75,49 @@ class _DataInterface:
         # such as macOS or Windows native preferences – see
         # urllib.request.ProxyHandler for more details).
         # The proxies value for using system proxies is None.
-        geopy.geocoders.options.default_proxies = self.config.proxies
+        geopy.geocoders.options.default_proxies = config.proxies
 
-        self._connect_to_database(use_influxdb=True, use_mysql=True)
+        _DataInterface._instance = self
 
     @staticmethod
     def get_instance():
-        if _DataInterface._instance is None:
-            _DataInterface._instance = _DataInterface()
-        return _DataInterface._instance
+        try:
+            return Singleton.get_instance(_DataInterface)
+        except KeyError as exc:
+            # if _DataInterface not in Singleton._instances:
+            raise RuntimeError(
+                "No _DataInterface instance initialized. "
+                "Please call _DataInterface(config) first."
+            ) from exc
 
-    def _connect_to_database(self, use_influxdb=True, use_mysql=True):
-        # Create Influx client
-        if use_influxdb is True:
-            self.influx_client = self._create_influx_client()
-
-        # Create SQL engine
-        if use_mysql is True:
-            self.sql_engine = self._create_sql_write_engine()
-
-    def _create_influx_client(self):
+    def _create_influx_client(self, username, password, host, port):
         """Create influx client, namespace-dependend"""
         try:
             return influxdb.DataFrameClient(
-                host=self.config.influxdb.host,
-                port=self.config.influxdb.port,
-                username=self.config.influxdb.username,
-                password=self.config.influxdb.password,
+                host=host,
+                port=port,
+                username=username,
+                password=password,
             )
-        except Exception as e:
-            self.logger("Could not connect to InfluxDB database", exc_info=e)
+        except Exception as exc:
+            self.logger("Could not connect to InfluxDB database", exc_info=exc)
             raise
 
-    def _create_sql_write_engine(self):
-        """Create sql_write_engine, namespace-dependend.
+    def _create_mysql_engine(self, username, password, host, port, db):
+        """Create MySQL engine.
+
         Differs from sql_connection in the sense that this write_engine
-        *can* write pandas dataframe directly"""
+        *can* write pandas dataframe directly.
+
+        """
+        connector = "mysql+mysqlconnector"
         database_url = (
-            "mysql+mysqlconnector://{user}:{pw}@{host}:{port}/{db_name}?use_pure=True"
-        ).format(
-            user=self.config.mysql.username,
-            pw=self.config.mysql.password,
-            host=self.config.mysql.host,
-            port=self.config.mysql.port,
-            db_name=self.config.mysql.database_name,
+            f"{connector}://{username}:{password}@{host}:{port}/{db}?use_pure=True"
         )
         try:
             return sqlalchemy.create_engine(database_url)
-        except Exception as e:
-            self.logger.error("Could not connect to MySQL database", exc_info=e)
+        except Exception as exc:
+            self.logger.error("Could not connect to MySQL database", exc_info=exc)
             raise
 
     def exec_influx_query(self, query):
@@ -168,7 +197,7 @@ class _DataInterface:
 
     def exec_sql_query(self, query, **kwargs):
         try:
-            return pd.read_sql(query, self.sql_engine, **kwargs)
+            return pd.read_sql(query, self.mysql_engine, **kwargs)
         except sqlalchemy.exc.OperationalError as e:
             self.logger.error("Lost connection to MySQL database", exc_info=e)
             raise
@@ -183,7 +212,7 @@ class _DataInterface:
 
     def exec_sql_write(self, statement):
         try:
-            with self.sql_engine.connect() as connection:
+            with self.mysql_engine.connect() as connection:
                 connection.execute(statement)
         except Exception as e:
             self.logger.error(
@@ -192,7 +221,7 @@ class _DataInterface:
             raise
 
     def exec_sql_dataframe_write(self, dataframe, table, **kwargs):
-        dataframe.to_sql(table, self.sql_engine, **kwargs)
+        dataframe.to_sql(table, self.mysql_engine, **kwargs)
 
     def check_mysql_available(self):
         """Check if a basic mysql query gives a valid response"""
