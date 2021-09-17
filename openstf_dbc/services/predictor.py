@@ -8,6 +8,7 @@ from typing import List, Optional, Tuple, Union
 import pandas as pd
 from openstf_dbc.data_interface import _DataInterface
 from openstf_dbc.services.weather import Weather
+from openstf_dbc.utils import genereate_datetime_index
 
 
 class PredictorGroups(Enum):
@@ -31,6 +32,8 @@ class Predictor:
         selected. If the WEATHER_DATA group is included a location is required.
 
         Args:
+            datetime_start (str):
+            datetime_end (str):
             location (Union[str, Tuple[float, float]], optional): Location (for weather data).
                 Defaults to None.
             predictor_groups (Optional[List[str]], optional): The groups of predictors
@@ -50,13 +53,11 @@ class Predictor:
             raise ValueError(
                 "Need to provide a location when weather data predictors are requested."
             )
-
         predictors = pd.DataFrame(
-            index=pd.date_range(
+            index=genereate_datetime_index(
                 start=datetime_start,
                 end=datetime_end,
                 freq=forecast_resolution,
-                tz="UTC",
             )
         )
 
@@ -105,11 +106,10 @@ class Predictor:
 
         if not electricity_price:
             return pd.DataFrame(
-                index=pd.date_range(
+                index=genereate_datetime_index(
                     start=datetime_start,
                     end=datetime_end,
                     freq=forecast_resolution,
-                    tz="UTC",
                 )
             )
 
@@ -133,11 +133,10 @@ class Predictor:
         # NOTE this is not an influx query and always returns a dataframe by default
         if gas_price.empty:
             return pd.DataFrame(
-                index=pd.date_range(
+                index=genereate_datetime_index(
                     start=datetime_start,
                     end=datetime_end,
                     freq=forecast_resolution,
-                    tz="UTC",
                 )
             )
 
@@ -175,11 +174,10 @@ class Predictor:
 
         if not load_profiles:
             return pd.DataFrame(
-                index=pd.date_range(
+                index=genereate_datetime_index(
                     start=datetime_start,
                     end=datetime_end,
                     freq=forecast_resolution,
-                    tz="UTC",
                 )
             )
 
