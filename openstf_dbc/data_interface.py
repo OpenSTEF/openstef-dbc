@@ -71,7 +71,6 @@ class _DataInterface(metaclass=Singleton):
                 "No _DataInterface instance initialized. "
                 "Please call _DataInterface(config) first."
             ) from exc
-        # return Singleton._instances[_DataInterface]
 
     def _create_influx_client(self, username, password, host, port):
         """Create influx client, namespace-dependend"""
