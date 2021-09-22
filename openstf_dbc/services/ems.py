@@ -6,7 +6,6 @@ from datetime import timedelta
 
 import pandas as pd
 import structlog
-
 from openstf_dbc.data_interface import _DataInterface
 from openstf_dbc.services.systems import Systems
 
@@ -31,8 +30,8 @@ class Ems:
 
         Args:
             sid(Union[str, List[str]]): System id's
-            datetime_start (str): "2018-10-12 08:45:00"
-            datetime_end (str): "2018-12-12 08:45:00"
+            datetime_start (datetime): Start datetime.
+            datetime_end (datetime): End datetime.
             forecast_resolution (str): The forecast resolution, for example '15T'
             aggregated (boolean): Should the results be aggregated per sid or not.
             average_output:
@@ -61,29 +60,35 @@ class Ems:
         # Prepare query
         if aggregated:
             query = """
-                SELECT sum("output") as load, count("output") as nEntries
+                SELECT sum("output") AS load, count("output") AS nEntries
                 FROM (
-                    SELECT mean("output") as output
+                    SELECT mean("output") AS output
                     FROM "realised".."power"
-                    WHERE "system" {} AND time >= \'{}\' and time <= \'{}\'
+                    WHERE
+                        "system" {} AND
+                        time >= \'{}\' AND
+                        time <= \'{}\'
                     GROUP BY time({}), "system" fill(null)
                 )
                 WHERE time <= NOW()
                 GROUP BY time({})
             """.format(
                 sidsection,
-                datetime_start,
-                datetime_end,
+                datetime_start.isoformat(),
+                datetime_end.isoformat(),
                 forecast_resolution.replace("T", "m"),
                 forecast_resolution.replace("T", "m"),
             )
         else:
             query = """
-                SELECT "output" as load, "system"
+                SELECT "output" AS load, "system"
                 FROM "realised".."power"
-                WHERE "system" {} AND time >= \'{}\' and time < \'{}\' fill(null)
+                WHERE
+                    "system" {} AND
+                    time >= \'{}\' AND
+                    time < \'{}\' fill(null)
             """.format(
-                sidsection, datetime_start, datetime_end
+                sidsection, datetime_start.isoformat(), datetime_end.isoformat()
             )
 
         # Query load
@@ -110,10 +115,20 @@ class Ems:
         return result[outputcols]
 
     def get_load_created_after(self, sid, created_after, group_by_time="5m"):
+        """Get load created after a certain datetime for a given system id.
+
+        Args:
+            sid (str): System id.
+            created_after (datetime): Created after datetime.
+            group_by_time (str, optional): Group by time. Defaults to "5m".
+
+        Returns:
+            pd.DataFram: Load created after requested datetime.
+        """
         query = f"""
             SELECT mean("output") as output
             FROM "realised".."power"
-            WHERE "system" = '{sid}' AND "created" > {created_after}
+            WHERE "system" = '{sid}' AND "created" > {created_after.isoformat()}
             GROUP BY time({group_by_time})
         """
         load = _DataInterface.get_instance().exec_influx_query(query)

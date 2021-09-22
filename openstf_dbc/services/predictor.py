@@ -8,7 +8,7 @@ from typing import List, Optional, Tuple, Union
 import pandas as pd
 from openstf_dbc.data_interface import _DataInterface
 from openstf_dbc.services.weather import Weather
-from openstf_dbc.utils import genereate_datetime_index
+from openstf_dbc.utils import genereate_datetime_index, process_datetime_range
 
 
 class PredictorGroups(Enum):
@@ -32,8 +32,8 @@ class Predictor:
         selected. If the WEATHER_DATA group is included a location is required.
 
         Args:
-            datetime_start (str):
-            datetime_end (str):
+            datetime_start (datetime): Date time end.
+            datetime_end (datetime): Date time start.
             location (Union[str, Tuple[float, float]], optional): Location (for weather data).
                 Defaults to None.
             predictor_groups (Optional[List[str]], optional): The groups of predictors
@@ -43,6 +43,13 @@ class Predictor:
         Returns:
             pd.DataFrame: Requested predictors with timezone aware datetime index.
         """
+
+        # Process datetimes (rounded, timezone, frequency) and generate index
+        datetime_start, datetime_end, datetime_index = process_datetime_range(
+            start=datetime_start,
+            end=datetime_end,
+            freq=forecast_resolution,
+        )
         if predictor_groups is None:
             predictor_groups = [p for p in PredictorGroups]
 
@@ -53,13 +60,7 @@ class Predictor:
             raise ValueError(
                 "Need to provide a location when weather data predictors are requested."
             )
-        predictors = pd.DataFrame(
-            index=genereate_datetime_index(
-                start=datetime_start,
-                end=datetime_end,
-                freq=forecast_resolution,
-            )
-        )
+        predictors = pd.DataFrame(index=datetime_index)
 
         if PredictorGroups.WEATHER_DATA in predictor_groups:
             weather_data_predictors = self.get_weather_data(
@@ -97,19 +98,22 @@ class Predictor:
     def get_electricity_price(
         self, datetime_start, datetime_end, forecast_resolution=None
     ):
-        query = 'SELECT "Price" FROM "forecast_latest".."marketprices" \
-        WHERE "Name" = \'APX\' AND time >= \'{}\' AND time <= \'{}\''.format(
-            datetime_start, datetime_end
-        )
-
+        database = "forecast_latest"
+        measurement = "marketprices"
+        query = f"""
+            SELECT
+                "Price" FROM "{database}".."{measurement}"
+            WHERE
+                "Name" = 'APX' AND
+                time >= '{datetime_start.isoformat()}' AND
+                time <= '{datetime_end.isoformat()}'
+        """
         electricity_price = _DataInterface.get_instance().exec_influx_query(query)
 
         if not electricity_price:
             return pd.DataFrame(
                 index=genereate_datetime_index(
-                    start=datetime_start,
-                    end=datetime_end,
-                    freq=forecast_resolution,
+                    start=datetime_start, end=datetime_end, freq=forecast_resolution
                 )
             )
 
@@ -134,9 +138,7 @@ class Predictor:
         if gas_price.empty:
             return pd.DataFrame(
                 index=genereate_datetime_index(
-                    start=datetime_start,
-                    end=datetime_end,
-                    freq=forecast_resolution,
+                    start=datetime_start, end=datetime_end, freq=forecast_resolution
                 )
             )
 
@@ -165,19 +167,20 @@ class Predictor:
         # (there is also a 'year_created' tag in this measurement)
         database = "realised"
         measurement = "sjv"
-        query = f"""
-            SELECT /^sjv/ FROM "{database}".."{measurement}"
-            WHERE time >= '{datetime_start}' AND time <= '{datetime_end}'
-        """
 
+        query = f"""
+            SELECT
+                /^sjv/ FROM "{database}".."{measurement}"
+            WHERE
+                time >= '{datetime_start.isoformat()}' AND
+                time <= '{datetime_end.isoformat()}'
+        """
         load_profiles = _DataInterface.get_instance().exec_influx_query(query)
 
         if not load_profiles:
             return pd.DataFrame(
                 index=genereate_datetime_index(
-                    start=datetime_start,
-                    end=datetime_end,
-                    freq=forecast_resolution,
+                    start=datetime_start, end=datetime_end, freq=forecast_resolution
                 )
             )
 
@@ -187,7 +190,6 @@ class Predictor:
             load_profiles = load_profiles.resample(forecast_resolution).interpolate(
                 limit=3
             )
-
         return load_profiles
 
     def get_weather_data(
