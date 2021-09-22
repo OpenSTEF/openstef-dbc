@@ -11,7 +11,10 @@ DEFAULT_TZ = datetime.timezone.utc
 
 def genereate_datetime_index(start, end, freq=None):
     # Use timezone info from start if given
-    tz = getattr(start, "tzinfo", DEFAULT_TZ)
+    if start.tzinfo is None:
+        tz = DEFAULT_TZ
+    else:
+        tz = start.tzinfo
 
     if not freq:
         freq = DEFAULT_FREQ
