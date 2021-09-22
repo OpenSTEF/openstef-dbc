@@ -4,12 +4,35 @@
 
 import json
 from typing import List, Optional, Union
+from datetime import datetime
+from pydantic import BaseModel, ValidationError
 
 from openstf_dbc.data.featuresets import FEATURESET_NAMES, FEATURESETS
 from openstf_dbc.data_interface import _DataInterface
 from openstf_dbc.log import logging
 from openstf_dbc.services.systems import Systems
 
+
+class PJ(BaseModel):
+    id: int
+    model_type_group: str
+    model: str
+    forecast_type: str
+    horizon_minutes: int
+    resolution_minutes: int
+    lat: float
+    lon: float
+    train_components: int
+    name: str
+    created: datetime
+    sid: Optional[str]
+    hyper_params: Optional[dict]
+    feature_names: Optional[list]
+    description: Optional[str]
+    quantiles: Optional[List[float]]
+
+    def __getitem__(self, item):
+        return getattr(self, item)
 
 class PredictionJob:
     def __init__(self):
@@ -49,6 +72,7 @@ class PredictionJob:
         # Add model group
         prediction_job = self._add_model_type_group_to_prediction_job(prediction_job)
 
+        prediction_job = self._create_prediction_job_object(prediction_job)
         return prediction_job
 
     def get_prediction_jobs(
@@ -81,22 +105,17 @@ class PredictionJob:
             limit=limit,
         )
 
-        results = _DataInterface.get_instance().exec_sql_query(query)
-
-        if len(results) == 0:
-            return []
-
-        # Convert to list of dictionaries
-        prediction_jobs = results.to_dict(orient="records")
-
-        # Add description to all prediction jobs
-        prediction_jobs = self._add_description_to_prediction_jobs(prediction_jobs)
+        # Retrieve prediction jobs from database
+        prediction_jobs = self._get_prediction_jobs_query_results(query)
 
         # Add quantiles
         prediction_jobs = self._add_quantiles_to_prediciton_jobs(prediction_jobs)
 
         # Add model group
         prediction_jobs = self._add_model_type_group_to_prediction_jobs(prediction_jobs)
+
+        # Change prediction jobs to dataclass
+        prediction_jobs = self._create_prediction_jobs_objects(prediction_jobs)
 
         return prediction_jobs
 
@@ -119,13 +138,11 @@ class PredictionJob:
             GROUP BY p.id
         """
 
-        results = _DataInterface.get_instance().exec_sql_query(query)
+        # Retrieve prediction jobs from database
+        prediction_jobs = self._get_prediction_jobs_query_results(query)
 
-        # Convert to list of dictionaries
-        prediction_jobs = results.to_dict(orient="records")
-
-        # Add description to all prediction jobs
-        prediction_jobs = self._add_description_to_prediction_jobs(prediction_jobs)
+        # Change prediction jobs to dataclass
+        prediction_jobs = self._create_prediction_jobs_objects(prediction_jobs)
 
         return prediction_jobs
 
@@ -149,13 +166,11 @@ class PredictionJob:
             GROUP BY p.id
         """
 
-        results = _DataInterface.get_instance().exec_sql_query(query)
+        # Retrieve prediction jobs from database
+        prediction_jobs = self._get_prediction_jobs_query_results(query)
 
-        # Convert to list of dictionaries
-        prediction_jobs = results.to_dict(orient="records")
-
-        # Add description to all prediction jobs
-        prediction_jobs = self._add_description_to_prediction_jobs(prediction_jobs)
+        # Change prediction jobs to dataclass
+        prediction_jobs = self._create_prediction_jobs_objects(prediction_jobs)
 
         return prediction_jobs
 
@@ -238,6 +253,45 @@ class PredictionJob:
 
     def get_featureset_names(self):
         return FEATURESET_NAMES
+
+    def _get_prediction_jobs_query_results(self, query: str) -> list:
+        results = _DataInterface.get_instance().exec_sql_query(query)
+        if len(results) == 0:
+            return []
+
+        # Convert to list of dictionaries
+        prediction_jobs = results.to_dict(orient="records")
+
+        # Add description to all prediction jobs
+        prediction_jobs = self._add_description_to_prediction_jobs(prediction_jobs)
+
+        return prediction_jobs
+
+    def _create_prediction_job_object(self, pj: dict):
+        try:
+            prediction_job_object = PJ(**pj)
+        except ValidationError as e:
+            errors = e.errors()
+
+            wrong_inputs = {}
+            for error in errors:
+                typ = error["type"]
+                wrong_inputs.setdefault(typ, [])
+                wrong_inputs[typ].append(error["loc"][0])
+            for key, values in wrong_inputs.items():
+                self.logger.error(
+                    f"Error {key} occurred while converting to data class for pid {pj['id']}",
+                    error=key,
+                    attributes=values,
+                    pid=pj["id"],
+                )
+        return prediction_job_object
+
+    def _create_prediction_jobs_objects(self, prediction_jobs: list):
+        prediction_jobs_dataclasses = []
+        for prediction_job in prediction_jobs:
+            prediction_jobs_dataclasses.append(self._create_prediction_job_object(prediction_job))
+        return prediction_jobs_dataclasses
 
     def _add_description_to_prediction_job(self, prediction_job):
         return self._add_description_to_prediction_jobs([prediction_job])[0]
