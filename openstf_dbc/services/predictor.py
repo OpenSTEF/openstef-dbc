@@ -98,10 +98,6 @@ class Predictor:
     def get_electricity_price(
         self, datetime_start, datetime_end, forecast_resolution=None
     ):
-        # query = 'SELECT "Price" FROM "forecast_latest".."marketprices" \
-        # WHERE "Name" = \'APX\' AND time >= \'{}\' AND time <= \'{}\''.format(
-        #     datetime_start, datetime_end
-        # )
         database = "forecast_latest"
         measurement = "marketprices"
         query = f"""
@@ -171,10 +167,6 @@ class Predictor:
         # (there is also a 'year_created' tag in this measurement)
         database = "realised"
         measurement = "sjv"
-        # query = f"""
-        #     SELECT /^sjv/ FROM "{database}".."{measurement}"
-        #     WHERE time >= '{datetime_start.isoformat()}' AND time <= '{datetime_end.isoformat()}'
-        # """
 
         query = f"""
             SELECT
