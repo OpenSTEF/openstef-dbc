@@ -14,7 +14,7 @@ from openstf_dbc.services.ems import Ems
 from openstf_dbc.services.predictor import Predictor
 from openstf_dbc.services.systems import Systems
 from openstf_dbc.services.weather import Weather
-from openstf_dbc.utils import genereate_datetime_index
+from openstf_dbc.utils import genereate_datetime_index, process_datetime_range
 
 
 class ModelInput:
@@ -55,6 +55,13 @@ class ModelInput:
         if datetime_end is None:
             datetime_end = datetime.utcnow().date() + timedelta(3)
 
+        # Process datetimes (rounded, timezone, frequency) and generate index
+        datetime_start, datetime_end, datetime_index = process_datetime_range(
+            start=datetime_start,
+            end=datetime_end,
+            freq=forecast_resolution,
+        )
+
         # Get load
         load = Ems().get_load_pid(
             pid, datetime_start, datetime_end, forecast_resolution
@@ -69,13 +76,7 @@ class ModelInput:
         )
 
         # Create model input with datetime index
-        model_input = pd.DataFrame(
-            index=genereate_datetime_index(
-                start=datetime_start,
-                end=datetime_end,
-                freq=forecast_resolution,
-            )
-        )
+        model_input = pd.DataFrame(index=datetime_index)
         model_input.index.name = "index"
 
         # Add load if available, else add nan column

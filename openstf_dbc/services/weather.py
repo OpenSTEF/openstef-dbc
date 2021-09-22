@@ -205,8 +205,8 @@ class Weather:
             weatherparams  (str or list of str): weatherparams that are required.
                 Params include: ["clouds", "radiation", "temp", "winddeg", "windspeed", "windspeed_100m", "pressure",
                 "humidity", "rain", 'mxlD', 'snowDepth', 'clearSky_ulf', 'clearSky_dlf', 'ssrunoff']
-            datetime_start (datetime) : start of datetimeFC. Default: 14 days ago
-            datetime_end (datetime): latest datetimeFC. Default: now + 2 days.
+            datetime_start (datetime) : start date time. Default: 14 days ago
+            datetime_end (datetime): end date time. Default: now + 2 days.
             source (str or list of str): which weather models should be used.
                 Options: "OWM", "DSN", "WUN", "harmonie", "harm_arome", "optimum"
                 Default: 'optimum'. This combines harmonie, harm_arome and DSN,
