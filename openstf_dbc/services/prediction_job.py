@@ -12,24 +12,24 @@ from openstf_dbc.data_interface import _DataInterface
 from openstf_dbc.log import logging
 from openstf_dbc.services.systems import Systems
 
-
+# With suggestion on how to split this
 class PJ(BaseModel):
-    id: int
-    model_type_group: str
-    model: str
-    forecast_type: str
-    horizon_minutes: int
-    resolution_minutes: int
-    lat: float
-    lon: float
-    train_components: int
-    name: str
-    created: datetime
-    sid: Optional[str]
-    hyper_params: Optional[dict]
-    feature_names: Optional[list]
-    description: Optional[str]
-    quantiles: Optional[List[float]]
+    id: int                                 # both
+    model_type_group: str                   # model_specs
+    model: str                              # model_specs
+    forecast_type: str                      # prediction_job
+    horizon_minutes: int                    # prediction_job
+    resolution_minutes: int                 # prediction_job
+    lat: float                              # prediction_job
+    lon: float                              # prediction_job
+    train_components: int                   # prediction_job
+    name: str                               # prediction_job
+    created: datetime                       # prediction_job
+    sid: Optional[str]                      # prediction_job
+    hyper_params: Optional[dict]            # model_specs
+    feature_names: Optional[list]           # model_specs
+    description: Optional[str]              # prediction_job
+    quantiles: Optional[List[float]]        # model_specs
 
     def __getitem__(self, item):
         return getattr(self, item)
