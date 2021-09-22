@@ -50,10 +50,14 @@ class ModelInput:
         # TODO remove location as an argument and get location by pid from the sql database/API
         # or alternatively use a complete prediction job as input argument
         if datetime_start is None:
-            datetime_start = datetime.utcnow().date() - timedelta(14)
+            datetime_start = datetime.combine(
+                datetime.utcnow().date(), datetime.min.time()
+            ) - timedelta(14)
 
         if datetime_end is None:
-            datetime_end = datetime.utcnow().date() + timedelta(3)
+            datetime_end = datetime.combine(
+                datetime.utcnow().date(), datetime.min.time()
+            ) + timedelta(3)
 
         # Process datetimes (rounded, timezone, frequency) and generate index
         datetime_start, datetime_end, datetime_index = process_datetime_range(
