@@ -14,7 +14,7 @@ from openstf_dbc.services.systems import Systems
 
 # With suggestion on how to split this
 class PJ(BaseModel):
-    id: int                                 # both
+    id: Union[int, str]                     # both
     model_type_group: str                   # model_specs
     model: str                              # model_specs
     forecast_type: str                      # prediction_job
@@ -33,6 +33,7 @@ class PJ(BaseModel):
 
     def __getitem__(self, item):
         return getattr(self, item)
+
 
 class PredictionJob:
     def __init__(self):
