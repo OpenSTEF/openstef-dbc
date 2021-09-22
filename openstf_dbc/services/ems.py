@@ -8,6 +8,7 @@ import pandas as pd
 import structlog
 from openstf_dbc.data_interface import _DataInterface
 from openstf_dbc.services.systems import Systems
+from openstf_dbc.utils import process_datetime_range
 
 
 class Ems:
@@ -39,6 +40,13 @@ class Ems:
         Returns:
             - pd.DataFrame(index=datetimeIndex, columns)
             if aggregated: columns = [load, nEntries], else: columns = sid"""
+
+        # Process datetimes (rounded, timezone, frequency) and generate index
+        datetime_start, datetime_end, _ = process_datetime_range(
+            start=datetime_start,
+            end=datetime_end,
+            freq=forecast_resolution,
+        )
 
         # Convert sid to list
         if type(sid) is str:
@@ -168,6 +176,13 @@ class Ems:
         Returns:
             (pd.DataFrame): Load
         """
+
+        # Process datetimes (rounded, timezone, frequency) and generate index
+        datetime_start, datetime_end, _ = process_datetime_range(
+            start=datetime_start,
+            end=datetime_end,
+            freq=forecast_resolution,
+        )
 
         # Use optimized load retrieval if possible
         if aggregated and not ignore_factor:
