@@ -50,7 +50,6 @@ class Predictor:
             end=datetime_end,
             freq=forecast_resolution,
         )
-
         if predictor_groups is None:
             predictor_groups = [p for p in PredictorGroups]
 
@@ -99,11 +98,20 @@ class Predictor:
     def get_electricity_price(
         self, datetime_start, datetime_end, forecast_resolution=None
     ):
-        query = 'SELECT "Price" FROM "forecast_latest".."marketprices" \
-        WHERE "Name" = \'APX\' AND time >= \'{}\' AND time <= \'{}\''.format(
-            datetime_start, datetime_end
-        )
-
+        # query = 'SELECT "Price" FROM "forecast_latest".."marketprices" \
+        # WHERE "Name" = \'APX\' AND time >= \'{}\' AND time <= \'{}\''.format(
+        #     datetime_start, datetime_end
+        # )
+        database = "forecast_latest"
+        measurement = "marketprices"
+        query = f"""
+            SELECT
+                "Price" FROM "{database}".."{measurement}"
+            WHERE
+                "Name" = 'APX' AND
+                time >= '{datetime_start.isoformat()}' AND
+                time <= '{datetime_end.isoformat()}'
+        """
         electricity_price = _DataInterface.get_instance().exec_influx_query(query)
 
         if not electricity_price:
@@ -163,11 +171,18 @@ class Predictor:
         # (there is also a 'year_created' tag in this measurement)
         database = "realised"
         measurement = "sjv"
-        query = f"""
-            SELECT /^sjv/ FROM "{database}".."{measurement}"
-            WHERE time >= '{datetime_start}' AND time <= '{datetime_end}'
-        """
+        # query = f"""
+        #     SELECT /^sjv/ FROM "{database}".."{measurement}"
+        #     WHERE time >= '{datetime_start.isoformat()}' AND time <= '{datetime_end.isoformat()}'
+        # """
 
+        query = f"""
+            SELECT
+                /^sjv/ FROM "{database}".."{measurement}"
+            WHERE
+                time >= '{datetime_start.isoformat()}' AND
+                time <= '{datetime_end.isoformat()}'
+        """
         load_profiles = _DataInterface.get_instance().exec_influx_query(query)
 
         if not load_profiles:
@@ -183,7 +198,6 @@ class Predictor:
             load_profiles = load_profiles.resample(forecast_resolution).interpolate(
                 limit=3
             )
-
         return load_profiles
 
     def get_weather_data(

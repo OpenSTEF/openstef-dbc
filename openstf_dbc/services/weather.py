@@ -224,20 +224,24 @@ class Weather:
 
         if datetime_start is None:
             datetime_start = datetime.utcnow() - timedelta(days=14)
+
         datetime_start = pd.to_datetime(datetime_start)
 
         if datetime_end is None:
             datetime_end = datetime.utcnow() + timedelta(days=2)
+
         datetime_end = pd.to_datetime(datetime_end)
 
         # Convert to UTC and remove UTC as note
         if datetime_start.tz is not None:
             datetime_start = datetime_start.tz_convert("UTC").tz_localize(None)
+
         if datetime_end.tz is not None:
             datetime_end = datetime_end.tz_convert("UTC").tz_localize(None)
 
         # Get data from an hour earlier to correct for radiation shift later
         datetime_start_original = datetime_start.tz_localize("UTC")
+
         datetime_start -= timedelta(hours=1)
 
         location_name = self._get_nearest_weather_location(location)

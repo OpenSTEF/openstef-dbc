@@ -14,7 +14,7 @@ from openstf_dbc.services.ems import Ems
 from openstf_dbc.services.predictor import Predictor
 from openstf_dbc.services.systems import Systems
 from openstf_dbc.services.weather import Weather
-from openstf_dbc.utils import genereate_datetime_index, process_datetime_range
+from openstf_dbc.utils import process_datetime_range
 
 
 class ModelInput:
