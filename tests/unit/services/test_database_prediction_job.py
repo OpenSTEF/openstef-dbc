@@ -7,13 +7,14 @@ import unittest
 from unittest.mock import patch
 
 import pandas as pd
-from openstf_dbc.services.prediction_job import PredictionJob
+from openstf_dbc.services.prediction_job import PredictionJob, PredictionJobDataClass
 
 prediction_job = {
     "id": 307,
     "name": "Neerijnen",
     "forecast_type": "demand",
     "model": "xgb",
+    "model_type_group": "default",
     "horizon_minutes": 2880,
     "resolution_minutes": 15,
     "train_components": 1,
@@ -81,6 +82,7 @@ class TestPredictionJob(unittest.TestCase):
     def test_get_featureset_names(self, data_interface_mock):
         self.assertEqual(type(self.service.get_featureset_names()), list)
 
-
+    def test_getter_dataclass(self, data_interface_mock):
+        PredictionJobDataClass(**prediction_job)
 if __name__ == "__main__":
     unittest.main()
