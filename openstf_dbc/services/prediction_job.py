@@ -23,7 +23,7 @@ class PredictionJobDataClass(BaseModel):
     resolution_minutes: int                 # prediction_job
     lat: float                              # prediction_job
     lon: float                              # prediction_job
-    train_components: int                   # prediction_job
+    train_components: bool                  # prediction_job
     name: str                               # prediction_job
     created: datetime                       # prediction_job
     sid: Optional[str]                      # prediction_job
@@ -33,12 +33,15 @@ class PredictionJobDataClass(BaseModel):
     quantiles: Optional[List[float]]        # model_specs
 
     def __getitem__(self, item):
-        "Allows us to use subscription to get the items from the object"
+        """ Allows us to use subscription to get the items from the object """
         return getattr(self, item)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: any):
         """ Allows us to use subscription to set the items in the object """
-        self.__dict__[key] = value
+        if hasattr(self, key):
+            self.__dict__[key] = value
+        else:
+            raise AttributeError(f"{key} not an attribute of prediction job")
 
 
 class PredictionJob:
@@ -148,9 +151,6 @@ class PredictionJob:
         # Retrieve prediction jobs from database
         prediction_jobs = self._get_prediction_jobs_query_results(query)
 
-        # Change prediction jobs to dataclass
-        prediction_jobs = self._create_prediction_jobs_objects(prediction_jobs)
-
         return prediction_jobs
 
     def get_prediction_jobs_solar(self):
@@ -175,9 +175,6 @@ class PredictionJob:
 
         # Retrieve prediction jobs from database
         prediction_jobs = self._get_prediction_jobs_query_results(query)
-
-        # Change prediction jobs to dataclass
-        prediction_jobs = self._create_prediction_jobs_objects(prediction_jobs)
 
         return prediction_jobs
 
@@ -292,22 +289,16 @@ class PredictionJob:
             prediction_job_object (object): data class of the prediction job
         """
         try:
+            # Change the typ column to forecast_type
+            pj["forecast_type"] = pj.pop("typ")
             prediction_job_object = PredictionJobDataClass(**pj)
         except ValidationError as e:
             errors = e.errors()
-            # create dictionary to list what error occurs for which attributes
-            wrong_inputs = {}
-            for error in errors:
-                typ = error["type"]
-                wrong_inputs.setdefault(typ, [])
-                wrong_inputs[typ].append(error["loc"][0])
-            for key, values in wrong_inputs.items():
-                self.logger.error(
-                    f"Error {key} occurred while converting to data class for pid {pj['id']}",
-                    error=key,
-                    attributes=values,
-                    pid=pj["id"],
-                )
+            self.logger.error(
+                f"Error occurred while converting to data class for pid {pj['id']}",
+                error=errors,
+                pid=pj["id"],
+            )
         return prediction_job_object
 
     def _create_prediction_jobs_objects(self, prediction_jobs: list) -> List[object]:
