@@ -14,7 +14,7 @@ from openstf_dbc.services.ems import Ems
 from openstf_dbc.services.predictor import Predictor
 from openstf_dbc.services.systems import Systems
 from openstf_dbc.services.weather import Weather
-from openstf_dbc.utils import genereate_datetime_index
+from openstf_dbc.utils import process_datetime_range
 
 
 class ModelInput:
@@ -50,10 +50,21 @@ class ModelInput:
         # TODO remove location as an argument and get location by pid from the sql database/API
         # or alternatively use a complete prediction job as input argument
         if datetime_start is None:
-            datetime_start = datetime.utcnow().date() - timedelta(14)
+            datetime_start = datetime.combine(
+                datetime.utcnow().date(), datetime.min.time()
+            ) - timedelta(14)
 
         if datetime_end is None:
-            datetime_end = datetime.utcnow().date() + timedelta(3)
+            datetime_end = datetime.combine(
+                datetime.utcnow().date(), datetime.min.time()
+            ) + timedelta(3)
+
+        # Process datetimes (rounded, timezone, frequency) and generate index
+        datetime_start, datetime_end, datetime_index = process_datetime_range(
+            start=datetime_start,
+            end=datetime_end,
+            freq=forecast_resolution,
+        )
 
         # Get load
         load = Ems().get_load_pid(
@@ -69,13 +80,7 @@ class ModelInput:
         )
 
         # Create model input with datetime index
-        model_input = pd.DataFrame(
-            index=genereate_datetime_index(
-                start=datetime_start,
-                end=datetime_end,
-                freq=forecast_resolution,
-            )
-        )
+        model_input = pd.DataFrame(index=datetime_index)
         model_input.index.name = "index"
 
         # Add load if available, else add nan column

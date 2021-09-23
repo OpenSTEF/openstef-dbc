@@ -205,8 +205,8 @@ class Weather:
             weatherparams  (str or list of str): weatherparams that are required.
                 Params include: ["clouds", "radiation", "temp", "winddeg", "windspeed", "windspeed_100m", "pressure",
                 "humidity", "rain", 'mxlD', 'snowDepth', 'clearSky_ulf', 'clearSky_dlf', 'ssrunoff']
-            datetime_start (datetime) : start of datetimeFC. Default: 14 days ago
-            datetime_end (datetime): latest datetimeFC. Default: now + 2 days.
+            datetime_start (datetime) : start date time. Default: 14 days ago
+            datetime_end (datetime): end date time. Default: now + 2 days.
             source (str or list of str): which weather models should be used.
                 Options: "OWM", "DSN", "WUN", "harmonie", "harm_arome", "optimum"
                 Default: 'optimum'. This combines harmonie, harm_arome and DSN,
@@ -224,20 +224,24 @@ class Weather:
 
         if datetime_start is None:
             datetime_start = datetime.utcnow() - timedelta(days=14)
+
         datetime_start = pd.to_datetime(datetime_start)
 
         if datetime_end is None:
             datetime_end = datetime.utcnow() + timedelta(days=2)
+
         datetime_end = pd.to_datetime(datetime_end)
 
         # Convert to UTC and remove UTC as note
         if datetime_start.tz is not None:
             datetime_start = datetime_start.tz_convert("UTC").tz_localize(None)
+
         if datetime_end.tz is not None:
             datetime_end = datetime_end.tz_convert("UTC").tz_localize(None)
 
         # Get data from an hour earlier to correct for radiation shift later
         datetime_start_original = datetime_start.tz_localize("UTC")
+
         datetime_start -= timedelta(hours=1)
 
         location_name = self._get_nearest_weather_location(location)
