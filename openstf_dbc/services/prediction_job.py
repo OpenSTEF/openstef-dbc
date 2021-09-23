@@ -13,7 +13,7 @@ from openstf_dbc.log import logging
 from openstf_dbc.services.systems import Systems
 
 # With suggestion on how to split this
-class PJ(BaseModel):
+class PredictionJobDataClass(BaseModel):
     id: Union[int, str]                     # both
     model_type_group: str                   # model_specs
     model: str                              # model_specs
@@ -270,7 +270,7 @@ class PredictionJob:
 
     def _create_prediction_job_object(self, pj: dict):
         try:
-            prediction_job_object = PJ(**pj)
+            prediction_job_object = PredictionJobDataClass(**pj)
         except ValidationError as e:
             errors = e.errors()
 
