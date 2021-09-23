@@ -84,5 +84,7 @@ class TestPredictionJob(unittest.TestCase):
 
     def test_getter_dataclass(self, data_interface_mock):
         PredictionJobDataClass(**prediction_job)
+
+
 if __name__ == "__main__":
     unittest.main()
