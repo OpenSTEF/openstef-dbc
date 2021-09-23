@@ -12,6 +12,7 @@ from openstf_dbc.data_interface import _DataInterface
 from openstf_dbc.log import logging
 from openstf_dbc.services.systems import Systems
 
+
 # With suggestion on how to split this
 class PredictionJobDataClass(BaseModel):
     id: Union[int, str]                     # both
@@ -32,9 +33,11 @@ class PredictionJobDataClass(BaseModel):
     quantiles: Optional[List[float]]        # model_specs
 
     def __getitem__(self, item):
+        "Allows us to use subscription to get the items from the object"
         return getattr(self, item)
 
     def __setitem__(self, key, value):
+        """ Allows us to use subscription to set the items in the object """
         self.__dict__[key] = value
 
 
@@ -259,6 +262,14 @@ class PredictionJob:
         return FEATURESET_NAMES
 
     def _get_prediction_jobs_query_results(self, query: str) -> list:
+        """ Get prediction jobs using a query to the database
+
+         Args:
+             query (str): the sql query to use on the database
+
+        Returns:
+            prediction_jobs (list): List of prediction job dictionaries
+         """
         results = _DataInterface.get_instance().exec_sql_query(query)
         if len(results) == 0:
             return []
@@ -271,12 +282,20 @@ class PredictionJob:
 
         return prediction_jobs
 
-    def _create_prediction_job_object(self, pj: dict):
+    def _create_prediction_job_object(self, pj: dict) -> object:
+        """ Create an object for the prediction job from a dictionary
+
+        Args:
+            pj (dict): dictionary with the attributes from the prediction job
+
+        Returns:
+            prediction_job_object (object): data class of the prediction job
+        """
         try:
             prediction_job_object = PredictionJobDataClass(**pj)
         except ValidationError as e:
             errors = e.errors()
-
+            # create dictionary to list what error occurs for which attributes
             wrong_inputs = {}
             for error in errors:
                 typ = error["type"]
@@ -291,7 +310,15 @@ class PredictionJob:
                 )
         return prediction_job_object
 
-    def _create_prediction_jobs_objects(self, prediction_jobs: list):
+    def _create_prediction_jobs_objects(self, prediction_jobs: list) -> List[object]:
+        """ For a list of prediction jobs dictionary's convert to a list of prediction job classes
+
+         Args:
+             prediction_jobs (list): list of prediction job dictionaries
+
+        Returns:
+            prediction_jobs_dataclasses (list): list of prediction job dataclasses
+         """
         prediction_jobs_dataclasses = []
         for prediction_job in prediction_jobs:
             prediction_jobs_dataclasses.append(self._create_prediction_job_object(prediction_job))
