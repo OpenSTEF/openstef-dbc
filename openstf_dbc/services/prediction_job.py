@@ -34,6 +34,9 @@ class PredictionJobDataClass(BaseModel):
     def __getitem__(self, item):
         return getattr(self, item)
 
+    def __setitem__(self, key, value):
+        self.__dict__[key] = value
+
 
 class PredictionJob:
     def __init__(self):
