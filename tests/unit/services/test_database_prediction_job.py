@@ -82,7 +82,11 @@ class TestPredictionJob(unittest.TestCase):
     def test_get_featureset_names(self, data_interface_mock):
         self.assertEqual(type(self.service.get_featureset_names()), list)
 
-    def test_getter_dataclass(self, data_interface_mock):
+    def test_dataclass(self, data_interface_mock):
         PredictionJobDataClass(**prediction_job)
+
+    def test_prediction_job(self, data_interface_mock):
+        PJ = self.service.get_prediction_job(307)
+
 if __name__ == "__main__":
     unittest.main()
