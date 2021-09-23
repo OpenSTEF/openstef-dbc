@@ -15,29 +15,29 @@ from openstf_dbc.services.systems import Systems
 
 # With suggestion on how to split this
 class PredictionJobDataClass(BaseModel):
-    id: Union[int, str]                     # both
-    model_type_group: str                   # model_specs
-    model: str                              # model_specs
-    forecast_type: str                      # prediction_job
-    horizon_minutes: int                    # prediction_job
-    resolution_minutes: int                 # prediction_job
-    lat: float                              # prediction_job
-    lon: float                              # prediction_job
-    train_components: bool                  # prediction_job
-    name: str                               # prediction_job
-    created: datetime                       # prediction_job
-    sid: Optional[str]                      # prediction_job
-    hyper_params: Optional[dict]            # model_specs
-    feature_names: Optional[list]           # model_specs
-    description: Optional[str]              # prediction_job
-    quantiles: Optional[List[float]]        # model_specs
+    id: Union[int, str]  # both
+    model_type_group: str  # model_specs
+    model: str  # model_specs
+    forecast_type: str  # prediction_job
+    horizon_minutes: int  # prediction_job
+    resolution_minutes: int  # prediction_job
+    lat: float  # prediction_job
+    lon: float  # prediction_job
+    train_components: bool  # prediction_job
+    name: str  # prediction_job
+    created: datetime  # prediction_job
+    sid: Optional[str]  # prediction_job
+    hyper_params: Optional[dict]  # model_specs
+    feature_names: Optional[list]  # model_specs
+    description: Optional[str]  # prediction_job
+    quantiles: Optional[List[float]]  # model_specs
 
     def __getitem__(self, item):
-        """ Allows us to use subscription to get the items from the object """
+        """Allows us to use subscription to get the items from the object"""
         return getattr(self, item)
 
     def __setitem__(self, key: str, value: any):
-        """ Allows us to use subscription to set the items in the object """
+        """Allows us to use subscription to set the items in the object"""
         if hasattr(self, key):
             self.__dict__[key] = value
         else:
@@ -259,14 +259,14 @@ class PredictionJob:
         return FEATURESET_NAMES
 
     def _get_prediction_jobs_query_results(self, query: str) -> list:
-        """ Get prediction jobs using a query to the database
+        """Get prediction jobs using a query to the database
 
          Args:
              query (str): the sql query to use on the database
 
         Returns:
             prediction_jobs (list): List of prediction job dictionaries
-         """
+        """
         results = _DataInterface.get_instance().exec_sql_query(query)
         if len(results) == 0:
             return []
@@ -280,7 +280,7 @@ class PredictionJob:
         return prediction_jobs
 
     def _create_prediction_job_object(self, pj: dict) -> object:
-        """ Create an object for the prediction job from a dictionary
+        """Create an object for the prediction job from a dictionary
 
         Args:
             pj (dict): dictionary with the attributes from the prediction job
@@ -302,17 +302,19 @@ class PredictionJob:
         return prediction_job_object
 
     def _create_prediction_jobs_objects(self, prediction_jobs: list) -> List[object]:
-        """ For a list of prediction jobs dictionary's convert to a list of prediction job classes
+        """For a list of prediction jobs dictionary's convert to a list of prediction job classes
 
          Args:
              prediction_jobs (list): list of prediction job dictionaries
 
         Returns:
             prediction_jobs_dataclasses (list): list of prediction job dataclasses
-         """
+        """
         prediction_jobs_dataclasses = []
         for prediction_job in prediction_jobs:
-            prediction_jobs_dataclasses.append(self._create_prediction_job_object(prediction_job))
+            prediction_jobs_dataclasses.append(
+                self._create_prediction_job_object(prediction_job)
+            )
         return prediction_jobs_dataclasses
 
     def _add_description_to_prediction_job(self, prediction_job):
