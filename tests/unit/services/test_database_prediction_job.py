@@ -8,7 +8,10 @@ from unittest.mock import patch
 
 from pydantic import ValidationError
 import pandas as pd
-from openstf_dbc.services.prediction_job import PredictionJobRetriever, PredictionJobDataClass
+from openstf_dbc.services.prediction_job import (
+    PredictionJobRetriever,
+    PredictionJobDataClass,
+)
 
 prediction_job = {
     "id": 307,

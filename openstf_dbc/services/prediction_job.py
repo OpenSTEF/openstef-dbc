@@ -74,13 +74,17 @@ class PredictionJobRetriever:
         prediction_job_dict = result.to_dict(orient="records")[0]
 
         # Add description
-        prediction_job_dict = self._add_description_to_prediction_job(prediction_job_dict)
+        prediction_job_dict = self._add_description_to_prediction_job(
+            prediction_job_dict
+        )
 
         # Add quantiles
         prediction_job_dict = self._add_quantiles_to_prediciton_job(prediction_job_dict)
 
         # Add model group
-        prediction_job_dict = self._add_model_type_group_to_prediction_job(prediction_job_dict)
+        prediction_job_dict = self._add_model_type_group_to_prediction_job(
+            prediction_job_dict
+        )
 
         prediction_job = self._create_prediction_job_object(prediction_job_dict)
         return prediction_job
@@ -125,7 +129,10 @@ class PredictionJobRetriever:
         prediction_jobs = self._add_model_type_group_to_prediction_jobs(prediction_jobs)
 
         # Change prediction jobs to dataclass
-        prediction_jobs = [self._create_prediction_job_object(prediction_job) for prediction_job in prediction_jobs]
+        prediction_jobs = [
+            self._create_prediction_job_object(prediction_job)
+            for prediction_job in prediction_jobs
+        ]
 
         return prediction_jobs
 
@@ -388,7 +395,9 @@ class PredictionJobRetriever:
         where_condition = []
 
         if pid is not None:
-            where_condition.append(PredictionJobRetriever._build_pid_where_condition(pid))
+            where_condition.append(
+                PredictionJobRetriever._build_pid_where_condition(pid)
+            )
 
         if model_type is not None:
             where_condition.append(
