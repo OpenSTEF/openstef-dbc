@@ -97,9 +97,10 @@ class TestPredictionJob(unittest.TestCase):
             pj.__setitem__("non_existing", "can't")
 
     def test_no_type(self, data_interface_mock):
-        prediction_job.pop("forecast_type")
+        pj_dict = prediction_job.copy()
+        pj_dict.pop("forecast_type")
         with self.assertRaises(AttributeError):
-            self.service._create_prediction_job_object(prediction_job)
+            self.service._create_prediction_job_object(pj_dict)
 
 
 if __name__ == "__main__":
