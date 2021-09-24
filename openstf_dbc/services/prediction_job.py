@@ -44,7 +44,7 @@ class PredictionJobDataClass(BaseModel):
             raise AttributeError(f"{key} not an attribute of prediction job")
 
 
-class PredictionJob:
+class PredictionJobRetriever:
     def __init__(self):
         self.logger = logging.get_logger(self.__class__.__name__)
 
@@ -71,18 +71,18 @@ class PredictionJob:
             raise ValueError(f"No prediction job found with id '{pid}'")
 
         # Convert to dictionary
-        prediction_job = result.to_dict(orient="records")[0]
+        prediction_job_dict = result.to_dict(orient="records")[0]
 
         # Add description
-        prediction_job = self._add_description_to_prediction_job(prediction_job)
+        prediction_job_dict = self._add_description_to_prediction_job(prediction_job_dict)
 
         # Add quantiles
-        prediction_job = self._add_quantiles_to_prediciton_job(prediction_job)
+        prediction_job_dict = self._add_quantiles_to_prediciton_job(prediction_job_dict)
 
         # Add model group
-        prediction_job = self._add_model_type_group_to_prediction_job(prediction_job)
+        prediction_job_dict = self._add_model_type_group_to_prediction_job(prediction_job_dict)
 
-        prediction_job = self._create_prediction_job_object(prediction_job)
+        prediction_job = self._create_prediction_job_object(prediction_job_dict)
         return prediction_job
 
     def get_prediction_jobs(
@@ -125,7 +125,7 @@ class PredictionJob:
         prediction_jobs = self._add_model_type_group_to_prediction_jobs(prediction_jobs)
 
         # Change prediction jobs to dataclass
-        prediction_jobs = self._create_prediction_jobs_objects(prediction_jobs)
+        prediction_jobs = [self._create_prediction_job_object(prediction_job) for prediction_job in prediction_jobs]
 
         return prediction_jobs
 
@@ -303,22 +303,6 @@ class PredictionJob:
             raise AttributeError(e)
         return prediction_job_object
 
-    def _create_prediction_jobs_objects(self, prediction_jobs: list) -> List[object]:
-        """For a list of prediction jobs dictionary's convert to a list of prediction job classes
-
-         Args:
-             prediction_jobs (list): list of prediction job dictionaries
-
-        Returns:
-            prediction_jobs_dataclasses (list): list of prediction job dataclasses
-        """
-        prediction_jobs_dataclasses = []
-        for prediction_job in prediction_jobs:
-            prediction_jobs_dataclasses.append(
-                self._create_prediction_job_object(prediction_job)
-            )
-        return prediction_jobs_dataclasses
-
     def _add_description_to_prediction_job(self, prediction_job):
         return self._add_description_to_prediction_jobs([prediction_job])[0]
 
@@ -404,16 +388,16 @@ class PredictionJob:
         where_condition = []
 
         if pid is not None:
-            where_condition.append(PredictionJob._build_pid_where_condition(pid))
+            where_condition.append(PredictionJobRetriever._build_pid_where_condition(pid))
 
         if model_type is not None:
             where_condition.append(
-                PredictionJob._build_model_type_where_condition(model_type)
+                PredictionJobRetriever._build_model_type_where_condition(model_type)
             )
 
         if is_active is not None:
             where_condition.append(
-                PredictionJob._build_active_where_condition(is_active)
+                PredictionJobRetriever._build_active_where_condition(is_active)
             )
 
         if only_ato:
@@ -421,7 +405,7 @@ class PredictionJob:
 
         if external_id is not None:
             where_condition.append(
-                PredictionJob._build_external_id_where_condition(external_id)
+                PredictionJobRetriever._build_external_id_where_condition(external_id)
             )
 
         where_clause = ""
