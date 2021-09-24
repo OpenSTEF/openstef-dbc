@@ -89,7 +89,7 @@ class TestPredictionJob(unittest.TestCase):
 
     def test_prediction_job(self, data_interface_mock):
         pj = self.service._create_prediction_job_object(prediction_job)
-        self.assertEqual(pj.__getitem__("id"),prediction_job["id"])
+        self.assertEqual(pj.__getitem__("id"), prediction_job["id"])
         pj.__setitem__("id", 50)
         self.assertEqual(pj.__getitem__("id"), 50)
 
