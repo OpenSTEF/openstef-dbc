@@ -119,7 +119,7 @@ class PredictionJobRetriever:
             limit=limit,
         )
 
-        # Retrieve prediction jobs from database
+        # Retrieve prediction jobs from database as a list of dictionaries
         prediction_jobs = self._get_prediction_jobs_query_results(query)
 
         # Add quantiles
