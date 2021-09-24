@@ -6,6 +6,7 @@
 import unittest
 from unittest.mock import patch
 
+from pydantic import ValidationError
 import pandas as pd
 from openstf_dbc.services.prediction_job import PredictionJob, PredictionJobDataClass
 
@@ -83,10 +84,23 @@ class TestPredictionJob(unittest.TestCase):
         self.assertEqual(type(self.service.get_featureset_names()), list)
 
     def test_dataclass(self, data_interface_mock):
-        PredictionJobDataClass(**prediction_job)
+        pj_dataclass = PredictionJobDataClass(**prediction_job)
+        self.assertIsInstance(pj_dataclass, PredictionJobDataClass)
 
     def test_prediction_job(self, data_interface_mock):
-        PJ = self.service.get_prediction_job(307)
+        pj = self.service._create_prediction_job_object(prediction_job)
+        self.assertEqual(pj.__getitem__("id"),prediction_job["id"])
+        pj.__setitem__("id", 50)
+        self.assertEqual(pj.__getitem__("id"), 50)
+
+        with self.assertRaises(AttributeError):
+            pj.__setitem__("non_existing", "can't")
+
+    def test_no_type(self, data_interface_mock):
+        prediction_job.pop("forecast_type")
+        with self.assertRaises(AttributeError):
+            self.service._create_prediction_job_object(prediction_job)
+
 
 if __name__ == "__main__":
     unittest.main()

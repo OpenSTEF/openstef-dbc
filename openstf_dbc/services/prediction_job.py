@@ -290,7 +290,8 @@ class PredictionJob:
         """
         try:
             # Change the typ column to forecast_type
-            pj["forecast_type"] = pj.pop("typ")
+            if "typ" in pj:
+                pj["forecast_type"] = pj.pop("typ")
             prediction_job_object = PredictionJobDataClass(**pj)
         except ValidationError as e:
             errors = e.errors()
@@ -299,6 +300,7 @@ class PredictionJob:
                 error=errors,
                 pid=pj["id"],
             )
+            raise AttributeError(e)
         return prediction_job_object
 
     def _create_prediction_jobs_objects(self, prediction_jobs: list) -> List[object]:
