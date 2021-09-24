@@ -6,14 +6,19 @@
 import unittest
 from unittest.mock import patch
 
+from pydantic import ValidationError
 import pandas as pd
-from openstf_dbc.services.prediction_job import PredictionJob
+from openstf_dbc.services.prediction_job import (
+    PredictionJobRetriever,
+    PredictionJobDataClass,
+)
 
 prediction_job = {
     "id": 307,
     "name": "Neerijnen",
     "forecast_type": "demand",
     "model": "xgb",
+    "model_type_group": "default",
     "horizon_minutes": 2880,
     "resolution_minutes": 15,
     "train_components": 1,
@@ -29,7 +34,7 @@ prediction_job = {
 class TestPredictionJob(unittest.TestCase):
     def setUp(self):
         super().setUp()
-        self.service = PredictionJob()
+        self.service = PredictionJobRetriever()
 
     def test_get_prediction_job_result_size_is_zero(self, data_interface_mock):
         data_interface_mock.get_instance.return_value.exec_sql_query.return_value = (
@@ -58,7 +63,7 @@ class TestPredictionJob(unittest.TestCase):
             "external_id": "e179c450-30cc-4fb8-a9c8-1cd6feee2cbd",
             "limit": 999,
         }
-        query = PredictionJob.build_get_prediction_jobs_query(**kwargs)
+        query = PredictionJobRetriever.build_get_prediction_jobs_query(**kwargs)
         for key, value in kwargs.items():
             if key == "only_ato":
                 self.assertTrue("ATO" in query)
@@ -80,6 +85,25 @@ class TestPredictionJob(unittest.TestCase):
 
     def test_get_featureset_names(self, data_interface_mock):
         self.assertEqual(type(self.service.get_featureset_names()), list)
+
+    def test_dataclass(self, data_interface_mock):
+        pj_dataclass = PredictionJobDataClass(**prediction_job)
+        self.assertIsInstance(pj_dataclass, PredictionJobDataClass)
+
+    def test_create_prediction_job_object(self, data_interface_mock):
+        pj = self.service._create_prediction_job_object(prediction_job)
+        self.assertEqual(pj.__getitem__("id"), prediction_job["id"])
+        pj.__setitem__("id", 50)
+        self.assertEqual(pj.__getitem__("id"), 50)
+
+        with self.assertRaises(AttributeError):
+            pj.__setitem__("non_existing", "can't")
+
+    def test_create_prediction_job_object_missing_attribute(self, data_interface_mock):
+        pj_dict = prediction_job.copy()
+        pj_dict.pop("forecast_type")
+        with self.assertRaises(AttributeError):
+            self.service._create_prediction_job_object(pj_dict)
 
 
 if __name__ == "__main__":

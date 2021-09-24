@@ -6,7 +6,7 @@ from openstf_dbc import Singleton
 from openstf_dbc.data_interface import _DataInterface
 from openstf_dbc.services.ems import Ems
 from openstf_dbc.services.model_input import ModelInput
-from openstf_dbc.services.prediction_job import PredictionJob
+from openstf_dbc.services.prediction_job import PredictionJobRetriever
 from openstf_dbc.services.predictions import Predictions
 from openstf_dbc.services.predictor import Predictor
 from openstf_dbc.services.splitting import Splitting
@@ -26,7 +26,7 @@ class DataBase(metaclass=Singleton):
 
     # services
     _write = Write()
-    _prediction_job = PredictionJob()
+    _prediction_job = PredictionJobRetriever()
     _weather = Weather()
     _historic_cdb_data_service = Ems()
     _predictor = Predictor()
