@@ -242,8 +242,8 @@ class PredictionJobRetriever:
             # If dictionary is empty raise exception and fall back to defaults
         except Exception as e:
             self.logger.error(
-                "Could not retrieve last hyperparemeters from database "
-                f'for pid {pj["id"]}',
+                "Could not retrieve last hyperparemeters from database ",
+                pid=pj["id"],
                 exc_info=e,
             )
 
@@ -303,9 +303,9 @@ class PredictionJobRetriever:
         except ValidationError as e:
             errors = e.errors()
             self.logger.error(
-                f"Error occurred while converting to data class for pid {pj['id']}",
-                error=errors,
+                f"Error occurred while converting to data class",
                 pid=pj["id"],
+                error=errors,
             )
             raise AttributeError(e)
         return prediction_job_object
