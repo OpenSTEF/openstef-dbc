@@ -55,11 +55,12 @@ class Predictions:
             return pd.Series()
 
     def get_predicted_load_tahead(
-        self, pj,
-            start_time=None,
-            end_time=None,
-            t_ahead=None,
-            component=False,
+        self,
+        pj,
+        start_time=None,
+        end_time=None,
+        t_ahead=None,
+        component=False,
     ):
         """Get historic load predictions for given pid and t_ahead.
 
