@@ -55,7 +55,12 @@ class Predictions:
             return pd.Series()
 
     def get_predicted_load_tahead(
-        self, pj, start_time=None, end_time=None, t_ahead=None, component=False
+        self,
+        pj,
+        start_time=None,
+        end_time=None,
+        t_ahead=None,
+        component=False,
     ):
         """Get historic load predictions for given pid and t_ahead.
 
@@ -85,19 +90,27 @@ class Predictions:
                 query = """
                     SELECT mean("forecast_solar") as forecast, mean("stdev") as stdev
                     FROM forecast_latest..prediction_tAheads
-                    WHERE ("pid" = '{}' AND "type" = '{}') AND time >= '{}' AND time < '{}'
+                    WHERE ("pid" = '{}'
+                    AND type" != 'est_demand'
+                    AND "type" != 'est_pv'
+                    AND "type" != 'est_wind')
+                    AND time >= '{}' AND time < '{}'
                     GROUP BY time(15m), "tAhead"
                 """.format(
-                    pj["id"], "demand", start_time, end_time
+                    pj["id"], start_time, end_time
                 )
             else:
                 query = """
                     SELECT mean("forecast") as forecast, mean("stdev") as stdev
                     FROM forecast_latest..prediction_tAheads
-                    WHERE ("pid" = '{}' AND "type" = '{}') AND time >= '{}' AND time < '{}'
+                    WHERE ("pid" = '{}'
+                    AND "type" != 'est_demand'
+                    AND "type" != 'est_pv'
+                    AND "type" != 'est_wind')
+                    AND time >= '{}' AND time < '{}'
                     GROUP BY time(15m), "tAhead"
                 """.format(
-                    pj["id"], "demand", start_time, end_time
+                    pj["id"], start_time, end_time
                 )
 
         # For a selection of t_aheads a custom query is generated
@@ -131,7 +144,7 @@ class Predictions:
                 WHERE ("pid" = '{}' AND "type" = '{}' AND ({})) AND time >= '{}' AND time < '{}'
                 GROUP BY time(15m), "tAhead"
             """.format(
-                pj["id"], "demand", t_aheads, start_time, end_time
+                pj["id"], forecast_type, t_aheads, start_time, end_time
             )
 
         # Query the database
