@@ -141,10 +141,15 @@ class Predictions:
             query = """
                 SELECT mean("forecast") as forecast, mean("stdev") as stdev
                 FROM forecast_latest..prediction_tAheads
-                WHERE ("pid" = '{}' AND "type" = '{}' AND ({})) AND time >= '{}' AND time < '{}'
+                WHERE ("pid" = '{}' 
+                    AND "type" != 'est_demand'
+                    AND "type" != 'est_pv'
+                    AND "type" != 'est_wind'
+                    AND ({}))
+                    AND time >= '{}' AND time < '{}'
                 GROUP BY time(15m), "tAhead"
             """.format(
-                pj["id"], forecast_type, t_aheads, start_time, end_time
+                pj["id"], t_aheads, start_time, end_time
             )
 
         # Query the database
