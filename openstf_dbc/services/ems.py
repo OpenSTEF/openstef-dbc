@@ -142,7 +142,9 @@ class Ems:
 
         load = _DataInterface.get_instance().exec_influx_query(query)
 
-        return load["power"][load["power"]["created"] > created_after][["output"]]
+        return {
+            "power": load["power"][load["power"]["created"] > created_after][["output"]]
+        }
 
     def get_load_pid(
         self,
