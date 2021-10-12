@@ -4,7 +4,6 @@
 
 import json
 from typing import List, Optional, Union
-from datetime import datetime
 from pydantic import BaseModel, ValidationError
 
 from openstf_dbc.data.featuresets import FEATURESET_NAMES, FEATURESETS
@@ -16,7 +15,6 @@ from openstf_dbc.services.systems import Systems
 # With suggestion on how to split this
 class PredictionJobDataClass(BaseModel):
     id: Union[int, str]  # both
-    model_type_group: str  # model_specs
     model: str  # model_specs
     forecast_type: str  # prediction_job
     horizon_minutes: int  # prediction_job
@@ -25,8 +23,6 @@ class PredictionJobDataClass(BaseModel):
     lon: float  # prediction_job
     train_components: bool  # prediction_job
     name: str  # prediction_job
-    created: datetime  # prediction_job
-    sid: Optional[str]  # prediction_job
     hyper_params: Optional[dict]  # model_specs
     feature_names: Optional[list]  # model_specs
     description: Optional[str]  # prediction_job
@@ -80,11 +76,6 @@ class PredictionJobRetriever:
 
         # Add quantiles
         prediction_job_dict = self._add_quantiles_to_prediciton_job(prediction_job_dict)
-
-        # Add model group
-        prediction_job_dict = self._add_model_type_group_to_prediction_job(
-            prediction_job_dict
-        )
 
         prediction_job = self._create_prediction_job_object(prediction_job_dict)
         return prediction_job
@@ -323,19 +314,6 @@ class PredictionJobRetriever:
             prediction_job["description"] = systems_str
 
         return prediction_jobs
-
-    def _add_model_type_group_to_prediction_jobs(self, prediction_jobs):
-        for prediction_job in prediction_jobs:
-            # TODO this needs to be changed in the
-            if "quantile" in prediction_job["model"]:
-                prediction_job["model_type_group"] = "quantile"
-            else:
-                prediction_job["model_type_group"] = "default"
-
-        return prediction_jobs
-
-    def _add_model_type_group_to_prediction_job(self, prediction_job):
-        return self._add_model_type_group_to_prediction_jobs([prediction_job])[0]
 
     def _add_quantiles_to_prediciton_job(self, prediction_job):
         return self._add_quantiles_to_prediciton_jobs([prediction_job])[0]
