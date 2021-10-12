@@ -134,13 +134,15 @@ class Ems:
             pd.DataFram: Load created after requested datetime.
         """
         query = f"""
-            SELECT mean("output") as output
+            SELECT mean("output") as output, min("created") as created
             FROM "realised".."power"
-            WHERE "system" = '{sid}' AND "created" > {created_after.isoformat()}
+            WHERE "system" = '{sid}'
             GROUP BY time({group_by_time})
         """
+
         load = _DataInterface.get_instance().exec_influx_query(query)
-        return load
+
+        return load["power"][load["power"]["created"] > created_after][["output"]]
 
     def get_load_pid(
         self,
