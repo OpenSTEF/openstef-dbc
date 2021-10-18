@@ -12,21 +12,17 @@ from openstf_dbc.log import logging
 from openstf_dbc.services.systems import Systems
 
 
-# With suggestion on how to split this
 class PredictionJobDataClass(BaseModel):
-    id: Union[int, str]  # both
-    model: str  # model_specs
-    forecast_type: str  # prediction_job
-    horizon_minutes: int  # prediction_job
-    resolution_minutes: int  # prediction_job
-    lat: float  # prediction_job
-    lon: float  # prediction_job
-    train_components: bool  # prediction_job
-    name: str  # prediction_job
-    hyper_params: Optional[dict]  # model_specs
-    feature_names: Optional[list]  # model_specs
-    description: Optional[str]  # prediction_job
-    quantiles: Optional[List[float]]  # model_specs
+    id: Union[int, str]
+    model: str
+    forecast_type: str
+    horizon_minutes: int
+    resolution_minutes: int
+    lat: float
+    lon: float
+    name: str
+    description: Optional[str]
+    quantiles: Optional[List[float]]
 
     def __getitem__(self, item):
         """Allows us to use subscription to get the items from the object"""
@@ -37,7 +33,7 @@ class PredictionJobDataClass(BaseModel):
         if hasattr(self, key):
             self.__dict__[key] = value
         else:
-            raise AttributeError(f"{key} not an attribute of prediction job")
+            raise AttributeError(f"{key} not an attribute of prediction job.")
 
 
 class PredictionJobRetriever:
@@ -75,7 +71,7 @@ class PredictionJobRetriever:
         )
 
         # Add quantiles
-        prediction_job_dict = self._add_quantiles_to_prediciton_job(prediction_job_dict)
+        prediction_job_dict = self._add_quantiles_to_prediction_job(prediction_job_dict)
 
         prediction_job = self._create_prediction_job_object(prediction_job_dict)
         return prediction_job
@@ -114,7 +110,7 @@ class PredictionJobRetriever:
         prediction_jobs = self._get_prediction_jobs_query_results(query)
 
         # Add quantiles
-        prediction_jobs = self._add_quantiles_to_prediciton_jobs(prediction_jobs)
+        prediction_jobs = self._add_quantiles_to_prediction_jobs(prediction_jobs)
 
         # Add model group
         prediction_jobs = self._add_model_type_group_to_prediction_jobs(prediction_jobs)
@@ -130,7 +126,11 @@ class PredictionJobRetriever:
     def get_prediction_jobs_wind(self):
         query = """
             SELECT
-                p.id, p.forecast_type, p.model, p.horizon_minutes, p.resolution_minutes,
+                p.id, 
+                p.forecast_type, 
+                p.model, 
+                p.horizon_minutes, 
+                p.resolution_minutes,
                 p.name,
                 min(s.sid) as sid,
                 w.lat as lat,
@@ -154,7 +154,11 @@ class PredictionJobRetriever:
     def get_prediction_jobs_solar(self):
         query = """
             SELECT
-                p.id, p.forecast_type, p.model, p.horizon_minutes, p.resolution_minutes,
+                p.id, 
+                p.forecast_type, 
+                p.model, 
+                p.horizon_minutes, 
+                p.resolution_minutes,
                 p.name,
                 min(s.lat) as lat,
                 min(s.lon) as lon,
@@ -315,10 +319,10 @@ class PredictionJobRetriever:
 
         return prediction_jobs
 
-    def _add_quantiles_to_prediciton_job(self, prediction_job):
-        return self._add_quantiles_to_prediciton_jobs([prediction_job])[0]
+    def _add_quantiles_to_prediction_job(self, prediction_job):
+        return self._add_quantiles_to_prediction_jobs([prediction_job])[0]
 
-    def _add_quantiles_to_prediciton_jobs(self, prediction_jobs):
+    def _add_quantiles_to_prediction_jobs(self, prediction_jobs):
         prediction_job_ids = [pj["id"] for pj in prediction_jobs]
         prediction_jobs_ids_str = ", ".join([f"'{p}'" for p in prediction_job_ids])
 
