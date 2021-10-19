@@ -10,7 +10,6 @@ from openstf_dbc.services.model_specifications import ModelSpecificationRetrieve
 
 
 class TestGetFeatureSet(unittest.TestCase):
-
     def test_get_featureset(self):
         for name in FEATURESET_NAMES:
             featureset = ModelSpecificationRetriever.get_featureset(name)
