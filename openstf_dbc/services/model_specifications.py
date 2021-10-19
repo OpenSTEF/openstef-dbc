@@ -2,22 +2,81 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
-from typing import Optional, Union
-from pydantic import BaseModel
+from datetime import datetime
+from typing import Dict
+
+from openstf_dbc.data.featuresets import FEATURESET_NAMES, FEATURESETS
+from openstf_dbc.data_interface import _DataInterface
+from openstf_dbc.log import logging
 
 
-class ModelSpecificationDataClass(BaseModel):
-    id: Union[int, str]
-    hyper_params: Optional[dict]
-    feature_names: Optional[list]
+class ModelSpecificationRetriever:
+    def __init__(self):
+        self.logger = logging.get_logger(self.__class__.__name__)
 
-    def __getitem__(self, item):
-        """Allows us to use subscription to get the items from the object"""
-        return getattr(self, item)
+    def get_hyper_params(self, pj: dict) -> Dict[str, float]:
+        """Find the latest hyperparameters for a specific prediction job."""
+        query = f"""
+            SELECT 
+                hp.name, 
+                hpv.value
+            FROM hyper_params hp
+            LEFT JOIN hyper_param_values hpv
+            ON hpv.hyper_params_id=hp.id
+            WHERE 
+                hpv.prediction_id="{pj["id"]}" AND 
+                hp.model="{pj["model"]}"
+        """
+        # Default params is empty dict
+        params = {}
 
-    def __setitem__(self, key: str, value: any):
-        """Allows us to use subscription to set the items in the object"""
-        if hasattr(self, key):
-            self.__dict__[key] = value
-        else:
-            raise AttributeError(f"{key} not an attribute of model specs.")
+        try:
+            # Execute query
+            result = _DataInterface.get_instance().exec_sql_query(query)
+            # Convert result to dict with proper keys
+            params = result.set_index("name").to_dict()["value"]
+        except Exception as e:
+            self.logger.error(
+                "Error occured while retrieving hyper parameters",
+                exc_info=e,
+                pid=pj["id"],
+            )
+
+        return params
+
+    def get_hyper_params_last_optimized(self, pj: dict) -> list[datetime]:
+        """Find the date of the most recent hyperparameters."""
+        query = f"""
+            SELECT MAX(hpv.created) as last
+            FROM hyper_params hp
+            LEFT JOIN hyper_param_values hpv
+            ON hpv.hyper_params_id = hp.id
+            WHERE 
+                hpv.prediction_id={pj["id"]} AND 
+                hp.model="{pj["model"]}"
+        """
+        last = None
+        try:
+            # Execute query
+            result = _DataInterface.get_instance().exec_sql_query(query)
+            # Convert result datetime instance
+            last = result["last"][0].to_pydatetime()
+            # If dictionary is empty raise exception and fall back to defaults
+        except Exception as e:
+            self.logger.error(
+                "Could not retrieve last hyperparemeters from database ",
+                pid=pj["id"],
+                exc_info=e,
+            )
+
+        return last
+
+    @staticmethod
+    def get_featureset(featureset_name: str) -> list[str]:
+        """Give predefined featureset based on input featureset_name."""
+        if featureset_name not in FEATURESET_NAMES:
+            raise KeyError(
+                f"Unknown featureset name '{featureset_name}'. "
+                f"Valid names are {', '.join(FEATURESET_NAMES)}"
+            )
+        return FEATURESETS[featureset_name]

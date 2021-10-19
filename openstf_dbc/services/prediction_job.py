@@ -6,7 +6,6 @@ import json
 from typing import List, Optional, Union
 from pydantic import BaseModel, ValidationError
 
-from openstf_dbc.data.featuresets import FEATURESET_NAMES, FEATURESETS
 from openstf_dbc.data_interface import _DataInterface
 from openstf_dbc.log import logging
 from openstf_dbc.services.systems import Systems
@@ -87,7 +86,7 @@ class PredictionJobRetriever:
         """Get all prediction jobs from the database.
 
         Args:
-            model_type (str): Only retrieve jobs with this modeltype specified, e.g. 'xgb'.
+            model_type (str): Only retrieve jobs with specified modeltype (e.g. 'xgb').
                 if None, all jobs are retrieved
             is_active (int): Only retrieve jobs where active == is_active.
                 if None, all jobs are retrieved
@@ -111,9 +110,6 @@ class PredictionJobRetriever:
 
         # Add quantiles
         prediction_jobs = self._add_quantiles_to_prediction_jobs(prediction_jobs)
-
-        # Add model group
-        prediction_jobs = self._add_model_type_group_to_prediction_jobs(prediction_jobs)
 
         # Change prediction jobs to dataclass
         prediction_jobs = [
@@ -180,86 +176,6 @@ class PredictionJobRetriever:
 
         return prediction_jobs
 
-    def get_hyper_params(self, pj):
-        """Method that finds the latest hyperparameters for a specific prediction job.
-        Args:
-            pj: Prediction job (dict).
-
-        Returns:
-            (dict) params: Dictionary with hyperparameters.
-                Empty if no hyperparameters excist or in case of errors.
-        """
-        # Compose query
-        query = f"""
-            SELECT hp.name, hpv.value
-            FROM hyper_params hp
-            LEFT JOIN hyper_param_values hpv
-                ON hpv.hyper_params_id=hp.id
-            WHERE hpv.prediction_id="{pj["id"]}" AND hp.model="{pj["model"]}"
-        """
-        # Default params is empty dict
-        params = {}
-
-        try:
-            # Execute query
-            result = _DataInterface.get_instance().exec_sql_query(query)
-            # Convert result to dict with proper keys
-            params = result.set_index("name").to_dict()["value"]
-        except Exception as e:
-            self.logger.error(
-                "Error occured while retrieving hyper parameters",
-                exc_info=e,
-                pid=pj["id"],
-            )
-
-        return params
-
-    def get_hyper_params_last_optimized(self, pj):
-        """Method that finds the date of the most recent hyperparameters
-        Args:
-            pj: Prediction job (dict).
-        Returns:
-            (datetime) last: Datetime of last hyperparameters
-        """
-        query = f"""
-            SELECT MAX(hpv.created) as last
-            FROM hyper_params hp
-            LEFT JOIN hyper_param_values hpv
-                ON hpv.hyper_params_id=hp.id
-            WHERE hpv.prediction_id={pj["id"]} AND hp.model="{pj["model"]}"
-        """
-        last = None
-        try:
-            # Execute query
-            result = _DataInterface.get_instance().exec_sql_query(query)
-            # Convert result datetime instance
-            last = result["last"][0].to_pydatetime()
-            # If dictionary is empty raise exception and fall back to defaults
-        except Exception as e:
-            self.logger.error(
-                "Could not retrieve last hyperparemeters from database ",
-                pid=pj["id"],
-                exc_info=e,
-            )
-
-        return last
-
-    def get_featureset(self, featureset_name):
-
-        if featureset_name not in FEATURESET_NAMES:
-            raise KeyError(
-                f"Unknown featureset name '{featureset_name}'. "
-                f"Valid names are {', '.join(FEATURESET_NAMES)}"
-            )
-
-        return FEATURESETS[featureset_name]
-
-    def get_featuresets(self):
-        return FEATURESETS
-
-    def get_featureset_names(self):
-        return FEATURESET_NAMES
-
     def _get_prediction_jobs_query_results(self, query: str) -> list:
         """Get prediction jobs using a query to the database
 
@@ -309,7 +225,6 @@ class PredictionJobRetriever:
         return self._add_description_to_prediction_jobs([prediction_job])[0]
 
     def _add_description_to_prediction_jobs(self, prediction_jobs):
-
         for prediction_job in prediction_jobs:
             systems = Systems().get_systems_by_pid(
                 pid=prediction_job["id"], return_list=True
@@ -410,13 +325,15 @@ class PredictionJobRetriever:
 
         query = f"""
             SELECT
-                p.id, p.name,
-                p.forecast_type, p.model, p.horizon_minutes, p.resolution_minutes,
-                p.train_components, p.external_id,
+                p.id, 
+                p.name,
+                p.forecast_type, 
+                p.model, 
+                p.horizon_minutes, 
+                p.resolution_minutes,
+                p.external_id,
                 min(s.lat) as lat,
-                min(s.lon) as lon,
-                min(s.sid) as sid,
-                p.created as created
+                min(s.lon) as lon
             FROM predictions as p
             LEFT JOIN
                 predictions_systems as ps ON p.id = ps.prediction_id

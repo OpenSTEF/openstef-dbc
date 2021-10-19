@@ -7,7 +7,6 @@ from unittest import mock
 import pandas as pd
 from openstf_dbc.data_interface import _DataInterface
 from openstf_dbc.database import DataBase
-from tests.data.config import config
 
 # Define tests data
 data = {
