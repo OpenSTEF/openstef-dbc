@@ -3,16 +3,37 @@
 # SPDX-License-Identifier: MPL-2.0
 
 from datetime import datetime
-from typing import Dict
+from pydantic import BaseModel
+from typing import Dict, Optional, Union
 
 from openstf_dbc.data.featuresets import FEATURESET_NAMES, FEATURESETS
 from openstf_dbc.data_interface import _DataInterface
 from openstf_dbc.log import logging
 
 
+class ModelSpecificationDataClass(BaseModel):
+    """Find the latest hyperparameters for a specific prediction job."""
+    id: Union[int, str]
+    hyper_params: Optional[dict]
+    feature_names: Optional[list]
+
+    def __getitem__(self, item):
+        """Allows us to use subscription to get the items from the object"""
+        return getattr(self, item)
+
+    def __setitem__(self, key: str, value: any):
+        """Allows us to use subscription to set the items in the object"""
+        if hasattr(self, key):
+            self.__dict__[key] = value
+        else:
+            raise AttributeError(f"{key} not an attribute of prediction job.")
+
+
 class ModelSpecificationRetriever:
     def __init__(self):
         self.logger = logging.get_logger(self.__class__.__name__)
+        # If the ModelSpecificationDataClass gets expanded or needs to be validated,
+        # we can add get_model_specfications and use ModelSpecificationDataClass
 
     def get_hyper_params(self, pj: dict) -> Dict[str, float]:
         """Find the latest hyperparameters for a specific prediction job."""
