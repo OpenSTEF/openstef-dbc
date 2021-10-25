@@ -12,7 +12,6 @@ from openstf_dbc.log import logging
 
 
 class ModelSpecificationDataClass(BaseModel):
-    """Find the latest hyperparameters for a specific prediction job."""
     id: Union[int, str]
     hyper_params: Optional[dict]
     feature_names: Optional[list]
