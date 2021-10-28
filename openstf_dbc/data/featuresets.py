@@ -467,6 +467,6 @@ FEATURESETS = {
         "dair_density_week",
     ],
     # empty feature set
-    "N": None
+    "N": None,
 }
 FEATURESET_NAMES = list(FEATURESETS.keys())
