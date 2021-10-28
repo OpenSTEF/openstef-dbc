@@ -74,7 +74,10 @@ class TestPredictionJob(unittest.TestCase):
         featureset_names = self.service.get_featureset_names()
         for name in featureset_names:
             featureset = self.service.get_featureset(name)
-            self.assertEqual(type(featureset), list)
+            if name is "N":
+                self.assertEqual(featureset, None)
+            else:
+                self.assertEqual(type(featureset), list)
 
     def test_get_featureset_wrong_name(self, data_interface_mock):
         with self.assertRaises(KeyError):
