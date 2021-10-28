@@ -74,7 +74,7 @@ class TestPredictionJob(unittest.TestCase):
         featureset_names = self.service.get_featureset_names()
         for name in featureset_names:
             featureset = self.service.get_featureset(name)
-            if name is "N":
+            if name == "N":
                 self.assertEqual(featureset, None)
             else:
                 self.assertEqual(type(featureset), list)
