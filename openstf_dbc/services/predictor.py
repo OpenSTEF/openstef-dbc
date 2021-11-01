@@ -89,11 +89,8 @@ class Predictor:
         electricity_price = self.get_electricity_price(
             datetime_start, datetime_end, forecast_resolution
         )
-        gas_price = self.get_gas_price(
-            datetime_start, datetime_end, forecast_resolution
-        )
 
-        return pd.concat([electricity_price, gas_price], axis=1)
+        return pd.concat([electricity_price], axis=1)
 
     def get_electricity_price(
         self, datetime_start, datetime_end, forecast_resolution=None
@@ -125,29 +122,6 @@ class Predictor:
             electricity_price = electricity_price.resample(forecast_resolution).ffill()
 
         return electricity_price
-
-    def get_gas_price(self, datetime_start, datetime_end, forecast_resolution=None):
-        query = "SELECT datetime, price FROM marketprices WHERE name = 'gasPrice' \
-                    AND datetime BETWEEN '{start}' AND '{end}' ORDER BY datetime asc".format(
-            start=str(datetime_start), end=str(datetime_end)
-        )
-
-        gas_price = _DataInterface.get_instance().exec_sql_query(query)
-
-        # NOTE this is not an influx query and always returns a dataframe by default
-        if gas_price.empty:
-            return pd.DataFrame(
-                index=genereate_datetime_index(
-                    start=datetime_start, end=datetime_end, freq=forecast_resolution
-                )
-            )
-
-        gas_price.rename(columns={"price": "Elba"}, inplace=True)
-
-        if forecast_resolution and gas_price.empty is False:
-            gas_price = gas_price.resample(forecast_resolution).ffill()
-
-        return gas_price
 
     def get_load_profiles(self, datetime_start, datetime_end, forecast_resolution=None):
         """Get load profiles.
