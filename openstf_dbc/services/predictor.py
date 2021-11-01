@@ -90,7 +90,7 @@ class Predictor:
             datetime_start, datetime_end, forecast_resolution
         )
 
-        return pd.concat([electricity_price], axis=1)
+        return electricity_price
 
     def get_electricity_price(
         self, datetime_start, datetime_end, forecast_resolution=None
