@@ -1,14 +1,14 @@
 # SPDX-FileCopyrightText: 2021 2017-2021 Alliander N.V. <korte.termijn.prognoses@alliander.com>
 #
 # SPDX-License-Identifier: MPL-2.0
-
+import unittest
 from unittest import mock
+from datetime import datetime
 
 import pandas as pd
 from openstf_dbc.data_interface import _DataInterface
 from openstf_dbc.database import DataBase
 
-# Define tests data
 data = {
     "name": [
         "silent",
@@ -22,7 +22,7 @@ data = {
         "subsample",
         "min_child_weight",
     ],
-    "value": [0.9, 4, 5, 0.07518330, 0.40687857, 1, "reg:linear", 500, 0.9, 4],
+    "value": [0.9, 4, 5, 0.07518330, 0.40687857, 1, "reg:linear", 500, 0.9, 4,],
 }
 
 db_result_good_parameters = pd.DataFrame.from_dict(data)
@@ -61,40 +61,55 @@ data_interface_mock = mock.MagicMock()
 get_instance_mock = mock.MagicMock(return_value=data_interface_mock)
 
 
-# Test conversion to proper dataformat
-@mock.patch.object(_DataInterface, "get_instance", get_instance_mock)
-def test_proper_data_format(*args):
-    """This tests tests if the values are correctly converted from a pandas dataframe to a dictionary"""
-    data_interface_mock.exec_sql_query.return_value = db_result_good_parameters
-    db = DataBase()
-    params = db.get_hyper_params(pj)
-    assert params == good_hyper_params
+class TestDatabaseGetHyperParams(unittest.TestCase):
+    @mock.patch.object(_DataInterface, "get_instance", get_instance_mock)
+    def test_get_hyper_params_proper_data_format(self):
+        """Tests if values are correctly converted from a dataframe to a dictionary."""
+        data_interface_mock.exec_sql_query.return_value = db_result_good_parameters
+        db = DataBase()
+        params = db.get_hyper_params(pj)
+        assert params == good_hyper_params
 
+    @mock.patch.object(_DataInterface, "get_instance", get_instance_mock)
+    def test_get_hyper_params_fallback_empty_data_frame(self):
+        """Tests if default params are returned if db returns an empty dataframe."""
+        data_interface_mock.exec_sql_query.return_value = empty_data_frame
+        db = DataBase()
+        params = db.get_hyper_params(pj)
+        assert params == {}
 
-# Test fall back on default parameters
+    @mock.patch.object(_DataInterface, "get_instance", get_instance_mock)
+    def test_get_hyper_params_error_in_query(self):
+        """Tests if the default hyperparameters are returned in case of an error."""
+        data_interface_mock.exec_sql_query.return_value = None
+        db = DataBase()
+        params = db.get_hyper_params(pj)
+        assert params == {}
 
+    @mock.patch.object(_DataInterface, "get_instance", get_instance_mock)
+    def test_get_hyper_params_last_optimized_proper_data_format(self):
+        """Tests if values are correctly converted from a dataframe to a dictionary."""
+        last_data = {"last": ["2019-04-05 12:08:23"]}
+        last_db_result = pd.DataFrame.from_dict(last_data)
+        last_db_result['last'] = pd.to_datetime(last_db_result['last'])
+        data_interface_mock.exec_sql_query.return_value = last_db_result
 
-@mock.patch.object(_DataInterface, "get_instance", get_instance_mock)
-def test_empty_data_frame(*args):
-    """This tests tests if the default parameters are returned if the database returns an empty dataframe"""
-    data_interface_mock.exec_sql_query.return_value = empty_data_frame
-    db = DataBase()
-    params = db.get_hyper_params(pj)
-    assert params == {}
+        last_pj = {"id": 307, "model": "xgb", "last": "2019-04-05 12:08:23"}
+        db = DataBase()
+        last_datetime = db.get_hyper_params_last_optimized(last_pj)
+        time_format = "%Y-%m-%d %H:%M:%S"
+        expected_last_datetime = datetime.strptime("2019-04-05 12:08:23", time_format)
+        assert last_datetime == expected_last_datetime
 
-
-# Test if query went wrong
-@mock.patch.object(_DataInterface, "get_instance", get_instance_mock)
-def test_error_in_query(*args):
-    """This tests tests if the default hyperparameters are returned in case of an error"""
-    data_interface_mock.exec_sql_query.return_value = None
-    db = DataBase()
-    params = db.get_hyper_params(pj)
-    assert params == {}
+    @mock.patch.object(_DataInterface, "get_instance", get_instance_mock)
+    def test_get_hyper_params_last_optimized_error_in_query(self):
+        """Tests  if the last hyperparameters are returned in case of an error."""
+        data_interface_mock.exec_sql_query.return_value = None
+        db = DataBase()
+        params = db.get_hyper_params_last_optimized(pj)
+        expected_error_output = None
+        assert params == expected_error_output
 
 
 if __name__ == "__main__":
-    tests = [eval(item) for item in dir() if item[0 : len("test_")] == "test_"]
-    for test in tests:
-        test()
-        print("passed")
+    unittest.main()

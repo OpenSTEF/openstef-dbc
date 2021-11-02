@@ -16,17 +16,6 @@ class ModelSpecificationDataClass(BaseModel):
     hyper_params: Optional[dict]
     feature_names: Optional[list]
 
-    def __getitem__(self, item):
-        """Allows us to use subscription to get the items from the object"""
-        return getattr(self, item)
-
-    def __setitem__(self, key: str, value: any):
-        """Allows us to use subscription to set the items in the object"""
-        if hasattr(self, key):
-            self.__dict__[key] = value
-        else:
-            raise AttributeError(f"{key} not an attribute of prediction job.")
-
 
 class ModelSpecificationRetriever:
     def __init__(self):
@@ -84,7 +73,7 @@ class ModelSpecificationRetriever:
             # If dictionary is empty raise exception and fall back to defaults
         except Exception as e:
             self.logger.error(
-                "Could not retrieve last hyperparemeters from database ",
+                "Could not retrieve last hyperparameters from database ",
                 pid=pj["id"],
                 exc_info=e,
             )
