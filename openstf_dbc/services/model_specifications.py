@@ -4,17 +4,29 @@
 
 from datetime import datetime
 from pydantic import BaseModel
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Union, List
 
 from openstf_dbc.data.featuresets import FEATURESET_NAMES, FEATURESETS
 from openstf_dbc.data_interface import _DataInterface
 from openstf_dbc.log import logging
+from openstf_dbc.services.prediction_job import PredictionJobDataClass
 
 
 class ModelSpecificationDataClass(BaseModel):
     id: Union[int, str]
     hyper_params: Optional[dict]
     feature_names: Optional[list]
+
+    def __getitem__(self, item):
+        """Allows us to use subscription to get the items from the object"""
+        return getattr(self, item)
+
+    def __setitem__(self, key: str, value: any):
+        """Allows us to use subscription to set the items in the object"""
+        if hasattr(self, key):
+            self.__dict__[key] = value
+        else:
+            raise AttributeError(f"{key} not an attribute of modelspecifications.")
 
 
 class ModelSpecificationRetriever:
@@ -23,7 +35,14 @@ class ModelSpecificationRetriever:
         # If the ModelSpecificationDataClass gets expanded or needs to be validated,
         # we can add get_model_specfications and use ModelSpecificationDataClass
 
-    def get_hyper_params(self, pj: dict) -> Dict[str, float]:
+    def get_modelspecs(self, pj, featureset_name):
+        return ModelSpecificationDataClass(
+            id=pj["id"],
+            hyper_params= self.get_hyper_params(pj),
+            feature_names= self.get_featureset(featureset_name)
+        )
+
+    def get_hyper_params(self, pj: PredictionJobDataClass) -> Dict[str, float]:
         """Find the latest hyperparameters for a specific prediction job."""
         query = f"""
             SELECT 
@@ -53,7 +72,7 @@ class ModelSpecificationRetriever:
 
         return params
 
-    def get_hyper_params_last_optimized(self, pj: dict) -> list[datetime]:
+    def get_hyper_params_last_optimized(self, pj: PredictionJobDataClass) -> List[datetime]:
         """Find the date of the most recent hyperparameters."""
         query = f"""
             SELECT MAX(hpv.created) as last
@@ -80,8 +99,7 @@ class ModelSpecificationRetriever:
 
         return last
 
-    @staticmethod
-    def get_featureset(featureset_name: str) -> list[str]:
+    def get_featureset(self, featureset_name:str) -> List[str]:
         """Give predefined featureset based on input featureset_name."""
         if featureset_name not in FEATURESET_NAMES:
             raise KeyError(
