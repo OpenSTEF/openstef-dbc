@@ -61,10 +61,15 @@ class ModelSpecificationRetriever:
 
         # Execute query
         result = _DataInterface.get_instance().exec_sql_query(query)
-        # Convert result to dict with proper keys
-        params = result.set_index("name").to_dict()["value"]
-        if result.size == 0:
-            raise ValueError(f"No prediction job found with id '{pid}'")
+        try:
+            if result.size == 0:
+                self.logger.warning("Failed to retrieve hyperparameters returning empty dictionary! PID not found", pid=pj["id"])
+                raise AttributeError()
+            # Convert result to dict with proper keys
+            params = result.set_index("name").to_dict()["value"]
+        except AttributeError as e:
+            self.logger.warning("Failed to retrieve hyperparameters returning empty dictionary!", pid=pj["id"], error=e)
+            params = {}
 
         return params
 

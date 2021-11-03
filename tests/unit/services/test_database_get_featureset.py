@@ -12,12 +12,15 @@ from openstf_dbc.services.model_specifications import ModelSpecificationRetrieve
 class TestGetFeatureSet(unittest.TestCase):
     def test_get_featureset(self):
         for name in FEATURESET_NAMES:
-            featureset = ModelSpecificationRetriever.get_featureset(name)
-            self.assertEqual(type(featureset), list)
+            featureset = ModelSpecificationRetriever().get_featureset(name)
+            if name == "N":
+                self.assertIsInstance(featureset, type(None))
+            else:
+                self.assertIsInstance(featureset, list)
 
     def test_get_featureset_wrong_name(self):
         with self.assertRaises(KeyError):
-            ModelSpecificationRetriever.get_featureset("wrong_name")
+            ModelSpecificationRetriever().get_featureset("wrong_name")
 
 
 if __name__ == "__main__":

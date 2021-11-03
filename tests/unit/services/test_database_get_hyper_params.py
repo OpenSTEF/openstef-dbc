@@ -8,6 +8,7 @@ from datetime import datetime
 import pandas as pd
 from openstf_dbc.data_interface import _DataInterface
 from openstf_dbc.database import DataBase
+from openstf_dbc.services.model_specifications import ModelSpecificationRetriever
 
 data = {
     "name": [
@@ -67,7 +68,7 @@ class TestDatabaseGetHyperParams(unittest.TestCase):
         """Tests if values are correctly converted from a dataframe to a dictionary."""
         data_interface_mock.exec_sql_query.return_value = db_result_good_parameters
         db = DataBase()
-        params = db.get_hyper_params(pj)
+        params = ModelSpecificationRetriever().get_hyper_params(pj)
         assert params == good_hyper_params
 
     @mock.patch.object(_DataInterface, "get_instance", get_instance_mock)
@@ -75,7 +76,7 @@ class TestDatabaseGetHyperParams(unittest.TestCase):
         """Tests if default params are returned if db returns an empty dataframe."""
         data_interface_mock.exec_sql_query.return_value = empty_data_frame
         db = DataBase()
-        params = db.get_hyper_params(pj)
+        params = ModelSpecificationRetriever().get_hyper_params(pj)
         assert params == {}
 
     @mock.patch.object(_DataInterface, "get_instance", get_instance_mock)
@@ -83,7 +84,7 @@ class TestDatabaseGetHyperParams(unittest.TestCase):
         """Tests if the default hyperparameters are returned in case of an error."""
         data_interface_mock.exec_sql_query.return_value = None
         db = DataBase()
-        params = db.get_hyper_params(pj)
+        params = ModelSpecificationRetriever().get_hyper_params(pj)
         assert params == {}
 
     @mock.patch.object(_DataInterface, "get_instance", get_instance_mock)
