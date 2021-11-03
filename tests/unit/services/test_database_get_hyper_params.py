@@ -67,7 +67,6 @@ class TestDatabaseGetHyperParams(unittest.TestCase):
     def test_get_hyper_params_proper_data_format(self):
         """Tests if values are correctly converted from a dataframe to a dictionary."""
         data_interface_mock.exec_sql_query.return_value = db_result_good_parameters
-        db = DataBase()
         params = ModelSpecificationRetriever().get_hyper_params(pj)
         assert params == good_hyper_params
 
@@ -75,7 +74,6 @@ class TestDatabaseGetHyperParams(unittest.TestCase):
     def test_get_hyper_params_fallback_empty_data_frame(self):
         """Tests if default params are returned if db returns an empty dataframe."""
         data_interface_mock.exec_sql_query.return_value = empty_data_frame
-        db = DataBase()
         params = ModelSpecificationRetriever().get_hyper_params(pj)
         assert params == {}
 
@@ -83,7 +81,6 @@ class TestDatabaseGetHyperParams(unittest.TestCase):
     def test_get_hyper_params_error_in_query(self):
         """Tests if the default hyperparameters are returned in case of an error."""
         data_interface_mock.exec_sql_query.return_value = None
-        db = DataBase()
         params = ModelSpecificationRetriever().get_hyper_params(pj)
         assert params == {}
 
