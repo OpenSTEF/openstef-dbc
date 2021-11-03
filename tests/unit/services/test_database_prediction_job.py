@@ -70,6 +70,25 @@ class TestPredictionJob(unittest.TestCase):
                 continue
             self.assertTrue(str(value) in query)
 
+    def test_get_featureset(self, data_interface_mock):
+        featureset_names = self.service.get_featureset_names()
+        for name in featureset_names:
+            featureset = self.service.get_featureset(name)
+            if name == "N":
+                self.assertEqual(featureset, None)
+            else:
+                self.assertEqual(type(featureset), list)
+
+    def test_get_featureset_wrong_name(self, data_interface_mock):
+        with self.assertRaises(KeyError):
+            self.service.get_featureset("wrong_name")
+
+    def test_get_featuresets(self, data_interface_mock):
+        self.assertEqual(type(self.service.get_featuresets()), dict)
+
+    def test_get_featureset_names(self, data_interface_mock):
+        self.assertEqual(type(self.service.get_featureset_names()), list)
+
     def test_dataclass(self, data_interface_mock):
         pj_dataclass = PredictionJobDataClass(**prediction_job)
         self.assertIsInstance(pj_dataclass, PredictionJobDataClass)
