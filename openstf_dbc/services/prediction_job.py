@@ -19,6 +19,7 @@ class PredictionJobDataClass(BaseModel):
     resolution_minutes: int
     lat: float
     lon: float
+    train_components: bool
     name: str
     description: Optional[str]
     quantiles: Optional[List[float]]
@@ -331,6 +332,7 @@ class PredictionJobRetriever:
                 p.model, 
                 p.horizon_minutes, 
                 p.resolution_minutes,
+                p.train_components,
                 p.external_id,
                 min(s.lat) as lat,
                 min(s.lon) as lon
