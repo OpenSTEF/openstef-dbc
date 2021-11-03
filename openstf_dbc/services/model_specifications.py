@@ -58,17 +58,13 @@ class ModelSpecificationRetriever:
         # Default params is empty dict
         params = {}
 
-        try:
-            # Execute query
-            result = _DataInterface.get_instance().exec_sql_query(query)
-            # Convert result to dict with proper keys
-            params = result.set_index("name").to_dict()["value"]
-        except Exception as e:
-            self.logger.error(
-                "Error occured while retrieving hyper parameters",
-                exc_info=e,
-                pid=pj["id"],
-            )
+
+        # Execute query
+        result = _DataInterface.get_instance().exec_sql_query(query)
+        # Convert result to dict with proper keys
+        params = result.set_index("name").to_dict()["value"]
+        if result.size == 0:
+            raise ValueError(f"No prediction job found with id '{pid}'")
 
         return params
 

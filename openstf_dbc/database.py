@@ -53,11 +53,10 @@ class DataBase(metaclass=Singleton):
     get_prediction_jobs = _prediction_job.get_prediction_jobs
     get_prediction_job = _prediction_job.get_prediction_job
     # model specification methods
-    get_hyper_params = _model_specifications.get_hyper_params
     get_hyper_params_last_optimized = (
         _model_specifications.get_hyper_params_last_optimized
     )
-    get_featureset = _model_specifications.get_featureset
+    get_modelspecs = _model_specifications.get_modelspecs
     # weather methods
     get_weather_forecast_locations = _weather.get_weather_forecast_locations
     get_weather_data = _weather.get_weather_data
