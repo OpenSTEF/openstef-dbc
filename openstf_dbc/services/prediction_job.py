@@ -94,7 +94,6 @@ class PredictionJobRetriever:
         model_type: Optional[str] = None,
         is_active: int = 1,
         only_ato: bool = False,
-        external_id: Union[str, List[str], None] = None,
         limit: Optional[int] = None,
     ):
         """Get all prediction jobs from the database.
@@ -105,7 +104,6 @@ class PredictionJobRetriever:
             is_active (int): Only retrieve jobs where active == is_active.
                 if None, all jobs are retrieved
             only_ato (bool): Only retrieve ATO jobs
-            external_id (str): Only retrieve jobs with the external_id given.
             limit (int): Limit the number of jobs to given value.
 
         Returns:
@@ -115,7 +113,6 @@ class PredictionJobRetriever:
             model_type=model_type,
             is_active=is_active,
             only_ato=only_ato,
-            external_id=external_id,
             limit=limit,
         )
 
@@ -303,7 +300,7 @@ class PredictionJobRetriever:
         except ValidationError as e:
             errors = e.errors()
             self.logger.error(
-                f"Error occurred while converting to data class",
+                "Error occurred while converting to data class",
                 pid=pj["id"],
                 error=errors,
             )
@@ -389,7 +386,6 @@ class PredictionJobRetriever:
         model_type: Union[str, List[str], None] = None,
         is_active: Optional[int] = None,
         only_ato: bool = False,
-        external_id: Union[str, List[str], None] = None,
         limit: Optional[int] = None,
     ):
         where_condition = []
@@ -412,11 +408,6 @@ class PredictionJobRetriever:
         if only_ato:
             where_condition.append("`name` LIKE 'ATO%' AND `name` NOT LIKE '%HS%'")
 
-        if external_id is not None:
-            where_condition.append(
-                PredictionJobRetriever._build_external_id_where_condition(external_id)
-            )
-
         where_clause = ""
         limit_clause = ""
 
@@ -430,7 +421,7 @@ class PredictionJobRetriever:
             SELECT
                 p.id, p.name,
                 p.forecast_type, p.model, p.horizon_minutes, p.resolution_minutes,
-                p.train_components, p.external_id,
+                p.train_components,
                 min(s.lat) as lat,
                 min(s.lon) as lon,
                 min(s.sid) as sid,
@@ -471,13 +462,3 @@ class PredictionJobRetriever:
         # make sure we always get 0 or 1 (anything not 0 -> 1)
         active = int(active != 0)
         return f"p.active = {active}"
-
-    @staticmethod
-    def _build_external_id_where_condition(external_id):
-        if isinstance(external_id, list):
-            in_values = ", ".join([f"'{v}'" for v in external_id])
-        elif isinstance(external_id, str):
-            in_values = f"'{external_id}'"
-        else:
-            raise ValueError("external_id should be str or list of str")
-        return f"p.external_id IN ({in_values})"

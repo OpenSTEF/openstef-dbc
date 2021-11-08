@@ -22,7 +22,6 @@ prediction_job = {
     "horizon_minutes": 2880,
     "resolution_minutes": 15,
     "train_components": 1,
-    "external_id": None,
     "lat": 51.8336647,
     "lon": 5.2137814,
     "sid": "LC_Neerijnen",
@@ -60,7 +59,6 @@ class TestPredictionJob(unittest.TestCase):
             "model_type": "xgb",
             "is_active": 1,
             "only_ato": True,
-            "external_id": "e179c450-30cc-4fb8-a9c8-1cd6feee2cbd",
             "limit": 999,
         }
         query = PredictionJobRetriever.build_get_prediction_jobs_query(**kwargs)
