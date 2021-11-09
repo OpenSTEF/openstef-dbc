@@ -5,14 +5,11 @@
 # -*- coding: utf-8 -*-
 import unittest
 from unittest.mock import patch
-from openstf_dbc.data.featuresets import FEATURESET_NAMES
-from pydantic import ValidationError
 import pandas as pd
 from openstf_dbc.services.prediction_job import (
     PredictionJobRetriever,
     PredictionJobDataClass,
 )
-from openstf_dbc.services.model_specifications import ModelSpecificationRetriever
 
 prediction_job = {
     "id": 307,
@@ -36,7 +33,6 @@ class TestPredictionJob(unittest.TestCase):
     def setUp(self):
         super().setUp()
         self.service = PredictionJobRetriever()
-        self.modelspecs = ModelSpecificationRetriever()
 
     def test_get_prediction_job_result_size_is_zero(self, data_interface_mock):
         data_interface_mock.get_instance.return_value.exec_sql_query.return_value = (
@@ -71,18 +67,6 @@ class TestPredictionJob(unittest.TestCase):
                 self.assertTrue("ATO" in query)
                 continue
             self.assertTrue(str(value) in query)
-
-    def test_get_featureset(self, data_interface_mock):
-        for name in FEATURESET_NAMES:
-            featureset = self.modelspecs.get_featureset(name)
-            if name == "N":
-                self.assertEqual(featureset, None)
-            else:
-                self.assertEqual(type(featureset), list)
-
-    def test_get_featureset_wrong_name(self, data_interface_mock):
-        with self.assertRaises(KeyError):
-            self.modelspecs.get_featureset("wrong_name")
 
     def test_dataclass(self, data_interface_mock):
         pj_dataclass = PredictionJobDataClass(**prediction_job)

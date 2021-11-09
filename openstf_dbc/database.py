@@ -6,7 +6,6 @@ from openstf_dbc import Singleton
 from openstf_dbc.data_interface import _DataInterface
 from openstf_dbc.services.ems import Ems
 from openstf_dbc.services.model_input import ModelInput
-from openstf_dbc.services.model_specifications import ModelSpecificationRetriever
 from openstf_dbc.services.prediction_job import PredictionJobRetriever
 from openstf_dbc.services.predictions import Predictions
 from openstf_dbc.services.predictor import Predictor
@@ -28,7 +27,6 @@ class DataBase(metaclass=Singleton):
     # services
     _write = Write()
     _prediction_job = PredictionJobRetriever()
-    _model_specifications = ModelSpecificationRetriever()
     _weather = Weather()
     _historic_cdb_data_service = Ems()
     _predictor = Predictor()
@@ -52,11 +50,6 @@ class DataBase(metaclass=Singleton):
     get_prediction_jobs_wind = _prediction_job.get_prediction_jobs_wind
     get_prediction_jobs = _prediction_job.get_prediction_jobs
     get_prediction_job = _prediction_job.get_prediction_job
-    # model specification methods
-    get_hyper_params_last_optimized = (
-        _model_specifications.get_hyper_params_last_optimized
-    )
-    get_modelspecs = _model_specifications.get_modelspecs
     # weather methods
     get_weather_forecast_locations = _weather.get_weather_forecast_locations
     get_weather_data = _weather.get_weather_data
