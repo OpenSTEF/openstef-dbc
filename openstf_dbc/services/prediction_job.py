@@ -4,33 +4,25 @@
 
 import json
 from typing import List, Optional, Union
-from datetime import datetime
 from pydantic import BaseModel, ValidationError
 
-from openstf_dbc.data.featuresets import FEATURESET_NAMES, FEATURESETS
 from openstf_dbc.data_interface import _DataInterface
 from openstf_dbc.log import logging
 from openstf_dbc.services.systems import Systems
 
 
-# With suggestion on how to split this
 class PredictionJobDataClass(BaseModel):
-    id: Union[int, str]  # both
-    model_type_group: str  # model_specs
-    model: str  # model_specs
-    forecast_type: str  # prediction_job
-    horizon_minutes: int  # prediction_job
-    resolution_minutes: int  # prediction_job
-    lat: float  # prediction_job
-    lon: float  # prediction_job
-    train_components: bool  # prediction_job
-    name: str  # prediction_job
-    created: datetime  # prediction_job
-    sid: Optional[str]  # prediction_job
-    hyper_params: Optional[dict]  # model_specs
-    feature_names: Optional[list]  # model_specs
-    description: Optional[str]  # prediction_job
-    quantiles: Optional[List[float]]  # model_specs
+    id: Union[int, str]
+    model: str
+    forecast_type: str
+    horizon_minutes: int
+    resolution_minutes: int
+    lat: float
+    lon: float
+    train_components: bool
+    name: str
+    description: Optional[str]
+    quantiles: Optional[List[float]]
 
     def __getitem__(self, item):
         """Allows us to use subscription to get the items from the object"""
@@ -41,7 +33,7 @@ class PredictionJobDataClass(BaseModel):
         if hasattr(self, key):
             self.__dict__[key] = value
         else:
-            raise AttributeError(f"{key} not an attribute of prediction job")
+            raise AttributeError(f"{key} not an attribute of prediction job.")
 
 
 class PredictionJobRetriever:
@@ -79,12 +71,7 @@ class PredictionJobRetriever:
         )
 
         # Add quantiles
-        prediction_job_dict = self._add_quantiles_to_prediciton_job(prediction_job_dict)
-
-        # Add model group
-        prediction_job_dict = self._add_model_type_group_to_prediction_job(
-            prediction_job_dict
-        )
+        prediction_job_dict = self._add_quantiles_to_prediction_job(prediction_job_dict)
 
         prediction_job = self._create_prediction_job_object(prediction_job_dict)
         return prediction_job
@@ -100,7 +87,7 @@ class PredictionJobRetriever:
         """Get all prediction jobs from the database.
 
         Args:
-            model_type (str): Only retrieve jobs with this modeltype specified, e.g. 'xgb'.
+            model_type (str): Only retrieve jobs with specified modeltype (e.g. 'xgb').
                 if None, all jobs are retrieved
             is_active (int): Only retrieve jobs where active == is_active.
                 if None, all jobs are retrieved
@@ -123,10 +110,7 @@ class PredictionJobRetriever:
         prediction_jobs = self._get_prediction_jobs_query_results(query)
 
         # Add quantiles
-        prediction_jobs = self._add_quantiles_to_prediciton_jobs(prediction_jobs)
-
-        # Add model group
-        prediction_jobs = self._add_model_type_group_to_prediction_jobs(prediction_jobs)
+        prediction_jobs = self._add_quantiles_to_prediction_jobs(prediction_jobs)
 
         # Change prediction jobs to dataclass
         prediction_jobs = [
@@ -139,7 +123,11 @@ class PredictionJobRetriever:
     def get_prediction_jobs_wind(self):
         query = """
             SELECT
-                p.id, p.forecast_type, p.model, p.horizon_minutes, p.resolution_minutes,
+                p.id, 
+                p.forecast_type, 
+                p.model, 
+                p.horizon_minutes, 
+                p.resolution_minutes,
                 p.name,
                 min(s.sid) as sid,
                 w.lat as lat,
@@ -163,7 +151,11 @@ class PredictionJobRetriever:
     def get_prediction_jobs_solar(self):
         query = """
             SELECT
-                p.id, p.forecast_type, p.model, p.horizon_minutes, p.resolution_minutes,
+                p.id, 
+                p.forecast_type, 
+                p.model, 
+                p.horizon_minutes, 
+                p.resolution_minutes,
                 p.name,
                 min(s.lat) as lat,
                 min(s.lon) as lon,
@@ -184,86 +176,6 @@ class PredictionJobRetriever:
         prediction_jobs = self._get_prediction_jobs_query_results(query)
 
         return prediction_jobs
-
-    def get_hyper_params(self, pj):
-        """Method that finds the latest hyperparameters for a specific prediction job.
-        Args:
-            pj: Prediction job (dict).
-
-        Returns:
-            (dict) params: Dictionary with hyperparameters.
-                Empty if no hyperparameters excist or in case of errors.
-        """
-        # Compose query
-        query = f"""
-            SELECT hp.name, hpv.value
-            FROM hyper_params hp
-            LEFT JOIN hyper_param_values hpv
-                ON hpv.hyper_params_id=hp.id
-            WHERE hpv.prediction_id="{pj["id"]}" AND hp.model="{pj["model"]}"
-        """
-        # Default params is empty dict
-        params = {}
-
-        try:
-            # Execute query
-            result = _DataInterface.get_instance().exec_sql_query(query)
-            # Convert result to dict with proper keys
-            params = result.set_index("name").to_dict()["value"]
-        except Exception as e:
-            self.logger.error(
-                "Error occured while retrieving hyper parameters",
-                exc_info=e,
-                pid=pj["id"],
-            )
-
-        return params
-
-    def get_hyper_params_last_optimized(self, pj):
-        """Method that finds the date of the most recent hyperparameters
-        Args:
-            pj: Prediction job (dict).
-        Returns:
-            (datetime) last: Datetime of last hyperparameters
-        """
-        query = f"""
-            SELECT MAX(hpv.created) as last
-            FROM hyper_params hp
-            LEFT JOIN hyper_param_values hpv
-                ON hpv.hyper_params_id=hp.id
-            WHERE hpv.prediction_id={pj["id"]} AND hp.model="{pj["model"]}"
-        """
-        last = None
-        try:
-            # Execute query
-            result = _DataInterface.get_instance().exec_sql_query(query)
-            # Convert result datetime instance
-            last = result["last"][0].to_pydatetime()
-            # If dictionary is empty raise exception and fall back to defaults
-        except Exception as e:
-            self.logger.error(
-                "Could not retrieve last hyperparemeters from database ",
-                pid=pj["id"],
-                exc_info=e,
-            )
-
-        return last
-
-    def get_featureset(self, featureset_name):
-
-        if featureset_name not in FEATURESET_NAMES:
-            raise KeyError(
-                f"Unknown featureset name '{featureset_name}'. "
-                f"Valid names are {', '.join(FEATURESET_NAMES)}"
-            )
-
-        return FEATURESETS[featureset_name]
-
-    def get_featuresets(self):
-        return FEATURESETS
-
-    def get_featureset_names(self):
-        return FEATURESET_NAMES
 
     def _get_prediction_jobs_query_results(self, query: str) -> list:
         """Get prediction jobs using a query to the database
@@ -314,7 +226,6 @@ class PredictionJobRetriever:
         return self._add_description_to_prediction_jobs([prediction_job])[0]
 
     def _add_description_to_prediction_jobs(self, prediction_jobs):
-
         for prediction_job in prediction_jobs:
             systems = Systems().get_systems_by_pid(
                 pid=prediction_job["id"], return_list=True
@@ -324,23 +235,10 @@ class PredictionJobRetriever:
 
         return prediction_jobs
 
-    def _add_model_type_group_to_prediction_jobs(self, prediction_jobs):
-        for prediction_job in prediction_jobs:
-            # TODO this needs to be changed in the
-            if "quantile" in prediction_job["model"]:
-                prediction_job["model_type_group"] = "quantile"
-            else:
-                prediction_job["model_type_group"] = "default"
+    def _add_quantiles_to_prediction_job(self, prediction_job):
+        return self._add_quantiles_to_prediction_jobs([prediction_job])[0]
 
-        return prediction_jobs
-
-    def _add_model_type_group_to_prediction_job(self, prediction_job):
-        return self._add_model_type_group_to_prediction_jobs([prediction_job])[0]
-
-    def _add_quantiles_to_prediciton_job(self, prediction_job):
-        return self._add_quantiles_to_prediciton_jobs([prediction_job])[0]
-
-    def _add_quantiles_to_prediciton_jobs(self, prediction_jobs):
+    def _add_quantiles_to_prediction_jobs(self, prediction_jobs):
         prediction_job_ids = [pj["id"] for pj in prediction_jobs]
         prediction_jobs_ids_str = ", ".join([f"'{p}'" for p in prediction_job_ids])
 
@@ -428,13 +326,16 @@ class PredictionJobRetriever:
 
         query = f"""
             SELECT
-                p.id, p.name,
-                p.forecast_type, p.model, p.horizon_minutes, p.resolution_minutes,
-                p.train_components, p.external_id,
+                p.id, 
+                p.name,
+                p.forecast_type, 
+                p.model, 
+                p.horizon_minutes, 
+                p.resolution_minutes,
+                p.train_components,
+                p.external_id,
                 min(s.lat) as lat,
-                min(s.lon) as lon,
-                min(s.sid) as sid,
-                p.created as created
+                min(s.lon) as lon
             FROM predictions as p
             LEFT JOIN
                 predictions_systems as ps ON p.id = ps.prediction_id
