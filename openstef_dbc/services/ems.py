@@ -6,9 +6,9 @@ from datetime import timedelta
 
 import pandas as pd
 import structlog
-from openstf_dbc.data_interface import _DataInterface
-from openstf_dbc.services.systems import Systems
-from openstf_dbc.utils import process_datetime_range
+from openstef_dbc.data_interface import _DataInterface
+from openstef_dbc.services.systems import Systems
+from openstef_dbc.utils import process_datetime_range
 
 
 class Ems:

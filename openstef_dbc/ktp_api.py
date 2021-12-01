@@ -9,7 +9,7 @@ import pandas as pd
 import pytz
 import requests
 
-from openstf_dbc.log import logging
+from openstef_dbc.log import logging
 
 
 class ApiException(Exception):

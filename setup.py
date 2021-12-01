@@ -28,13 +28,13 @@ def read_long_description_from_readme():
 
 
 setup(
-    name="openstf_dbc",
+    name="openstef_dbc",
     version="2.2.0",
-    packages=find_packages(include=["openstf_dbc", "openstf_dbc.*"]),
+    packages=find_packages(include=["openstef_dbc", "openstef_dbc.*"]),
     description="Database Connection for OpenSTF",
     long_description=read_long_description_from_readme(),
     long_description_content_type="text/markdown",
-    url="https://github.com/alliander-opensource/openstf-dbc",
+    url="https://github.com/alliander-opensource/openstef-dbc",
     author="Alliander N.V",
     author_email="korte.termijn.prognoses@alliander.com",
     license="MPL-2.0",
@@ -43,7 +43,7 @@ setup(
     # for more information
     package_data={
         # Include anything in the data directory
-        "openstf_dbc": ["data/*", "*.license"]
+        "openstef_dbc": ["data/*", "*.license"]
     },
     python_requires=">=3.7.0",
     install_requires=read_requirements_from_file(),

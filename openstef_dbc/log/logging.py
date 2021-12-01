@@ -76,7 +76,7 @@ import structlog
 import structlog.threadlocal
 import warnings
 
-import openstf_dbc.log.processors as custom_processors
+import openstef_dbc.log.processors as custom_processors
 
 __configured = False
 __loggers = {}

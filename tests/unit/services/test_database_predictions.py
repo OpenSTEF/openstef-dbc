@@ -7,7 +7,7 @@ import unittest
 from unittest.mock import patch
 from datetime import datetime, timedelta
 
-from openstf_dbc.services.predictions import Predictions
+from openstef_dbc.services.predictions import Predictions
 
 pj = {
     "id": 298,
@@ -22,7 +22,7 @@ pj = {
 }
 
 
-@patch("openstf_dbc.services.predictions._DataInterface")
+@patch("openstef_dbc.services.predictions._DataInterface")
 class TestPredictions(unittest.TestCase):
     def test_get_predicted_load(self, data_interface_mock):
         pass

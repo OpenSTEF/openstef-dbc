@@ -9,12 +9,12 @@ import numpy as np
 import pandas as pd
 import pytz
 import structlog
-from openstf_dbc.data_interface import _DataInterface
-from openstf_dbc.services.ems import Ems
-from openstf_dbc.services.predictor import Predictor
-from openstf_dbc.services.systems import Systems
-from openstf_dbc.services.weather import Weather
-from openstf_dbc.utils import process_datetime_range
+from openstef_dbc.data_interface import _DataInterface
+from openstef_dbc.services.ems import Ems
+from openstef_dbc.services.predictor import Predictor
+from openstef_dbc.services.systems import Systems
+from openstef_dbc.services.weather import Weather
+from openstef_dbc.utils import process_datetime_range
 
 
 class ModelInput:

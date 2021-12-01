@@ -7,7 +7,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
-from openstf_dbc.services.weather import Weather
+from openstef_dbc.services.weather import Weather
 from tests.utils.base import BaseTestCase
 
 DATA_FOLDER = Path(__file__).absolute().parent.parent.parent / "data"
@@ -48,8 +48,8 @@ combined_weatherdata_DSN = pd.read_csv(
 )
 
 
-@patch("openstf_dbc.services.weather._DataInterface", MagicMock())
-@patch("openstf_dbc.services.weather.Write", MagicMock())
+@patch("openstef_dbc.services.weather._DataInterface", MagicMock())
+@patch("openstef_dbc.services.weather.Write", MagicMock())
 class TestWeather(BaseTestCase):
     def test_combine_weather_sources_fill_nan_values(self):
         """Data: dataframe contains weather data of multiple sources for same timpestamp with nan-values

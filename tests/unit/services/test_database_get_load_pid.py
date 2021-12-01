@@ -7,15 +7,15 @@ from datetime import datetime
 import pandas as pd
 from unittest.mock import patch
 
-# from openstf_dbc.services.systems import Systems
-from openstf_dbc.services.ems import Ems as EmsService
+# from openstef_dbc.services.systems import Systems
+from openstef_dbc.services.ems import Ems as EmsService
 
 datetime_start = datetime.fromisoformat("2019-01-01 10:00:00")
 datetime_end = datetime.fromisoformat("2019-01-01 10:15:00")
 
 
-@patch("openstf_dbc.services.ems.Systems.get_systems_by_pid")
-@patch("openstf_dbc.services.ems.Ems.get_load_sid")
+@patch("openstef_dbc.services.ems.Systems.get_systems_by_pid")
+@patch("openstef_dbc.services.ems.Ems.get_load_sid")
 class TestEmsService(unittest.TestCase):
     def setUp(self) -> None:
         self.systems = pd.DataFrame(

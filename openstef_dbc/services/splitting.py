@@ -7,11 +7,11 @@ from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
 
-from openstf_dbc.data_interface import _DataInterface
-from openstf_dbc.services.weather import Weather
-from openstf_dbc.services.systems import Systems
-from openstf_dbc.services.ems import Ems
-from openstf_dbc.services.predictor import Predictor
+from openstef_dbc.data_interface import _DataInterface
+from openstef_dbc.services.weather import Weather
+from openstef_dbc.services.systems import Systems
+from openstef_dbc.services.ems import Ems
+from openstef_dbc.services.predictor import Predictor
 
 
 # TODO check if this functionality should be transfered to a data preparation step for energy splitting in ktprognoses

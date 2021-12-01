@@ -6,13 +6,13 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
-from openstf_dbc.data_interface import _DataInterface
+from openstef_dbc.data_interface import _DataInterface
 
 
-@patch("openstf_dbc.data_interface.KtpApi", MagicMock())
-@patch("openstf_dbc.data_interface.logging", MagicMock())
-@patch("openstf_dbc.data_interface.influxdb", MagicMock())
-@patch("openstf_dbc.data_interface.sqlalchemy", MagicMock())
+@patch("openstef_dbc.data_interface.KtpApi", MagicMock())
+@patch("openstef_dbc.data_interface.logging", MagicMock())
+@patch("openstef_dbc.data_interface.influxdb", MagicMock())
+@patch("openstef_dbc.data_interface.sqlalchemy", MagicMock())
 class TestDataInterface(unittest.TestCase):
     def test_exec_influx_write(self):
         di = _DataInterface()
@@ -41,7 +41,7 @@ class TestDataInterface(unittest.TestCase):
         # should be the same instance
         self.assertIs(data_interface_1, data_interface_2)
 
-    @patch("openstf_dbc.Singleton.get_instance", side_effect=KeyError)
+    @patch("openstef_dbc.Singleton.get_instance", side_effect=KeyError)
     def test_get_instance_error(self, get_instance_mock):
         with self.assertRaises(RuntimeError):
             _DataInterface.get_instance()

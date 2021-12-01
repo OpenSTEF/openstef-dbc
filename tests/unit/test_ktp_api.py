@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, Mock
 
 import pandas as pd
 import pytz
-from openstf_dbc.ktp_api import KtpApi
+from openstef_dbc.ktp_api import KtpApi
 from pytz import timezone
 
 customers_list = [

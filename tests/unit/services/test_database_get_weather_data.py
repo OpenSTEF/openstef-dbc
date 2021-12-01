@@ -34,7 +34,7 @@ weatherdata = pd.DataFrame(
 
 
 @mock.patch(
-    "openstf_dbc.database.DataBase", **{"get_weatherdata.return_value": weatherdata}
+    "openstef_dbc.database.DataBase", **{"get_weatherdata.return_value": weatherdata}
 )
 def test_mock_query(db_mock):
     # Variables
@@ -58,7 +58,7 @@ def test_mock_query(db_mock):
 
 
 @mock.patch(
-    "openstf_dbc.database.DataBase",
+    "openstef_dbc.database.DataBase",
     **{"get_weatherdata.return_value": combined_weatherdata}
 )
 def test_combine_data_optimum(db_mock):

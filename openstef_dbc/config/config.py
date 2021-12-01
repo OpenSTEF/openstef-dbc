@@ -4,10 +4,10 @@
 
 from types import SimpleNamespace
 
-import openstf_dbc.config.utils as utils
-from openstf_dbc.config.builder import ConfigBuilder
-from openstf_dbc.config.enums import RuntimeEnv
-from openstf_dbc.log import logging
+import openstef_dbc.config.utils as utils
+from openstef_dbc.config.builder import ConfigBuilder
+from openstef_dbc.config.enums import RuntimeEnv
+from openstef_dbc.log import logging
 
 
 class ConfigManager:
@@ -44,7 +44,7 @@ class ConfigManager:
         # initialize if project config is already loaded
         if ConfigManager._loaded_config is not None:
             return ConfigManager(ConfigManager._loaded_config)
-        # build default if no config loaded and running locally (local use of openstf_dbc)
+        # build default if no config loaded and running locally (local use of openstef_dbc)
         if utils.determine_runtime_environment() is RuntimeEnv.LOCAL:
             ConfigManager.logger.warning(
                 "No project configuration loaded, using default for local development"

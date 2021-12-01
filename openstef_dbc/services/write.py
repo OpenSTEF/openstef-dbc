@@ -8,8 +8,8 @@ import time
 import numpy as np
 import pandas as pd
 
-from openstf_dbc.data_interface import _DataInterface
-from openstf_dbc.log import logging
+from openstef_dbc.data_interface import _DataInterface
+from openstef_dbc.log import logging
 
 
 class Write:

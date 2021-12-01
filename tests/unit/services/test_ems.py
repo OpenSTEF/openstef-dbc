@@ -4,7 +4,7 @@
 import unittest
 from datetime import datetime, timedelta
 
-from openstf_dbc.services.ems import Ems
+from openstef_dbc.services.ems import Ems
 
 
 class TestEMS(unittest.TestCase):

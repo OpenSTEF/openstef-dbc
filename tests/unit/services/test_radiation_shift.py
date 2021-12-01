@@ -7,10 +7,10 @@ from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
-from openstf_dbc.services.weather import Weather
+from openstef_dbc.services.weather import Weather
 
 
-@patch("openstf_dbc.data_interface._DataInterface.get_instance")
+@patch("openstef_dbc.data_interface._DataInterface.get_instance")
 class TestRadiationShift(unittest.TestCase):
     def test(self, data_interface_get_instance_mock):
         # Mock database response

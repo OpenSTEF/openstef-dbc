@@ -2,8 +2,8 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
-from openstf_dbc import Singleton
-from openstf_dbc.database import DataBase
+from openstef_dbc import Singleton
+from openstef_dbc.database import DataBase
 from tests.data.config import config
 
 # Check if DataBase singleton is already initialize

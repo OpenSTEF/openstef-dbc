@@ -5,7 +5,7 @@
 import os
 from pathlib import Path
 
-from openstf_dbc.config.enums import RuntimeEnv, Namespace
+from openstef_dbc.config.enums import RuntimeEnv, Namespace
 
 
 def determine_runtime_environment():

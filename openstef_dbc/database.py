@@ -2,17 +2,17 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
-from openstf_dbc import Singleton
-from openstf_dbc.data_interface import _DataInterface
-from openstf_dbc.services.ems import Ems
-from openstf_dbc.services.model_input import ModelInput
-from openstf_dbc.services.prediction_job import PredictionJobRetriever
-from openstf_dbc.services.predictions import Predictions
-from openstf_dbc.services.predictor import Predictor
-from openstf_dbc.services.splitting import Splitting
-from openstf_dbc.services.systems import Systems
-from openstf_dbc.services.weather import Weather
-from openstf_dbc.services.write import Write
+from openstef_dbc import Singleton
+from openstef_dbc.data_interface import _DataInterface
+from openstef_dbc.services.ems import Ems
+from openstef_dbc.services.model_input import ModelInput
+from openstef_dbc.services.prediction_job import PredictionJobRetriever
+from openstef_dbc.services.predictions import Predictions
+from openstef_dbc.services.predictor import Predictor
+from openstef_dbc.services.splitting import Splitting
+from openstef_dbc.services.systems import Systems
+from openstef_dbc.services.weather import Weather
+from openstef_dbc.services.write import Write
 
 
 class DataBase(metaclass=Singleton):
