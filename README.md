@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
 -->
 [![Python Build](https://github.com/openstef/openstef-dbc/actions/workflows/python-build.yaml/badge.svg?branch=master)](https://github.com/openstef/openstef-dbc/actions/workflows/python-build.yaml)
 [![REUSE Compliance Check](https://github.com/openstef/openstef-dbc/actions/workflows/reuse-compliance.yml/badge.svg?branch=master)](https://github.com/openstef/openstef-dbc/actions/workflows/reuse-compliance.yml)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=openstef_openstef-dbc&metric=alert_status)](https://sonarcloud.io/dashboard?id=openstef_openstef-dbc)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=OpenSTEF_openstef-dbc&metric=alert_status)](https://sonarcloud.io/dashboard?id=OpenSTEF_openstef-dbc)
 
 ```
 # Openstf-dbc - Database connector for openstef (reference)
