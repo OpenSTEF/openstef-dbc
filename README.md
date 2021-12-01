@@ -3,9 +3,9 @@ SPDX-FileCopyrightText: 2021 2017-2021 Contributors to the OpenSTF project <kort
 
 SPDX-License-Identifier: MPL-2.0
 -->
-[![Python Build](https://github.com/alliander-opensource/openstef-dbc/actions/workflows/python-build.yaml/badge.svg?branch=master)](https://github.com/alliander-opensource/openstef-dbc/actions/workflows/python-build.yaml)
-[![REUSE Compliance Check](https://github.com/alliander-opensource/openstef-dbc/actions/workflows/reuse-compliance.yml/badge.svg?branch=master)](https://github.com/alliander-opensource/openstef-dbc/actions/workflows/reuse-compliance.yml)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_openstef-db-connector&metric=alert_status)](https://sonarcloud.io/dashboard?id=alliander-opensource_openstef-db-connector)
+[![Python Build](https://github.com/openstef/openstef-dbc/actions/workflows/python-build.yaml/badge.svg?branch=master)](https://github.com/openstef/openstef-dbc/actions/workflows/python-build.yaml)
+[![REUSE Compliance Check](https://github.com/openstef/openstef-dbc/actions/workflows/reuse-compliance.yml/badge.svg?branch=master)](https://github.com/openstef/openstef-dbc/actions/workflows/reuse-compliance.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=openstef_openstef-dbc&metric=alert_status)](https://sonarcloud.io/dashboard?id=openstef_openstef-dbc)
 
 ```
 # Openstf-dbc - Database connector for openstef (reference)
@@ -13,8 +13,8 @@ SPDX-License-Identifier: MPL-2.0
 This repository houses the python package [openstef-dbc](https://pypi.org/project/openstef-dbc/), which provides an interface to openstef (reference) databases.
 
 Related projects:
-- [openstef-reference](https://github.com/alliander-opensource/openstef-reference)
-- [openstef](https://github.com/alliander-opensource/short-term-forecasting)
+- [openstef-reference](https://github.com/openstef/openstef-reference)
+- [openstef](https://github.com/openstef/short-term-forecasting)
 
 
 ## Install
