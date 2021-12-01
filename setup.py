@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2017-2021 Alliander N.V. <korte.termijn.prognoses@alliander.com> # noqa E501>
+# SPDX-FileCopyrightText: 2017-2021 Contributors to the OpenSTF project <korte.termijn.prognoses@alliander.com> # noqa E501>
 #
 # SPDX-License-Identifier: MPL-2.0
 
@@ -29,7 +29,7 @@ def read_long_description_from_readme():
 
 setup(
     name="openstf_dbc",
-    version="2.1.2",
+    version="2.2.0",
     packages=find_packages(include=["openstf_dbc", "openstf_dbc.*"]),
     description="Database Connection for OpenSTF",
     long_description=read_long_description_from_readme(),

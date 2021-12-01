@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2021 2017-2021 Alliander N.V. <korte.termijn.prognoses@alliander.com>
+# SPDX-FileCopyrightText: 2021 2017-2021 Contributors to the OpenSTF project <korte.termijn.prognoses@alliander.com>
 #
 # SPDX-License-Identifier: MPL-2.0
 
@@ -50,11 +50,6 @@ class DataBase(metaclass=Singleton):
     get_prediction_jobs_wind = _prediction_job.get_prediction_jobs_wind
     get_prediction_jobs = _prediction_job.get_prediction_jobs
     get_prediction_job = _prediction_job.get_prediction_job
-    get_hyper_params = _prediction_job.get_hyper_params
-    get_hyper_params_last_optimized = _prediction_job.get_hyper_params_last_optimized
-    get_featureset = _prediction_job.get_featureset
-    get_featuresets = _prediction_job.get_featuresets
-    get_featureset_names = _prediction_job.get_featureset_names
     # weather methods
     get_weather_forecast_locations = _weather.get_weather_forecast_locations
     get_weather_data = _weather.get_weather_data

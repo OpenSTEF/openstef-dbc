@@ -4,6 +4,6 @@ Upstream-Contact: Korte Termijn Prognoses <korte.termijn.prognoses@alliander.com
 Source: https://github.com/alliander-opensource/openstf-dbc
 
 Files: tests/*
-Copyright: 2017-2021 Alliander N.V. <korte.termijn.prognoses@alliander.com>
+Copyright: 2017-2021 Contributors to the OpenSTF project <korte.termijn.prognoses@alliander.com>
 License: MPL-2.0
 
