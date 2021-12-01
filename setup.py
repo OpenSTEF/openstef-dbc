@@ -29,12 +29,12 @@ def read_long_description_from_readme():
 
 setup(
     name="openstef_dbc",
-    version="2.2.0",
+    version="1.0.0",
     packages=find_packages(include=["openstef_dbc", "openstef_dbc.*"]),
-    description="Database Connection for OpenSTF",
+    description="Database Connection for OpenSTEF",
     long_description=read_long_description_from_readme(),
     long_description_content_type="text/markdown",
-    url="https://github.com/alliander-opensource/openstef-dbc",
+    url="https://github.com/openstef/openstef-dbc",
     author="Alliander N.V",
     author_email="korte.termijn.prognoses@alliander.com",
     license="MPL-2.0",
