@@ -7,9 +7,9 @@ from pathlib import Path
 
 import yaml
 
-import openstf_dbc.config.utils as utils
-from openstf_dbc.config.enums import RuntimeEnv
-from openstf_dbc.log import logging
+import openstef_dbc.config.utils as utils
+from openstef_dbc.config.enums import RuntimeEnv
+from openstef_dbc.log import logging
 
 LOCAL_KTP_CONFIG_DIR = Path.home() / "ktp"
 
@@ -20,7 +20,7 @@ LOCAL_CONFIG_REL_PATH = "k8s/{namespace}/config/config.local.yaml"
 # User config file (optional)
 USER_CONFIG_REL_PATH = "config.user.yaml"
 
-# Main local config files (when using openstf_dbc locally)
+# Main local config files (when using openstef_dbc locally)
 MAIN_LOCAL_CONFIG_PATH = f"{LOCAL_KTP_CONFIG_DIR}/{{namespace}}/config.yaml"
 
 # local secret files

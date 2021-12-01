@@ -8,9 +8,9 @@ import pandas as pd
 import requests
 import sqlalchemy
 
-from openstf_dbc import Singleton
-from openstf_dbc.ktp_api import KtpApi
-from openstf_dbc.log import logging
+from openstef_dbc import Singleton
+from openstef_dbc.ktp_api import KtpApi
+from openstef_dbc.log import logging
 
 # Define abstract interface
 

@@ -6,7 +6,7 @@ import warnings
 from importlib.metadata import PackageNotFoundError, version
 
 try:
-    __version__ = version("openstf_dbc")
+    __version__ = version("openstef_dbc")
 except PackageNotFoundError:
     # package is not installed
     pass

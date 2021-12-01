@@ -6,9 +6,9 @@ from enum import Enum
 from typing import List, Optional, Tuple, Union
 
 import pandas as pd
-from openstf_dbc.data_interface import _DataInterface
-from openstf_dbc.services.weather import Weather
-from openstf_dbc.utils import genereate_datetime_index, process_datetime_range
+from openstef_dbc.data_interface import _DataInterface
+from openstef_dbc.services.weather import Weather
+from openstef_dbc.utils import genereate_datetime_index, process_datetime_range
 
 
 class PredictorGroups(Enum):

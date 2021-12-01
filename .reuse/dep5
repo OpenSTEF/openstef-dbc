@@ -1,7 +1,7 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: openstf-dbc
+Upstream-Name: openstef-dbc
 Upstream-Contact: Korte Termijn Prognoses <korte.termijn.prognoses@alliander.com>
-Source: https://github.com/alliander-opensource/openstf-dbc
+Source: https://github.com/alliander-opensource/openstef-dbc
 
 Files: tests/*
 Copyright: 2017-2021 Contributors to the OpenSTF project <korte.termijn.prognoses@alliander.com>

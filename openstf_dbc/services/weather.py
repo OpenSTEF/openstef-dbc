@@ -10,9 +10,9 @@ import numpy as np
 import pandas as pd
 import pytz
 import structlog
-from openstf_dbc.data_interface import _DataInterface
-from openstf_dbc.services.write import Write
-from openstf_dbc.utils import genereate_datetime_index
+from openstef_dbc.data_interface import _DataInterface
+from openstef_dbc.services.write import Write
+from openstef_dbc.utils import genereate_datetime_index
 
 
 class Weather:

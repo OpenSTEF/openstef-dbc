@@ -6,9 +6,9 @@ import json
 from typing import List, Optional, Union
 from pydantic import BaseModel, ValidationError
 
-from openstf_dbc.data_interface import _DataInterface
-from openstf_dbc.log import logging
-from openstf_dbc.services.systems import Systems
+from openstef_dbc.data_interface import _DataInterface
+from openstef_dbc.log import logging
+from openstef_dbc.services.systems import Systems
 
 
 class PredictionJobDataClass(BaseModel):

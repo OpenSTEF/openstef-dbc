@@ -6,7 +6,7 @@
 import unittest
 from unittest.mock import patch
 import pandas as pd
-from openstf_dbc.services.prediction_job import (
+from openstef_dbc.services.prediction_job import (
     PredictionJobRetriever,
     PredictionJobDataClass,
 )
@@ -28,7 +28,7 @@ prediction_job = {
 }
 
 
-@patch("openstf_dbc.services.prediction_job._DataInterface")
+@patch("openstef_dbc.services.prediction_job._DataInterface")
 class TestPredictionJob(unittest.TestCase):
     def setUp(self):
         super().setUp()

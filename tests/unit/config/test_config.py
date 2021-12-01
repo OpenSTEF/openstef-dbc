@@ -7,13 +7,13 @@ import unittest
 from unittest.mock import patch, MagicMock
 
 # import project modules
-from openstf_dbc.config.config import ConfigManager
-from openstf_dbc.config.enums import RuntimeEnv
+from openstef_dbc.config.config import ConfigManager
+from openstef_dbc.config.enums import RuntimeEnv
 
 
-@patch("openstf_dbc.config.config.logging", MagicMock())
-@patch("openstf_dbc.config.config.ConfigBuilder", MagicMock())
-@patch("openstf_dbc.config.utils.determine_runtime_environment")
+@patch("openstef_dbc.config.config.logging", MagicMock())
+@patch("openstef_dbc.config.config.ConfigBuilder", MagicMock())
+@patch("openstef_dbc.config.utils.determine_runtime_environment")
 class TestConfigManager(unittest.TestCase):
     def setUp(self):
         # reset singleton before every tests

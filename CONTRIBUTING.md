@@ -25,7 +25,7 @@ Furthermore the following conventions apply:
 
 ## Community Guidelines
 
-This project follows the following [Code of Conduct](https://github.com/alliander-opensource/openstf-dbc/blob/main/CODE_OF_CONDUCT.md).
+This project follows the following [Code of Conduct](https://github.com/alliander-opensource/openstef-dbc/blob/main/CODE_OF_CONDUCT.md).
 
 ## Git branching
 

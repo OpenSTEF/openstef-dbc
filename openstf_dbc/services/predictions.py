@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 import re
 
-from openstf_dbc.data_interface import _DataInterface
+from openstef_dbc.data_interface import _DataInterface
 
 
 class Predictions:

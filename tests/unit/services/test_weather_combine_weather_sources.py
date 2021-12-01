@@ -7,7 +7,7 @@ from unittest import mock
 
 # -*- coding: utf-8 -*-
 import pandas as pd
-from openstf_dbc.services.weather import Weather
+from openstef_dbc.services.weather import Weather
 from pandas.testing import assert_frame_equal
 
 

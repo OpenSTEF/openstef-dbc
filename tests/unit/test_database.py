@@ -6,11 +6,11 @@ import unittest
 import warnings
 from unittest.mock import MagicMock, patch
 
-from openstf_dbc.database import DataBase
+from openstef_dbc.database import DataBase
 from tests.data.config import config
 
 
-@patch("openstf_dbc.database._DataInterface", MagicMock())
+@patch("openstef_dbc.database._DataInterface", MagicMock())
 class TestDatabase(unittest.TestCase):
     def test_init(self):
         with warnings.catch_warnings():

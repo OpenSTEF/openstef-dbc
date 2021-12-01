@@ -3,33 +3,33 @@ SPDX-FileCopyrightText: 2021 2017-2021 Contributors to the OpenSTF project <kort
 
 SPDX-License-Identifier: MPL-2.0
 -->
-[![Python Build](https://github.com/alliander-opensource/openstf-dbc/actions/workflows/python-build.yaml/badge.svg?branch=master)](https://github.com/alliander-opensource/openstf-dbc/actions/workflows/python-build.yaml)
-[![REUSE Compliance Check](https://github.com/alliander-opensource/openstf-dbc/actions/workflows/reuse-compliance.yml/badge.svg?branch=master)](https://github.com/alliander-opensource/openstf-dbc/actions/workflows/reuse-compliance.yml)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_openstf-db-connector&metric=alert_status)](https://sonarcloud.io/dashboard?id=alliander-opensource_openstf-db-connector)
+[![Python Build](https://github.com/alliander-opensource/openstef-dbc/actions/workflows/python-build.yaml/badge.svg?branch=master)](https://github.com/alliander-opensource/openstef-dbc/actions/workflows/python-build.yaml)
+[![REUSE Compliance Check](https://github.com/alliander-opensource/openstef-dbc/actions/workflows/reuse-compliance.yml/badge.svg?branch=master)](https://github.com/alliander-opensource/openstef-dbc/actions/workflows/reuse-compliance.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=alliander-opensource_openstef-db-connector&metric=alert_status)](https://sonarcloud.io/dashboard?id=alliander-opensource_openstef-db-connector)
 
 ```
-# Openstf-dbc - Database connector for openstf (reference)
+# Openstf-dbc - Database connector for openstef (reference)
 
-This repository houses the python package [openstf-dbc](https://pypi.org/project/openstf-dbc/), which provides an interface to openstf (reference) databases.
+This repository houses the python package [openstef-dbc](https://pypi.org/project/openstef-dbc/), which provides an interface to openstef (reference) databases.
 
 Related projects:
-- [openstf-reference](https://github.com/alliander-opensource/openstf-reference)
-- [openstf](https://github.com/alliander-opensource/short-term-forecasting)
+- [openstef-reference](https://github.com/alliander-opensource/openstef-reference)
+- [openstef](https://github.com/alliander-opensource/short-term-forecasting)
 
 
 ## Install
 
-1. Install by running `pip install openstf-dbc`
+1. Install by running `pip install openstef-dbc`
 2. Enjoy!
 
 ## Usage
 
-This is a package with functionality to support the openstf workflow. Most important is the DataBase class.
-This class give access to the data used by openstf-reference via a convenient interface. You can use it, for example, to retrieve a prediction job by running the following lines of code:
+This is a package with functionality to support the openstef workflow. Most important is the DataBase class.
+This class give access to the data used by openstef-reference via a convenient interface. You can use it, for example, to retrieve a prediction job by running the following lines of code:
 
 ```python
-from openstf_dbc.config.config import ConfigManager
-from openstf_dbc.database import DataBase
+from openstef_dbc.config.config import ConfigManager
+from openstef_dbc.database import DataBase
 
 config = ConfigManager.load_project_config(PROJECT_ROOT)
 
