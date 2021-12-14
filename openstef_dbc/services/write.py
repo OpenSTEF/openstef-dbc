@@ -348,6 +348,7 @@ class Write:
 
     def write_kpi(self, pj, kpis):
         """Method that writes the key performance indicators of a pid to an influx DB.
+        Note that NaN / Inf are converted to 0, since these are not supported in Influx.
 
         Args:
             pj: a KTP prediction job
@@ -363,6 +364,9 @@ class Write:
         # add date
         df = df.set_index("date")
 
+        # Convert nan / inf since these are not supported in influx
+        df = df.replace([np.inf], 9999.9)
+        df = df.replace([-np.inf], -9999.9)
         df = df.fillna(value=0)
 
         # Specify correct types
