@@ -365,7 +365,8 @@ class Write:
         df = df.set_index("date")
 
         # Convert nan / inf since these are not supported in influx
-        df = df.replace([np.inf, -np.inf], np.nan)
+        df = df.replace([np.inf], 9999.9)
+        df = df.replace([np.-inf], -9999.9)
         df = df.fillna(value=0)
 
         # Specify correct types
