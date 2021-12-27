@@ -38,7 +38,6 @@ class DataBase(metaclass=Singleton):
     # write methods
     write_weather_data = _write.write_weather_data
     write_realised_pvdata = _write.write_realised_pvdata
-    write_hyper_params = _write.write_hyper_params
     write_kpi = _write.write_kpi
     write_forecast = _write.write_forecast
     write_apx_market_data = _write.write_apx_market_data
