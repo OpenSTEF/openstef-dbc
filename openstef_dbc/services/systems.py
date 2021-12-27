@@ -25,28 +25,31 @@ class Systems:
 
         # Define base query
         # use Great-circle calculation to determine systems within radius (6371 is radius of Earth)
+        bind_params = {
+            "lat": str(location[0]),
+            "lon": str(location[1]),
+            "quality": quality,
+            "radius": str(radius),
+        }
         query = """
             SELECT `sid`, `lat`, `lon`,`region`, ( 6371 * acos( cos( radians({lat}) ) \
-        * cos( radians( lat ) ) * cos( radians( lon ) - radians({lon}) ) + sin( radians({lat}) ) \
+        * cos( radians( lat ) ) * cos( radians( lon ) - radians(lon=$lon) ) + sin( radians(lat=$lat ) \
         * sin( radians( lat ) ) ) ) AS 'distance' \
         FROM `systems`
-        WHERE `qual` > '{quality}'
-        """.format(
-            lat=str(location[0]), lon=str(location[1]), quality=quality
-        )
+        WHERE `qual` > quality=$quality
+        """
 
         # Extend query
         if freq is not None:
-            query += """ AND `freq` <= '""" + str(freq) + """'"""
+            bind_params["freq"] = str(freq)
+            query += """ AND `freq` <= freq=$freq"""
         if lag_systems is not None:
-            query += """ AND `lagSystems` <= '""" + str(quality) + """'"""
+            query += """ AND `lagSystems` <= quality=$quality"""
 
         # Limit radius to given input radius
-        query += (
-            """ HAVING `distance` < '""" + str(radius) + """' ORDER BY `distance`;"""
-        )
+        query += """ HAVING `distance` < radius=$radius ORDER BY `distance`;"""
 
-        result = _DataInterface.get_instance().exec_sql_query(query)
+        result = _DataInterface.get_instance().exec_sql_query(query, bind_params)
         return result
 
     def get_systems_by_pid(self, pid, return_list=False):
@@ -92,14 +95,17 @@ class Systems:
     def get_random_pv_systems(self, autoupdate=1, limit=None):
         limit_query = ""
 
+        bind_params = {"autoupdate": autoupdate}
+
         if limit is not None:
-            limit_query = f"LIMIT {limit}"
+            bind_params["limit"] = limit
+            limit_query = f"LIMIT limit=$limit"
 
         query = f"""
             SELECT sid, qual, freq, lag
             FROM systems
-            WHERE left(sid, 3) = 'pv_' AND autoupdate = {autoupdate}
+            WHERE left(sid, 3) = 'pv_' AND autoupdate = autoupdate=$autoupdate
             ORDER BY RAND() {limit_query}
         """
 
-        return _DataInterface.get_instance().exec_sql_query(query)
+        return _DataInterface.get_instance().exec_sql_query(query, bind_params)

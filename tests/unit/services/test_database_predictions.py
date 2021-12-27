@@ -44,7 +44,7 @@ class TestPredictions(unittest.TestCase):
         self.assertEqual(di.exec_influx_query.call_count, 1)
         # With one argument (the query)
         args, kwargs = di.exec_influx_query.call_args
-        self.assertEqual(len(args), 1)
+        self.assertEqual(len(args), 2)
         query = args[0]
         should_contain = [
             "forecast",

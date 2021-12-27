@@ -97,15 +97,21 @@ class Predictor:
     ):
         database = "forecast_latest"
         measurement = "marketprices"
+        bind_params = {
+            "dstart": datetime_start.isoformat(),
+            "dend": datetime_end.isoformat(),
+        }
         query = f"""
             SELECT
                 "Price" FROM "{database}".."{measurement}"
             WHERE
                 "Name" = 'APX' AND
-                time >= '{datetime_start.isoformat()}' AND
-                time <= '{datetime_end.isoformat()}'
+                time >= dstart=$dstart AND
+                time <= dend=$dend
         """
-        electricity_price = _DataInterface.get_instance().exec_influx_query(query)
+        electricity_price = _DataInterface.get_instance().exec_influx_query(
+            query, bind_params
+        )
 
         if not electricity_price:
             return pd.DataFrame(

@@ -29,12 +29,15 @@ class Weather:
                 ["lon"]:        Longitude coordinate.
                 ["country"]:    Country code (2-letter: ISO 3166-1)
         """
-        query = f"""
+
+        bind_params = {"country": country, "active": active}
+
+        query = """
             SELECT input_city as city, lat, lon, country
             FROM weatherforecastlocations
-            WHERE country = '{country}' AND active = {active}
+            WHERE country = country=$country AND active = active=$active
         """
-        result = _DataInterface.get_instance().exec_sql_query(query)
+        result = _DataInterface.get_instance().exec_sql_query(query, bind_params)
 
         locations = result.to_dict(orient="records")
 
@@ -123,10 +126,9 @@ class Weather:
         """
 
         # Query corresponding (lat, lon) from SQL database
-        query = 'SELECT lat, lon from NameToLatLon where regionInput = "{city}"'.format(
-            city=location_name
-        )
-        location = _DataInterface.get_instance().exec_sql_query(query)
+        binding_params = {"city": location_name}
+        query = "SELECT lat, lon from NameToLatLon where regionInput = city=$city"
+        location = _DataInterface.get_instance().exec_sql_query(query, binding_params)
 
         # If not found
         if len(location) == 0:
@@ -266,17 +268,20 @@ class Weather:
         weather_models_str = "' OR source::tag = '".join(source)
 
         # Create the query
-        query = "SELECT source::tag, input_city::tag, \"{weather_params}\" FROM \
-            \"forecast_latest\"..\"weather\" WHERE input_city::tag = '{location}' AND \
-            time >= '{start}' AND time <= '{end}' AND (source::tag = '{weather_models}')".format(
-            weather_params=weather_params_str,
-            location=location_name,
-            start=datetime_start,
-            end=datetime_end,
-            weather_models=weather_models_str,
-        )
+        bind_params = {
+            "weather_params": weather_params_str,
+            "location": location_name,
+            "dstart": datetime_start,
+            "dend": datetime_end,
+            "weather_models": weather_models_str,
+        }
+
+        query = 'SELECT source::tag, input_city::tag, weather_params=$weather_params FROM \
+            "forecast_latest".."weather" WHERE input_city::tag = location=$location AND \
+            time >= dstart=$dstart AND time <= dend=$dend AND (source::tag = weather_models=$weather_models)'
+
         # Execute Query
-        result = _DataInterface.get_instance().exec_influx_query(query)
+        result = _DataInterface.get_instance().exec_influx_query(query, bind_params)
 
         if result:
             result = result["weather"]

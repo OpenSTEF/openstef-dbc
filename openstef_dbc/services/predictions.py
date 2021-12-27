@@ -31,22 +31,26 @@ class Predictions:
         if end_time is None:
             end_time = datetime.utcnow() + timedelta(days=2)
 
+        bind_params = {
+            "pid": pj["id"],
+            "dstart": start_time.isoformat(),
+            "dend": end_time.isoformat(),
+        }
+
         query = """
             SELECT mean("forecast") as forecast, mean("stdev") as stdev
             FROM forecast_latest..prediction
             WHERE (
-                "pid" = '{}' AND
+                "pid" = pid=$pid AND
                 "type" != 'est_demand'
                 AND "type" != 'est_pv'
                 AND "type" != 'est_wind'
-            ) AND time >= '{}' AND time < '{}'
+            ) AND time >= dstart=$dstart AND time < dend=$dend
             GROUP BY time(15m)
-        """.format(
-            pj["id"], start_time, end_time
-        )
+        """
 
         # Query the database
-        result = _DataInterface.get_instance().exec_influx_query(query)
+        result = _DataInterface.get_instance().exec_influx_query(query, bind_params)
 
         # Return result
         if "prediction" in result:
@@ -87,31 +91,38 @@ class Predictions:
         # If no t_ahead are provided ask influx for all t_ahead available
         if t_ahead is None:
             if component:
+
+                bind_params = {
+                    "pid": pj["id"],
+                    "dstart": start_time.isoformat(),
+                    "dend": end_time.isoformat(),
+                }
                 query = """
                     SELECT mean("forecast_solar") as forecast, mean("stdev") as stdev
                     FROM forecast_latest..prediction_tAheads
-                    WHERE ("pid" = '{}'
+                    WHERE ("pid" = pid=$pid
                     AND type" != 'est_demand'
                     AND "type" != 'est_pv'
                     AND "type" != 'est_wind')
-                    AND time >= '{}' AND time < '{}'
+                    AND time >= dstart=$dstart AND time < dend=$dend
                     GROUP BY time(15m), "tAhead"
-                """.format(
-                    pj["id"], start_time, end_time
-                )
+                """
             else:
+                bind_params = {
+                    "pid": pj["id"],
+                    "dstart": start_time.isoformat(),
+                    "dend": end_time.isoformat(),
+                }
                 query = """
                     SELECT mean("forecast") as forecast, mean("stdev") as stdev
                     FROM forecast_latest..prediction_tAheads
-                    WHERE ("pid" = '{}'
+                    WHERE ("pid" = pid=$pid
                     AND "type" != 'est_demand'
                     AND "type" != 'est_pv'
                     AND "type" != 'est_wind')
-                    AND time >= '{}' AND time < '{}'
+                    AND time >= dstart=$dstart AND time < dend=$dend
                     GROUP BY time(15m), "tAhead"
-                """.format(
-                    pj["id"], start_time, end_time
-                )
+                """
 
         # For a selection of t_aheads a custom query is generated
         else:
@@ -138,22 +149,26 @@ class Predictions:
             t_aheads = t_aheads[0:-2]
 
             # Make query for a selection of t_aheads
+            bind_params = {
+                "pid": pj["id"],
+                "taheads": t_aheads,
+                "dstart": start_time.isoformat(),
+                "dend": end_time.isoformat(),
+            }
             query = """
                 SELECT mean("forecast") as forecast, mean("stdev") as stdev
                 FROM forecast_latest..prediction_tAheads
-                WHERE ("pid" = '{}' 
+                WHERE ("pid" = pid=$pid
                     AND "type" != 'est_demand'
                     AND "type" != 'est_pv'
                     AND "type" != 'est_wind'
-                    AND ({}))
-                    AND time >= '{}' AND time < '{}'
+                    AND (taheads=$taheads))
+                    AND time >= dstart=$dstart AND time < dend=$dend
                 GROUP BY time(15m), "tAhead"
-            """.format(
-                pj["id"], t_aheads, start_time, end_time
-            )
+            """
 
         # Query the database
-        result = _DataInterface.get_instance().exec_influx_query(query)
+        result = _DataInterface.get_instance().exec_influx_query(query, bind_params)
 
         # Convert to pandas DataFrame with a column for each tAhead
         predicted_load = pd.DataFrame()

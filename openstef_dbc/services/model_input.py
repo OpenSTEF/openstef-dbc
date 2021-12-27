@@ -235,9 +235,12 @@ class ModelInput:
     def get_power_curve(self, turbine_type):
         """ "This function retrieves the power curve coefficients from the genericpowercurves table,
         using the turbine type as input."""
-        query = "SELECT * FROM genericpowercurves WHERE name = '" + turbine_type + "'"
+        bind_params = {"turbine_type": turbine_type}
+        query = (
+            "SELECT * FROM genericpowercurves WHERE name = turbine_type=$turbine_type"
+        )
 
-        result = _DataInterface.get_instance().exec_sql_query(query)
+        result = _DataInterface.get_instance().exec_sql_query(query, bind_params)
 
         if result is not None:
             result.rated_power = float(result.rated_power)

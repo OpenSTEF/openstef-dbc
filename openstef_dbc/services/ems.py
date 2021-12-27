@@ -67,40 +67,43 @@ class Ems:
 
         # Prepare query
         if aggregated:
+            bind_params = {
+                "sidselection": sidsection,
+                "dstart": datetime_start.isoformat(),
+                "dend": datetime_end.isoformat(),
+                "forecast_resolution": forecast_resolution.replace("T", "m"),
+            }
             query = """
                 SELECT sum("output") AS load, count("output") AS nEntries
                 FROM (
                     SELECT mean("output") AS output
                     FROM "realised".."power"
                     WHERE
-                        "system" {} AND
-                        time >= \'{}\' AND
-                        time <= \'{}\'
-                    GROUP BY time({}), "system" fill(null)
+                        "system" sidselection=$sidselection AND
+                        time >= dstart=$dstart AND
+                        time <= dend=$dend
+                    GROUP BY time(forecast_resolution=$forecast_resolution), "system" fill(null)
                 )
                 WHERE time <= NOW()
-                GROUP BY time({})
-            """.format(
-                sidsection,
-                datetime_start.isoformat(),
-                datetime_end.isoformat(),
-                forecast_resolution.replace("T", "m"),
-                forecast_resolution.replace("T", "m"),
-            )
+                GROUP BY time(forecast_resolution=$forecast_resolution)
+            """
         else:
+            bind_params = {
+                "sidselection": sidsection,
+                "dstart": datetime_start.isoformat(),
+                "dend": datetime_end.isoformat(),
+            }
             query = """
                 SELECT "output" AS load, "system"
                 FROM "realised".."power"
                 WHERE
-                    "system" {} AND
-                    time >= \'{}\' AND
-                    time < \'{}\' fill(null)
-            """.format(
-                sidsection, datetime_start.isoformat(), datetime_end.isoformat()
-            )
+                    "system" sidselection=$sidselection AND
+                    time >= dstart=$dstart AND
+                    time < dend=$dend fill(null)
+            """
 
         # Query load
-        result = _DataInterface.get_instance().exec_influx_query(query)
+        result = _DataInterface.get_instance().exec_influx_query(query, bind_params)
 
         # no data was found, return empty dataframe
         if "power" not in result:
@@ -133,14 +136,15 @@ class Ems:
         Returns:
             pd.DataFram: Load created after requested datetime.
         """
+        bind_params = {"sid": sid, "group_by_time": group_by_time}
         query = f"""
             SELECT mean("output") as output, min("created") as created
             FROM "realised".."power"
-            WHERE "system" = '{sid}'
-            GROUP BY time({group_by_time})
+            WHERE "system" = sid=$sid
+            GROUP BY time(group_by_time=$group_by_time)
         """
 
-        load = _DataInterface.get_instance().exec_influx_query(query)
+        load = _DataInterface.get_instance().exec_influx_query(query, bind_params)
 
         return {
             "power": load["power"][load["power"]["created"] > created_after][["output"]]
@@ -328,20 +332,22 @@ class Ems:
         return
             - pd.DataFrame(index=pd.DatetimeIndex, columns=['curtailment_fraction'])"""
 
+        bind_params = {
+            "name": name,
+            "dstart": datetime_start.isoformat(),
+            "dend": datetime_end.isoformat(),
+            "resolution": resolution.replace("T", "m"),
+        }
+
         q = """
             SELECT mean("curtailment") as curtailment_fraction
             FROM "realised".."curtailments"
-            WHERE ("curtailment_name" = '{}') AND time >= \'{}\' and time < \'{}\'
-            GROUP BY time({}) fill(null)
-        """.format(
-            name,
-            datetime_start,
-            datetime_end,
-            resolution.replace("T", "m"),
-        )
+            WHERE ("curtailment_name" = name=$name) AND time >= dstart=$dstart and time < dend=$dend'
+            GROUP BY time(resolution=$resolution) fill(null)
+        """
 
         # Excecute query
-        res = _DataInterface.get_instance().exec_influx_query(q)
+        res = _DataInterface.get_instance().exec_influx_query(q, bind_params)
         if len(res) == 0:
             return pd.DataFrame()
         else:
@@ -354,20 +360,23 @@ class Ems:
         forecast_resolution="15T",
         flexnet_name="BEMMEL_9017589K_10-1V2LS",
     ):
+
+        bind_params = {
+            "name": flexnet_name,
+            "dstart": datetime_start.isoformat(),
+            "dend": datetime_end.isoformat(),
+            "resolution": forecast_resolution.replace("T", "m"),
+        }
+
         query = """
             SELECT last("output")
             FROM "realised".."power"
-            WHERE ("system" = '{}' AND time >= \'{}\' and time < \'{}\')
-            GROUP BY time({}) fill(previous)
-        """.format(
-            flexnet_name,
-            datetime_start.tz_localize(None),
-            datetime_end.tz_localize(None),
-            forecast_resolution.replace("T", "m"),
-        )
+            WHERE ("system" = name=$name AND time >= dstart=$dstart and time < dend=$dend')
+            GROUP BY time(resolution=$resolution) fill(previous)
+        """
 
         # Excecute query
-        res = _DataInterface.get_instance().exec_influx_query(query)
+        res = _DataInterface.get_instance().exec_influx_query(query, bind_params)
 
         # Check if we got a DataFrame with the column name we expect
         if "power" in res:
@@ -443,12 +452,21 @@ class Ems:
             pd.DataFrame(index=datetime, columns=[created])
         """
         limit = min(limit, 10000)
+
+        bind_params = {
+            "name": sid,
+            "dstart": datetime_start.isoformat(),
+            "dend": datetime_end.isoformat(),
+            "limit": limit,
+        }
+
         q = """
             SELECT created FROM "realised".."power"
-            WHERE "system"='{}' AND time >= '{}' and time < '{}' fill(null)
-            LIMIT {}
+            WHERE "system"=name=$name AND time >= dstart=$dstart and time < dend=$dend' fill(null)
+            LIMIT limit=$limit
         """
-        q = q.format(sid, datetime_start, datetime_end, limit)
 
-        createds = _DataInterface.get_instance().influx_client.query(q)["power"]
+        createds = _DataInterface.get_instance().influx_client.query(q, bind_params)[
+            "power"
+        ]
         return createds
