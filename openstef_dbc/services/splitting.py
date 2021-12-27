@@ -32,21 +32,26 @@ class Splitting:
         # Retrieve the average values of the coefficients of the last 180 if requested
         if mean:
             start_date = datetime.utcnow() - timedelta(days=180)
+            bind_params = {
+                "pid": pj["id"],
+                "dstart": start_date.isoformat()
+            }
             query = (
                 "SELECT ec.coef_name, AVG(ec.coef_value) FROM energy_split_coefs as ec "
-                "WHERE ec.pid = {} AND ec.created > '{}' GROUP BY ec.coef_name ".format(
-                    pj["id"], start_date.date()
-                )
+                "WHERE ec.pid = pid=$pid AND ec.created > dstart=$dstart GROUP BY ec.coef_name "
             )
         # Retrieve latest coefficients otherwise
         else:
+            bind_params = {
+                "pid": pj["id"]
+            }
             query = (
                 "SELECT ec.coef_name,ec.coef_value FROM energy_split_coefs as ec WHERE  ec.pid = {pid} "
                 "AND ec.created = (SELECT max(energy_split_coefs.created) from energy_split_coefs "
-                "WHERE energy_split_coefs.pid = {pid})".format(pid=pj["id"])
+                "WHERE energy_split_coefs.pid = $pid)"
             )
         # Execute query
-        result = _DataInterface.get_instance().exec_sql_query(query)
+        result = _DataInterface.get_instance().exec_sql_query(query, bind_params)
 
         # Make output dict
         if result is not None:

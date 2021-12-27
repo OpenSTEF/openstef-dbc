@@ -296,56 +296,6 @@ class Write:
             )
         )
 
-    def write_hyper_params(self, pj, hyper_params):
-        """Writes site- and model specific hyperparameters to the MySQL database.
-
-        Args:
-            pj: Prediction job (dict).
-            hyper_params: Hyper parameters to be writen to the database (dict)
-
-        Returns:
-            None
-        """
-
-        # Get key to id mapping from database
-        query = f'SELECT id, name FROM `hyper_params` WHERE model="{pj["model"]}"'
-        result = _DataInterface.get_instance().exec_sql_query(query)
-        # Convert result into usable dict
-        hyper_params_id_map = result.set_index("name").to_dict()["id"]
-
-        # Get the current UTC time to update the 'created' column
-        timestamp = datetime.utcnow().replace(second=0, microsecond=0)
-
-        # Create a placeholder string to be filled with value pairs
-        values = []
-        # Fill the placeholder string
-        for param_name, value in hyper_params.items():
-            # check if this parameter already exists in the database
-            if param_name not in hyper_params_id_map.keys():
-                raise KeyError(
-                    f"Hyperparameter '{param_name}' not in database, "
-                    "check parameters and add new parameter if required"
-                )
-            hyper_params_id = hyper_params_id_map[param_name]
-            values.append(
-                f'("{pj["id"]}", "{hyper_params_id}", "{value}", "{timestamp}")'
-            )
-        # Create one csv string to use in the SQL query
-        values_str = ", ".join(values)
-
-        # Combine everything into one sql query
-        query = f"""
-            INSERT INTO `hyper_param_values`
-                (prediction_id, hyper_params_id, value, created)
-            VALUES
-                {values_str}
-            ON DUPLICATE KEY UPDATE
-                value=VALUES(value),
-                created=VALUES(created)
-        """
-        # Execute query
-        _DataInterface.get_instance().exec_sql_write(query)
-
     def write_kpi(self, pj, kpis):
         """Method that writes the key performance indicators of a pid to an influx DB.
         Note that NaN / Inf are converted to 0, since these are not supported in Influx.
