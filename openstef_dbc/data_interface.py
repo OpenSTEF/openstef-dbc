@@ -90,7 +90,9 @@ class _DataInterface(metaclass=Singleton):
                 "Please call _DataInterface(config) first."
             ) from exc
 
-    def _create_influx_client(self, username, password, host, port):
+    def _create_influx_client(
+        self, username: str, password: str, host: str, port: int
+    ) -> None:
         """Create influx client, namespace-dependend"""
         try:
             return influxdb.DataFrameClient(
@@ -103,7 +105,9 @@ class _DataInterface(metaclass=Singleton):
             self.logger("Could not connect to InfluxDB database", exc_info=exc)
             raise
 
-    def _create_mysql_engine(self, username, password, host, port, db):
+    def _create_mysql_engine(
+        self, username: str, password: str, host: str, port: int, db: str
+    ):
         """Create MySQL engine.
 
         Differs from sql_connection in the sense that this write_engine
@@ -198,7 +202,7 @@ class _DataInterface(metaclass=Singleton):
 
         return available
 
-    def exec_sql_query(self, query, params={}, **kwargs):
+    def exec_sql_query(self, query: str, params: dict = {}, **kwargs):
         try:
             return pd.read_sql(query, self.mysql_engine, params=params, **kwargs)
         except sqlalchemy.exc.OperationalError as e:
@@ -213,7 +217,7 @@ class _DataInterface(metaclass=Singleton):
             self.logger.error("Can't connecto to MySQL database", exc_info=e)
             raise
 
-    def exec_sql_write(self, statement):
+    def exec_sql_write(self, statement: str) -> None:
         try:
             with self.mysql_engine.connect() as connection:
                 connection.execute(statement)
@@ -223,7 +227,9 @@ class _DataInterface(metaclass=Singleton):
             )
             raise
 
-    def exec_sql_dataframe_write(self, dataframe, table, **kwargs):
+    def exec_sql_dataframe_write(
+        self, dataframe: pd.DataFrame, table: str, **kwargs
+    ) -> None:
         dataframe.to_sql(table, self.mysql_engine, **kwargs)
 
     def check_mysql_available(self):

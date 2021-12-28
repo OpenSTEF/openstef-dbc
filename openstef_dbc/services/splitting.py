@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
+from typing import Union, Tuple
 from datetime import datetime, timedelta
 
 import pandas as pd
@@ -16,7 +17,7 @@ from openstef_dbc.services.predictor import Predictor
 
 # TODO check if this functionality should be transfered to a data preparation step for energy splitting in ktprognoses
 class Splitting:
-    def get_energy_split_coefs(self, pj, mean=False):
+    def get_energy_split_coefs(self, pj: dict, mean: bool = False) -> dict:
         """
             Method to retrieve latest energy splitting coefficients from the database.
             If mean is passed as True the average values are given for the last 180 days.
@@ -60,7 +61,12 @@ class Splitting:
 
         return result
 
-    def get_wind_ref(self, location, datetime_start, datetime_end):
+    def get_wind_ref(
+        self,
+        location: Union[Tuple[float, float], str],
+        datetime_start: datetime,
+        datetime_end: datetime,
+    ) -> pd.DataFrame:
         """Function that gets windspeed data from the influx database and converts it to windref data suitable
         for splitting energy.
         Parameters:
@@ -90,7 +96,12 @@ class Splitting:
         # Return result
         return result
 
-    def _get_solar_ref(self, location, datetime_start=None, datetime_end=None):
+    def _get_solar_ref(
+        self,
+        location: Union[Tuple[float, float], str],
+        datetime_start: datetime = None,
+        datetime_end: datetime = None,
+    ) -> pd.DataFrame:
         """Function that gets PV data from the influx database and converts it to solar_ref data suitable
         for splitting energy.
         Parameters:
@@ -131,8 +142,12 @@ class Splitting:
         return pvdata[["aggregated"]]
 
     def get_input_energy_splitting(
-        self, pj, datetime_start=None, datetime_end=None, ignore_factor=False
-    ):
+        self,
+        pj: dict,
+        datetime_start: datetime = None,
+        datetime_end: datetime = None,
+        ignore_factor: bool = False,
+    ) -> pd.DataFrame:
         if datetime_start is None:
             datetime_start = datetime.utcnow() - timedelta(days=90)
         if datetime_end is None:
@@ -196,8 +211,11 @@ class Splitting:
 
     @staticmethod
     def _calculate_windspeed_at_hubheight(
-        self, windspeed, fromheight=10, hub_height=100
-    ):
+        self,
+        windspeed: Union[float, pd.Series],
+        fromheight: float = 10.0,
+        hub_height: float = 100.0,
+    ) -> pd.Series:
         """
         function that extrapolates a wind from a certain height to 100m
         According to the wind power law (https://en.wikipedia.org/wiki/Wind_profile_power_law)
@@ -210,7 +228,7 @@ class Splitting:
             - the windspeed at hubheight."""
         alpha = 0.143
 
-        if not isinstance(windspeed, (np.ndarray, float, int, pd.core.series.Series)):
+        if not isinstance(windspeed, (np.ndarray, float, int, pd.Series)):
             raise TypeError(
                 "The windspeed is not of the expected type!\n\
                             Got {}, expected np.ndarray, pd series or numeric".format(

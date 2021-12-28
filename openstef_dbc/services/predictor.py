@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2021 2017-2021 Contributors to the OpenSTF project <korte.termijn.prognoses@alliander.com>
 #
 # SPDX-License-Identifier: MPL-2.0
-
+import datetime
 from enum import Enum
 from typing import List, Optional, Tuple, Union
 
@@ -20,12 +20,12 @@ class PredictorGroups(Enum):
 class Predictor:
     def get_predictors(
         self,
-        datetime_start,
-        datetime_end,
+        datetime_start: datetime.datetime,
+        datetime_end: datetime.datetime,
         forecast_resolution: Optional[str] = None,
         location: Union[str, Tuple[float, float]] = None,
         predictor_groups: Union[List[PredictorGroups], List[str], None] = None,
-    ):
+    ) -> pd.DataFrame:
         """Get predictors.
 
         Get predictors for a given datetime range. Optionally predictor groups can be
@@ -85,7 +85,12 @@ class Predictor:
 
         return predictors
 
-    def get_market_data(self, datetime_start, datetime_end, forecast_resolution=None):
+    def get_market_data(
+        self,
+        datetime_start: datetime.datetime,
+        datetime_end: datetime.datetime,
+        forecast_resolution: str = None,
+    ) -> pd.DataFrame:
         electricity_price = self.get_electricity_price(
             datetime_start, datetime_end, forecast_resolution
         )
@@ -93,8 +98,11 @@ class Predictor:
         return electricity_price
 
     def get_electricity_price(
-        self, datetime_start, datetime_end, forecast_resolution=None
-    ):
+        self,
+        datetime_start: datetime.datetime,
+        datetime_end: datetime.datetime,
+        forecast_resolution: str = None,
+    ) -> pd.DataFrame:
         database = "forecast_latest"
         measurement = "marketprices"
         bind_params = {
@@ -129,7 +137,12 @@ class Predictor:
 
         return electricity_price
 
-    def get_load_profiles(self, datetime_start, datetime_end, forecast_resolution=None):
+    def get_load_profiles(
+        self,
+        datetime_start: datetime.datetime,
+        datetime_end: datetime.datetime,
+        forecast_resolution: str = None,
+    ) -> pd.DataFrame:
         """Get load profiles.
 
             Get the TDCV (Typical Domestic Consumption Values) load profiles from the
@@ -173,8 +186,12 @@ class Predictor:
         return load_profiles
 
     def get_weather_data(
-        self, datetime_start, datetime_end, location, forecast_resolution=None
-    ):
+        self,
+        datetime_start: datetime.datetime,
+        datetime_end: datetime.datetime,
+        location: Union[Tuple[float, float], str],
+        forecast_resolution: str = None,
+    ) -> pd.DataFrame:
         # Get weather data
         weather_params = [
             "clouds",

@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2021 2017-2021 Contributors to the OpenSTF project <korte.termijn.prognoses@alliander.com>
 #
 # SPDX-License-Identifier: MPL-2.0
-
+from typing import Union, Tuple, List
 from datetime import datetime, timedelta
 
 import geopy
@@ -19,7 +19,9 @@ class Weather:
     def __init__(self) -> None:
         self.logger = structlog.get_logger(self.__class__.__name__)
 
-    def get_weather_forecast_locations(self, country="NL", active=1):
+    def get_weather_forecast_locations(
+        self, country: str = "NL", active: int = 1
+    ) -> List[dict]:
         """Get weather forecast locations.
 
         Returns:
@@ -44,8 +46,8 @@ class Weather:
         return locations
 
     def _get_nearest_weather_location(
-        self, location, threshold=150, country="NL", active=1
-    ):
+        self, location: Union[Tuple[float, float], str], threshold: float = 150.0
+    ) -> str:
         """Find the nearest weather forecast location.
 
         Function that, given an location, finds the nearest location for which a
@@ -57,8 +59,6 @@ class Weather:
         Args:
             location (str, tuple): Name of the location/city or coordinates (lat, lon).
             threshold (int): Maximum distance [km] before a warning is generated.
-            country (str):  Country code (2-letter: ISO 3166-1).
-            active (int): Use only active weather location if 1.
 
         Returns:
             str: The name of the weather forecast location.
@@ -109,7 +109,7 @@ class Weather:
             )
         )
 
-    def _get_coordinates_of_location(self, location_name):
+    def _get_coordinates_of_location(self, location_name: str) -> Tuple[float, float]:
         """Get lat, lon coordinates of location.
 
         The function tries to get the coordinates from our own sql database,
@@ -145,7 +145,9 @@ class Weather:
 
         return location
 
-    def _combine_weather_sources(self, result, source_order=None):
+    def _combine_weather_sources(
+        self, result: pd.DataFrame, source_order: List = None
+    ) -> pd.DataFrame:
         """
         Function that complete's the weatherdata from the influx database retrieved using get_weatherdata
         Additionally, weatherdata from several sources is combined to a single forecast.
@@ -189,13 +191,13 @@ class Weather:
 
     def get_weather_data(
         self,
-        location,
-        weatherparams,
-        datetime_start=None,
-        datetime_end=None,
-        source="optimum",
-        resolution="15min",
-    ):
+        location: Union[Tuple[float, float], str],
+        weatherparams: List[str],
+        datetime_start: datetime = None,
+        datetime_end: datetime = None,
+        source: Union[List[str], str] = "optimum",
+        resolution: str = "15min",
+    ) -> pd.DataFrame:
         """Get weather data from database.
 
         Additionally, weatherdata from several sources is combined to a single forecast.
@@ -328,7 +330,7 @@ class Weather:
 
         return result
 
-    def get_datetime_last_stored_knmi_weatherdata(self):
+    def get_datetime_last_stored_knmi_weatherdata(self) -> datetime:
         query = """
             SELECT * FROM forecast_latest..weather
             WHERE source::tag = 'harm_arome'

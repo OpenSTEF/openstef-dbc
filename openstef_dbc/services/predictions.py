@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2021 2017-2021 Contributors to the OpenSTF project <korte.termijn.prognoses@alliander.com>
 #
 # SPDX-License-Identifier: MPL-2.0
-
+from typing import Union, List
 from datetime import datetime, timedelta
 
 import pandas as pd
@@ -11,7 +11,12 @@ from openstef_dbc.data_interface import _DataInterface
 
 
 class Predictions:
-    def get_predicted_load(self, pj, start_time=None, end_time=None):
+    def get_predicted_load(
+        self,
+        pj: dict,
+        start_time: datetime = None,
+        end_time: datetime = None,
+    ) -> pd.Series:
         """Get historic load predictions for given pid.
 
         This functions ignores component predictions that result from energy splitting.
@@ -60,12 +65,12 @@ class Predictions:
 
     def get_predicted_load_tahead(
         self,
-        pj,
-        start_time=None,
-        end_time=None,
-        t_ahead=None,
-        component=False,
-    ):
+        pj: dict,
+        start_time: datetime = None,
+        end_time: datetime = None,
+        t_ahead: Union[List[str], str] = None,
+        component: bool = False,
+    ) -> pd.DataFrame:
         """Get historic load predictions for given pid and t_ahead.
 
         This functions ignores component predictions that result from energy splitting.

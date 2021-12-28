@@ -40,7 +40,9 @@ class PredictionJobRetriever:
     def __init__(self):
         self.logger = logging.get_logger(self.__class__.__name__)
 
-    def get_prediction_job(self, pid, model_type=None, is_active=None):
+    def get_prediction_job(
+        self, pid: int, model_type: str = None, is_active: int = None
+    ) -> PredictionJobDataClass:
         """Get prediction job for a given pid from the database.
 
         Args:
@@ -82,7 +84,7 @@ class PredictionJobRetriever:
         is_active: int = 1,
         only_ato: bool = False,
         limit: Optional[int] = None,
-    ):
+    ) -> List[PredictionJobDataClass]:
         """Get all prediction jobs from the database.
 
         Args:
@@ -174,7 +176,9 @@ class PredictionJobRetriever:
 
         return prediction_jobs
 
-    def _get_prediction_jobs_query_results(self, query: str) -> list:
+    def _get_prediction_jobs_query_results(
+        self, query: str
+    ) -> List[PredictionJobDataClass]:
         """Get prediction jobs using a query to the database
 
          Args:
@@ -195,7 +199,9 @@ class PredictionJobRetriever:
 
         return prediction_jobs
 
-    def _create_prediction_job_object(self, pj: dict) -> object:
+    def _create_prediction_job_object(
+        self, pj: PredictionJobDataClass
+    ) -> PredictionJobDataClass:
         """Create an object for the prediction job from a dictionary
 
         Args:
@@ -219,23 +225,20 @@ class PredictionJobRetriever:
             raise AttributeError(e)
         return prediction_job_object
 
-    def _add_description_to_prediction_job(self, prediction_job):
+    def _add_description_to_prediction_job(
+        self, prediction_job: PredictionJobDataClass
+    ) -> PredictionJobDataClass:
         return self._add_description_to_prediction_jobs([prediction_job])[0]
 
-    def _add_description_to_prediction_jobs(self, prediction_jobs):
-        for prediction_job in prediction_jobs:
-            systems = Systems().get_systems_by_pid(
-                pid=prediction_job["id"], return_list=True
-            )
-            systems_str = "+".join([s["system_id"] for s in systems])
-            prediction_job["description"] = systems_str
-
-        return prediction_jobs
-
-    def _add_quantiles_to_prediction_job(self, prediction_job):
+    def _add_quantiles_to_prediction_job(
+        self, prediction_job: PredictionJobDataClass
+    ) -> PredictionJobDataClass:
         return self._add_quantiles_to_prediction_jobs([prediction_job])[0]
 
-    def _add_quantiles_to_prediction_jobs(self, prediction_jobs):
+    @classmethod
+    def _add_quantiles_to_prediction_jobs(
+        cls, prediction_jobs: List[PredictionJobDataClass]
+    ) -> List[PredictionJobDataClass]:
         prediction_job_ids = [pj["id"] for pj in prediction_jobs]
         prediction_jobs_ids_str = ", ".join([f"'{p}'" for p in prediction_job_ids])
 
@@ -278,14 +281,15 @@ class PredictionJobRetriever:
 
         return prediction_jobs
 
-    @staticmethod
+    @classmethod
     def build_get_prediction_jobs_query(
+        cls,
         pid: Union[int, str, List[int], List[str], None] = None,
         model_type: Union[str, List[str], None] = None,
         is_active: Optional[int] = None,
         only_ato: bool = False,
         limit: Optional[int] = None,
-    ):
+    ) -> str:
         where_condition = []
 
         if pid is not None:
@@ -334,7 +338,20 @@ class PredictionJobRetriever:
         return query
 
     @staticmethod
-    def _build_pid_where_condition(pid):
+    def _add_description_to_prediction_jobs(
+        prediction_jobs: List[PredictionJobDataClass],
+    ) -> List[PredictionJobDataClass]:
+        for prediction_job in prediction_jobs:
+            systems = Systems().get_systems_by_pid(
+                pid=prediction_job["id"], return_list=True
+            )
+            systems_str = "+".join([s["system_id"] for s in systems])
+            prediction_job["description"] = systems_str
+
+        return prediction_jobs
+
+    @staticmethod
+    def _build_pid_where_condition(pid: int) -> str:
         if isinstance(pid, list):
             in_values = ", ".join([f"'{p}'" for p in pid])
         elif isinstance(pid, int) or isinstance(pid, str):
@@ -344,7 +361,7 @@ class PredictionJobRetriever:
         return f"p.id IN ({in_values})"
 
     @staticmethod
-    def _build_model_type_where_condition(model_type):
+    def _build_model_type_where_condition(model_type: Union[list, str]) -> str:
         if isinstance(model_type, list):
             in_values = ", ".join([f"'{v}'" for v in model_type])
         elif isinstance(model_type, str):
@@ -354,7 +371,7 @@ class PredictionJobRetriever:
         return f"p.model IN ({in_values})"
 
     @staticmethod
-    def _build_active_where_condition(active):
+    def _build_active_where_condition(active: int) -> str:
         # make sure we always get 0 or 1 (anything not 0 -> 1)
         active = int(active != 0)
         return f"p.active = {active}"

@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2021 2017-2021 Contributors to the OpenSTF project <korte.termijn.prognoses@alliander.com>
 #
 # SPDX-License-Identifier: MPL-2.0
+import datetime
 import re
 
 from datetime import timedelta
@@ -18,13 +19,13 @@ class Ems:
 
     def get_load_sid(
         self,
-        sid,
-        datetime_start,
-        datetime_end,
-        forecast_resolution,
-        aggregated=True,
-        average_output=False,
-    ):
+        sid: str,
+        datetime_start: datetime.datetime,
+        datetime_end: datetime.datetime,
+        forecast_resolution: str,
+        aggregated: bool = True,
+        average_output: bool = False,
+    ) -> pd.DataFrame:
         """Get the load for a single or multiple system id's.
 
             Get Measurements for given sid or list of sids. If no result is found,
@@ -143,7 +144,9 @@ class Ems:
         outputcols = ["load"]
         return result[outputcols]
 
-    def get_load_created_after(self, sid, created_after, group_by_time="5m"):
+    def get_load_created_after(
+        self, sid: str, created_after: datetime.datetime, group_by_time: str = "5m"
+    ) -> pd.DataFrame:
         """Get load created after a certain datetime for a given system id.
 
         Args:
@@ -152,7 +155,7 @@ class Ems:
             group_by_time (str, optional): Group by time. Defaults to "5m".
 
         Returns:
-            pd.DataFram: Load created after requested datetime.
+            pd.DataFrame: Load created after requested datetime.
         """
         # Validate forecast resolution to prevent injections
         if not re.match(
@@ -177,13 +180,13 @@ class Ems:
 
     def get_load_pid(
         self,
-        pid,
-        datetime_start,
-        datetime_end,
-        forecast_resolution="15T",
-        aggregated=True,
-        ignore_factor=False,
-    ):
+        pid: int,
+        datetime_start: datetime.datetime,
+        datetime_end: datetime.datetime,
+        forecast_resolution: str = "15T",
+        aggregated: bool = True,
+        ignore_factor: bool = False,
+    ) -> pd.DataFrame:
         """Get load(s) for a given prediction job id.
 
         Retrieve the load for all systems which belong to a given prediction job id. The
@@ -288,11 +291,11 @@ class Ems:
 
     def _get_load_pid_optimized(
         self,
-        pid,
-        datetime_start,
-        datetime_end,
-        forecast_resolution="15T",
-    ):
+        pid: int,
+        datetime_start: datetime.datetime,
+        datetime_end: datetime.datetime,
+        forecast_resolution: str = "15T",
+    ) -> pd.DataFrame:
         """Gets load data for a pid.
         This method optimizes the way it retrieves data and is therefore less flexible as get_load_pid.
         It is however much faster for prediction jobs with a large amount of sid's.
@@ -346,7 +349,13 @@ class Ems:
         #  Return sum all load columns
         return pd.DataFrame(combined_load.sum(axis=1).rename("load"))
 
-    def get_curtailments(self, datetime_start, datetime_end, name, resolution="15T"):
+    def get_curtailments(
+        self,
+        datetime_start: datetime.datetime,
+        datetime_end: datetime.datetime,
+        name: str,
+        resolution: str = "15T",
+    ) -> pd.DataFrame:
         """Get curtailments from influx
         input:
             - datetime_start (pd.Datetime)
@@ -360,7 +369,7 @@ class Ems:
         # Validate forecast resolution to prevent injections
         if not re.match(
             r"[0-9]+([unµm]?s|m|h|d|w)",
-            forecast_resolution.replace("T", "m"),
+            resolution.replace("T", "m"),
         ):
             raise ValueError("Forecast resolution does not have the allowed format!")
 
@@ -374,7 +383,7 @@ class Ems:
             SELECT mean("curtailment") as curtailment_fraction
             FROM "realised".."curtailments"
             WHERE ("curtailment_name" = $name) AND time >= $dstart and time < $dend'
-            GROUP BY time({forecast_resolution.replace("T", "m")}) fill(null)
+            GROUP BY time({resolution.replace("T", "m")}) fill(null)
         """
 
         # Excecute query
@@ -386,11 +395,11 @@ class Ems:
 
     def _get_states_from_db(
         self,
-        datetime_start,
-        datetime_end,
-        forecast_resolution="15T",
-        flexnet_name="BEMMEL_9017589K_10-1V2LS",
-    ):
+        datetime_start: datetime.datetime,
+        datetime_end: datetime.datetime,
+        forecast_resolution: str = "15T",
+        flexnet_name: str = "BEMMEL_9017589K_10-1V2LS",
+    ) -> pd.DataFrame:
 
         # Validate forecast resolution to prevent injections
         if not re.match(
@@ -425,11 +434,11 @@ class Ems:
 
     def get_states_flexnet(
         self,
-        datetime_start,
-        datetime_end,
-        forecast_resolution="15T",
-        flexnet_name="BEMMEL_9017589K_10-1V2LS",
-    ):
+        datetime_start: datetime.datetime,
+        datetime_end: datetime.datetime,
+        forecast_resolution: str = "15T",
+        flexnet_name: str = "BEMMEL_9017589K_10-1V2LS",
+    ) -> pd.DataFrame:
         """Get flexnet states for given flexnet name.
         If no result is found, return empty dataframe.
 
@@ -475,7 +484,13 @@ class Ems:
 
         return states
 
-    def get_load_created_datetime_sid(self, sid, datetime_start, datetime_end, limit):
+    def get_load_created_datetime_sid(
+        self,
+        sid: str,
+        datetime_start: datetime.datetime,
+        datetime_end: datetime.datetime,
+        limit: int,
+    ) -> pd.DataFrame:
         """Helper function so the other function can be accurately unit-tested.
         This function gets a dataframe of time, created for a given sid.
 

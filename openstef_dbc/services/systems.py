@@ -1,14 +1,22 @@
 # SPDX-FileCopyrightText: 2021 2017-2021 Contributors to the OpenSTF project <korte.termijn.prognoses@alliander.com>
 #
 # SPDX-License-Identifier: MPL-2.0
+from typing import Union, Tuple, List
+
+import pandas as pd
 
 from openstef_dbc.data_interface import _DataInterface
 
 
 class Systems:
     def get_systems_near_location(
-        self, location, radius=15, quality=0.75, freq=None, lag_systems=None
-    ):
+        self,
+        location: Union[Tuple[float, float], str],
+        radius: float = 15.0,
+        quality: float = 0.75,
+        freq: int = None,
+        lag_systems: float = None,
+    ) -> pd.DataFrame:
         """Retrieve all systems near a given location.
         Only return systems which exceed the quality, freq, lag_systems requirements.
 
@@ -52,7 +60,9 @@ class Systems:
         result = _DataInterface.get_instance().exec_sql_query(query, bind_params)
         return result
 
-    def get_systems_by_pid(self, pid, return_list=False):
+    def get_systems_by_pid(
+        self, pid: int, return_list: bool = False
+    ) -> Union[pd.DataFrame, List[dict]]:
         """Get all prediction job systems for a given prediction job id.
 
             The `systems` table will be joint with the `predicions_systems` table
@@ -84,7 +94,7 @@ class Systems:
 
         return systems.to_dict(orient="records")
 
-    def get_pv_systems_with_incorrect_location(self):
+    def get_pv_systems_with_incorrect_location(self) -> pd.DataFrame:
         """Get PV systems with missing (or incorrect) lat/lon"""
         query = """
             SELECT * FROM `systems`
@@ -92,7 +102,9 @@ class Systems:
         """
         return _DataInterface.get_instance().exec_sql_query(query)
 
-    def get_random_pv_systems(self, autoupdate=1, limit=None):
+    def get_random_pv_systems(
+        self, autoupdate: int = 1, limit: int = None
+    ) -> pd.DataFrame:
         limit_query = ""
 
         bind_params = {"autoupdate": autoupdate}
