@@ -120,7 +120,7 @@ class _DataInterface(metaclass=Singleton):
             self.logger.error("Could not connect to MySQL database", exc_info=exc)
             raise
 
-    def exec_influx_query(self, query: str, bind_params: dict) -> dict:
+    def exec_influx_query(self, query: str, bind_params: dict = {}) -> dict:
         """Execute an InfluxDB query.
 
         When there is data it returns a defaultdict with as key the measurement and
@@ -135,7 +135,7 @@ class _DataInterface(metaclass=Singleton):
         """
         try:
             return self.influx_client.query(
-                query, bind_params, chunked=True, chunk_size=10000
+                query, bind_params=bind_params, chunked=True, chunk_size=10000
             )
         except requests.exceptions.ConnectionError as e:
             self.logger.error("Lost connection to InfluxDB database", exc_info=e)
@@ -198,9 +198,9 @@ class _DataInterface(metaclass=Singleton):
 
         return available
 
-    def exec_sql_query(self, query, params, **kwargs):
+    def exec_sql_query(self, query, params={}, **kwargs):
         try:
-            return pd.read_sql(query, params, self.mysql_engine, **kwargs)
+            return pd.read_sql(query, self.mysql_engine, params=params, **kwargs)
         except sqlalchemy.exc.OperationalError as e:
             self.logger.error("Lost connection to MySQL database", exc_info=e)
             raise

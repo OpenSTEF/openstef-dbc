@@ -236,9 +236,7 @@ class ModelInput:
         """ "This function retrieves the power curve coefficients from the genericpowercurves table,
         using the turbine type as input."""
         bind_params = {"turbine_type": turbine_type}
-        query = (
-            "SELECT * FROM genericpowercurves WHERE name = turbine_type=$turbine_type"
-        )
+        query = "SELECT * FROM genericpowercurves WHERE name = %(turbine_type)s"
 
         result = _DataInterface.get_instance().exec_sql_query(query, bind_params)
 

@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2021 2017-2021 Contributors to the OpenSTF project <korte.termijn.prognoses@alliander.com>
 #
 # SPDX-License-Identifier: MPL-2.0
+import re
 
 from datetime import timedelta
 
@@ -47,6 +48,8 @@ class Ems:
             end=datetime_end,
             freq=forecast_resolution,
         )
+        # Define empty bind_params dict for query parametrization
+        bind_params = {}
 
         # Convert sid to list
         if type(sid) is str:
@@ -57,49 +60,64 @@ class Ems:
 
         # Prepare sid query string
         if len(sid) == 1:
-            sidsection = "= '{}'".format(sid[0])
-        else:
-            section = "|".join(sid)
             # Escape forward slahes as inlfux cant handle them
-            section = section.replace("/", "\/")
-            section = section.replace("+", "\+")
-            sidsection = "=~ /^({})$/".format(section)
+            sid[0] = sid[0].replace("/", "\/")
+            sid[0] = sid[0].replace("+", "\+")
+            bind_params[f"param_sid_0"] = sid[0]
+            sidsection = '"system" = $param_sid_0'
+        else:
+            # Create parameters for each sid
+            for i in range(len(sid)):
+
+                # Escape forward slahes as inlfux cant handle them
+                sid[i] = sid[i].replace("/", "\/")
+                sid[i] = sid[i].replace("+", "\+")
+                bind_params[f"param_sid_{i}"] = sid[i]
+
+            # Build parameters in query
+            section = ' OR "system" = '.join(
+                ["$" + s for s in list(bind_params.keys())]
+            )
+            sidsection = f'("system" = {section})'
+
+        # Validate forecast resolution to prevent injections
+        if not re.match(
+            r"[0-9]+([unµm]?s|m|h|d|w)",
+            forecast_resolution.replace("T", "m"),
+        ):
+            raise ValueError("Forecast resolution does not have the allowed format!")
+
+        bind_params.update(
+            {
+                "dstart": datetime_start.isoformat(),
+                "dend": datetime_end.isoformat(),
+            }
+        )
 
         # Prepare query
         if aggregated:
-            bind_params = {
-                "sidselection": sidsection,
-                "dstart": datetime_start.isoformat(),
-                "dend": datetime_end.isoformat(),
-                "forecast_resolution": forecast_resolution.replace("T", "m"),
-            }
-            query = """
+            query = f"""
                 SELECT sum("output") AS load, count("output") AS nEntries
                 FROM (
                     SELECT mean("output") AS output
                     FROM "realised".."power"
                     WHERE
-                        "system" sidselection=$sidselection AND
-                        time >= dstart=$dstart AND
-                        time <= dend=$dend
-                    GROUP BY time(forecast_resolution=$forecast_resolution), "system" fill(null)
+                        {sidsection} AND
+                        time >= $dstart AND
+                        time <= $dend
+                    GROUP BY time({forecast_resolution.replace("T", "m")}), "system" fill(null)
                 )
                 WHERE time <= NOW()
-                GROUP BY time(forecast_resolution=$forecast_resolution)
+                GROUP BY time({forecast_resolution.replace("T", "m")})
             """
         else:
-            bind_params = {
-                "sidselection": sidsection,
-                "dstart": datetime_start.isoformat(),
-                "dend": datetime_end.isoformat(),
-            }
-            query = """
+            query = f"""
                 SELECT "output" AS load, "system"
                 FROM "realised".."power"
                 WHERE
-                    "system" sidselection=$sidselection AND
-                    time >= dstart=$dstart AND
-                    time < dend=$dend fill(null)
+                    "system" ({sidsection}) AND
+                    time >= $dstart AND
+                    time < $dend fill(null)
             """
 
         # Query load
@@ -136,12 +154,19 @@ class Ems:
         Returns:
             pd.DataFram: Load created after requested datetime.
         """
-        bind_params = {"sid": sid, "group_by_time": group_by_time}
+        # Validate forecast resolution to prevent injections
+        if not re.match(
+            r"[0-9]+([unµm]?s|m|h|d|w)",
+            group_by_time,
+        ):
+            raise ValueError("'group_by_time' does not have the allowed format!")
+
+        bind_params = {"sid": sid}
         query = f"""
             SELECT mean("output") as output, min("created") as created
             FROM "realised".."power"
-            WHERE "system" = sid=$sid
-            GROUP BY time(group_by_time=$group_by_time)
+            WHERE "system" = $sid
+            GROUP BY time({group_by_time})
         """
 
         load = _DataInterface.get_instance().exec_influx_query(query, bind_params)
@@ -332,18 +357,24 @@ class Ems:
         return
             - pd.DataFrame(index=pd.DatetimeIndex, columns=['curtailment_fraction'])"""
 
+        # Validate forecast resolution to prevent injections
+        if not re.match(
+            r"[0-9]+([unµm]?s|m|h|d|w)",
+            forecast_resolution.replace("T", "m"),
+        ):
+            raise ValueError("Forecast resolution does not have the allowed format!")
+
         bind_params = {
             "name": name,
             "dstart": datetime_start.isoformat(),
             "dend": datetime_end.isoformat(),
-            "resolution": resolution.replace("T", "m"),
         }
 
-        q = """
+        q = f"""
             SELECT mean("curtailment") as curtailment_fraction
             FROM "realised".."curtailments"
-            WHERE ("curtailment_name" = name=$name) AND time >= dstart=$dstart and time < dend=$dend'
-            GROUP BY time(resolution=$resolution) fill(null)
+            WHERE ("curtailment_name" = $name) AND time >= $dstart and time < $dend'
+            GROUP BY time({forecast_resolution.replace("T", "m")}) fill(null)
         """
 
         # Excecute query
@@ -361,18 +392,24 @@ class Ems:
         flexnet_name="BEMMEL_9017589K_10-1V2LS",
     ):
 
+        # Validate forecast resolution to prevent injections
+        if not re.match(
+            r"[0-9]+([unµm]?s|m|h|d|w)",
+            forecast_resolution.replace("T", "m"),
+        ):
+            raise ValueError("Forecast resolution does not have the allowed format!")
+
         bind_params = {
             "name": flexnet_name,
             "dstart": datetime_start.isoformat(),
             "dend": datetime_end.isoformat(),
-            "resolution": forecast_resolution.replace("T", "m"),
         }
 
-        query = """
+        query = f"""
             SELECT last("output")
             FROM "realised".."power"
-            WHERE ("system" = name=$name AND time >= dstart=$dstart and time < dend=$dend')
-            GROUP BY time(resolution=$resolution) fill(previous)
+            WHERE ("system" = $name AND time >= $dstart and time < $dend')
+            GROUP BY time({forecast_resolution.replace("T", "m")}) fill(previous)
         """
 
         # Excecute query
@@ -462,8 +499,8 @@ class Ems:
 
         q = """
             SELECT created FROM "realised".."power"
-            WHERE "system"=name=$name AND time >= dstart=$dstart and time < dend=$dend' fill(null)
-            LIMIT limit=$limit
+            WHERE "system" = $name AND time >= $dstart and time < $dend fill(null)
+            LIMIT $limit
         """
 
         createds = _DataInterface.get_instance().influx_client.query(q, bind_params)[

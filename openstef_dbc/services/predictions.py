@@ -93,34 +93,34 @@ class Predictions:
             if component:
 
                 bind_params = {
-                    "pid": pj["id"],
-                    "dstart": start_time.isoformat(),
-                    "dend": end_time.isoformat(),
+                    "pid": str(pj["id"]),
+                    "dstart": str(start_time),
+                    "dend": str(end_time),
                 }
                 query = """
                     SELECT mean("forecast_solar") as forecast, mean("stdev") as stdev
                     FROM forecast_latest..prediction_tAheads
-                    WHERE ("pid" = pid=$pid
+                    WHERE ("pid" = $pid
                     AND type" != 'est_demand'
                     AND "type" != 'est_pv'
                     AND "type" != 'est_wind')
-                    AND time >= dstart=$dstart AND time < dend=$dend
+                    AND time >= $dstart AND time < $dend
                     GROUP BY time(15m), "tAhead"
                 """
             else:
                 bind_params = {
-                    "pid": pj["id"],
-                    "dstart": start_time.isoformat(),
-                    "dend": end_time.isoformat(),
+                    "pid": str(pj["id"]),
+                    "dstart": str(start_time),
+                    "dend": str(end_time),
                 }
                 query = """
                     SELECT mean("forecast") as forecast, mean("stdev") as stdev
                     FROM forecast_latest..prediction_tAheads
-                    WHERE ("pid" = pid=$pid
+                    WHERE ("pid" = $pid
                     AND "type" != 'est_demand'
                     AND "type" != 'est_pv'
                     AND "type" != 'est_wind')
-                    AND time >= dstart=$dstart AND time < dend=$dend
+                    AND time >= $dstart AND time < $dend
                     GROUP BY time(15m), "tAhead"
                 """
 
@@ -150,20 +150,20 @@ class Predictions:
 
             # Make query for a selection of t_aheads
             bind_params = {
-                "pid": pj["id"],
+                "pid": str(pj["id"]),
                 "taheads": t_aheads,
-                "dstart": start_time.isoformat(),
-                "dend": end_time.isoformat(),
+                "dstart": str(start_time),
+                "dend": str(end_time),
             }
             query = """
                 SELECT mean("forecast") as forecast, mean("stdev") as stdev
                 FROM forecast_latest..prediction_tAheads
-                WHERE ("pid" = pid=$pid
+                WHERE ("pid" = $pid
                     AND "type" != 'est_demand'
                     AND "type" != 'est_pv'
                     AND "type" != 'est_wind'
                     AND (taheads=$taheads))
-                    AND time >= dstart=$dstart AND time < dend=$dend
+                    AND time >= $dstart AND time < $dend
                 GROUP BY time(15m), "tAhead"
             """
 

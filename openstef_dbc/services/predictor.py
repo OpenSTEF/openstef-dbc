@@ -106,8 +106,8 @@ class Predictor:
                 "Price" FROM "{database}".."{measurement}"
             WHERE
                 "Name" = 'APX' AND
-                time >= dstart=$dstart AND
-                time <= dend=$dend
+                time >= $dstart AND
+                time <= $dend
         """
         electricity_price = _DataInterface.get_instance().exec_influx_query(
             query, bind_params

@@ -32,22 +32,22 @@ class Systems:
             "radius": str(radius),
         }
         query = """
-            SELECT `sid`, `lat`, `lon`,`region`, ( 6371 * acos( cos( radians({lat}) ) \
-        * cos( radians( lat ) ) * cos( radians( lon ) - radians(lon=$lon) ) + sin( radians(lat=$lat ) \
-        * sin( radians( lat ) ) ) ) AS 'distance' \
-        FROM `systems`
-        WHERE `qual` > quality=$quality
-        """
+                    SELECT `sid`, `lat`, `lon`,`region`, ( 6371 * acos( cos( radians(%(lat)s) ) \
+                * cos( radians( lat ) ) * cos( radians( lon ) - radians(%(lon)s) ) + sin( radians(%(lat)s) ) \
+                * sin( radians( lat ) ) ) ) AS 'distance' \
+                FROM `systems`
+                WHERE `qual` > '%(quality)s'
+                """
 
         # Extend query
         if freq is not None:
             bind_params["freq"] = str(freq)
-            query += """ AND `freq` <= freq=$freq"""
+            query += """ AND `freq` <= %(freq)s"""
         if lag_systems is not None:
-            query += """ AND `lagSystems` <= quality=$quality"""
+            query += """ AND `lagSystems` <= %(quality)s"""
 
         # Limit radius to given input radius
-        query += """ HAVING `distance` < radius=$radius ORDER BY `distance`;"""
+        query += """ HAVING `distance` < %(radius)s ORDER BY `distance`;"""
 
         result = _DataInterface.get_instance().exec_sql_query(query, bind_params)
         return result
@@ -99,12 +99,12 @@ class Systems:
 
         if limit is not None:
             bind_params["limit"] = limit
-            limit_query = f"LIMIT limit=$limit"
+            limit_query = f"LIMIT %(limit)s"
 
         query = f"""
             SELECT sid, qual, freq, lag
             FROM systems
-            WHERE left(sid, 3) = 'pv_' AND autoupdate = autoupdate=$autoupdate
+            WHERE left(sid, 3) = 'pv_' AND autoupdate = %($autoupdate)s
             ORDER BY RAND() {limit_query}
         """
 
