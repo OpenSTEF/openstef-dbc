@@ -508,7 +508,7 @@ class Ems:
         return createds
 
     @staticmethod
-    def _check_influx_group_by_time_statement(self, statement: str) -> None:
+    def _check_influx_group_by_time_statement(statement: str) -> None:
         # Validate forecast resolution to prevent injections
         if not re.match(
             r"[0-9]+([unµm]?s|m|h|d|w)",
