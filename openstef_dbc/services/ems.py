@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2021 2017-2021 Contributors to the OpenSTF project <korte.termijn.prognoses@alliander.com>
 #
 # SPDX-License-Identifier: MPL-2.0
+from typing import Union, List
 import datetime
 import re
 
@@ -19,7 +20,7 @@ class Ems:
 
     def get_load_sid(
         self,
-        sid: str,
+        sid: Union[List[str], str],
         datetime_start: datetime.datetime,
         datetime_end: datetime.datetime,
         forecast_resolution: str,
@@ -80,13 +81,6 @@ class Ems:
                 ["$" + s for s in list(bind_params.keys())]
             )
             sidsection = f'("system" = {section})'
-
-        # Validate forecast resolution to prevent injections
-        if not re.match(
-            r"[0-9]+([unµm]?s|m|h|d|w)",
-            forecast_resolution.replace("T", "m"),
-        ):
-            raise ValueError("Forecast resolution does not have the allowed format!")
 
         bind_params.update(
             {
@@ -158,11 +152,7 @@ class Ems:
             pd.DataFrame: Load created after requested datetime.
         """
         # Validate forecast resolution to prevent injections
-        if not re.match(
-            r"[0-9]+([unµm]?s|m|h|d|w)",
-            group_by_time,
-        ):
-            raise ValueError("'group_by_time' does not have the allowed format!")
+        self._check_influx_group_by_time_statement(group_by_time)
 
         bind_params = {"sid": sid}
         query = f"""
@@ -367,11 +357,7 @@ class Ems:
             - pd.DataFrame(index=pd.DatetimeIndex, columns=['curtailment_fraction'])"""
 
         # Validate forecast resolution to prevent injections
-        if not re.match(
-            r"[0-9]+([unµm]?s|m|h|d|w)",
-            resolution.replace("T", "m"),
-        ):
-            raise ValueError("Forecast resolution does not have the allowed format!")
+        self._check_influx_group_by_time_statement(resolution.replace("T", "m"))
 
         bind_params = {
             "name": name,
@@ -402,11 +388,9 @@ class Ems:
     ) -> pd.DataFrame:
 
         # Validate forecast resolution to prevent injections
-        if not re.match(
-            r"[0-9]+([unµm]?s|m|h|d|w)",
-            forecast_resolution.replace("T", "m"),
-        ):
-            raise ValueError("Forecast resolution does not have the allowed format!")
+        self._check_influx_group_by_time_statement(
+            forecast_resolution.replace("T", "m")
+        )
 
         bind_params = {
             "name": flexnet_name,
@@ -522,3 +506,12 @@ class Ems:
             "power"
         ]
         return createds
+
+    @staticmethod
+    def _check_influx_group_by_time_statement(self, statement: str) -> None:
+        # Validate forecast resolution to prevent injections
+        if not re.match(
+            r"[0-9]+([unµm]?s|m|h|d|w)",
+            statement,
+        ):
+            raise ValueError("Forecast resolution does not have the allowed format!")
