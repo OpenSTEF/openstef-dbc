@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2021 2017-2021 Contributors to the OpenSTF project <korte.termijn.prognoses@alliander.com>
 #
 # SPDX-License-Identifier: MPL-2.0
-
+import datetime
 from enum import Enum
 from typing import List, Optional, Tuple, Union
 
@@ -20,12 +20,12 @@ class PredictorGroups(Enum):
 class Predictor:
     def get_predictors(
         self,
-        datetime_start,
-        datetime_end,
+        datetime_start: datetime.datetime,
+        datetime_end: datetime.datetime,
         forecast_resolution: Optional[str] = None,
         location: Union[str, Tuple[float, float]] = None,
         predictor_groups: Union[List[PredictorGroups], List[str], None] = None,
-    ):
+    ) -> pd.DataFrame:
         """Get predictors.
 
         Get predictors for a given datetime range. Optionally predictor groups can be
@@ -85,7 +85,12 @@ class Predictor:
 
         return predictors
 
-    def get_market_data(self, datetime_start, datetime_end, forecast_resolution=None):
+    def get_market_data(
+        self,
+        datetime_start: datetime.datetime,
+        datetime_end: datetime.datetime,
+        forecast_resolution: str = None,
+    ) -> pd.DataFrame:
         electricity_price = self.get_electricity_price(
             datetime_start, datetime_end, forecast_resolution
         )
@@ -93,19 +98,28 @@ class Predictor:
         return electricity_price
 
     def get_electricity_price(
-        self, datetime_start, datetime_end, forecast_resolution=None
-    ):
+        self,
+        datetime_start: datetime.datetime,
+        datetime_end: datetime.datetime,
+        forecast_resolution: str = None,
+    ) -> pd.DataFrame:
         database = "forecast_latest"
         measurement = "marketprices"
+        bind_params = {
+            "dstart": datetime_start.isoformat(),
+            "dend": datetime_end.isoformat(),
+        }
         query = f"""
             SELECT
                 "Price" FROM "{database}".."{measurement}"
             WHERE
                 "Name" = 'APX' AND
-                time >= '{datetime_start.isoformat()}' AND
-                time <= '{datetime_end.isoformat()}'
+                time >= $dstart AND
+                time <= $dend
         """
-        electricity_price = _DataInterface.get_instance().exec_influx_query(query)
+        electricity_price = _DataInterface.get_instance().exec_influx_query(
+            query, bind_params
+        )
 
         if not electricity_price:
             return pd.DataFrame(
@@ -123,7 +137,12 @@ class Predictor:
 
         return electricity_price
 
-    def get_load_profiles(self, datetime_start, datetime_end, forecast_resolution=None):
+    def get_load_profiles(
+        self,
+        datetime_start: datetime.datetime,
+        datetime_end: datetime.datetime,
+        forecast_resolution: str = None,
+    ) -> pd.DataFrame:
         """Get load profiles.
 
             Get the TDCV (Typical Domestic Consumption Values) load profiles from the
@@ -139,17 +158,21 @@ class Predictor:
         """
         # select all fields which start with 'sjv'
         # (there is also a 'year_created' tag in this measurement)
-        database = "realised"
-        measurement = "sjv"
+        bind_params = {
+            "dstart": datetime_start.isoformat(),
+            "dend": datetime_end.isoformat(),
+        }
 
         query = f"""
             SELECT
-                /^sjv/ FROM "{database}".."{measurement}"
+                /^sjv/ FROM "realised".."sjv"
             WHERE
-                time >= '{datetime_start.isoformat()}' AND
-                time <= '{datetime_end.isoformat()}'
+                time >= $dstart AND
+                time <= $dend
         """
-        load_profiles = _DataInterface.get_instance().exec_influx_query(query)
+        load_profiles = _DataInterface.get_instance().exec_influx_query(
+            query, bind_params=bind_params
+        )
 
         if not load_profiles:
             return pd.DataFrame(
@@ -158,7 +181,7 @@ class Predictor:
                 )
             )
 
-        load_profiles = load_profiles[measurement]
+        load_profiles = load_profiles["sjv"]
 
         if forecast_resolution and load_profiles.empty is False:
             load_profiles = load_profiles.resample(forecast_resolution).interpolate(
@@ -167,8 +190,12 @@ class Predictor:
         return load_profiles
 
     def get_weather_data(
-        self, datetime_start, datetime_end, location, forecast_resolution=None
-    ):
+        self,
+        datetime_start: datetime.datetime,
+        datetime_end: datetime.datetime,
+        location: Union[Tuple[float, float], str],
+        forecast_resolution: str = None,
+    ) -> pd.DataFrame:
         # Get weather data
         weather_params = [
             "clouds",

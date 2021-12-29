@@ -90,7 +90,9 @@ class _DataInterface(metaclass=Singleton):
                 "Please call _DataInterface(config) first."
             ) from exc
 
-    def _create_influx_client(self, username, password, host, port):
+    def _create_influx_client(
+        self, username: str, password: str, host: str, port: int
+    ) -> None:
         """Create influx client, namespace-dependend"""
         try:
             return influxdb.DataFrameClient(
@@ -103,7 +105,9 @@ class _DataInterface(metaclass=Singleton):
             self.logger("Could not connect to InfluxDB database", exc_info=exc)
             raise
 
-    def _create_mysql_engine(self, username, password, host, port, db):
+    def _create_mysql_engine(
+        self, username: str, password: str, host: str, port: int, db: str
+    ):
         """Create MySQL engine.
 
         Differs from sql_connection in the sense that this write_engine
@@ -120,7 +124,7 @@ class _DataInterface(metaclass=Singleton):
             self.logger.error("Could not connect to MySQL database", exc_info=exc)
             raise
 
-    def exec_influx_query(self, query):
+    def exec_influx_query(self, query: str, bind_params: dict = {}) -> dict:
         """Execute an InfluxDB query.
 
         When there is data it returns a defaultdict with as key the measurement and
@@ -128,12 +132,15 @@ class _DataInterface(metaclass=Singleton):
 
         Args:
             query (str): Influx query string.
+            bind_params (dict): Binding parameter for parameterized queries
 
         Returns:
             defaultdict: Query result.
         """
         try:
-            return self.influx_client.query(query, chunked=True, chunk_size=10000)
+            return self.influx_client.query(
+                query, bind_params=bind_params, chunked=True, chunk_size=10000
+            )
         except requests.exceptions.ConnectionError as e:
             self.logger.error("Lost connection to InfluxDB database", exc_info=e)
             raise
@@ -145,14 +152,14 @@ class _DataInterface(metaclass=Singleton):
 
     def exec_influx_write(
         self,
-        df,
-        database,
-        measurement,
-        tag_columns,
-        field_columns=None,
-        time_precision="s",
-        protocol="json",
-    ):
+        df: pd.DataFrame,
+        database: str,
+        measurement: str,
+        tag_columns: list,
+        field_columns: list = None,
+        time_precision: str = "s",
+        protocol: str = "json",
+    ) -> bool:
 
         if field_columns is None:
             field_columns = []
@@ -195,9 +202,11 @@ class _DataInterface(metaclass=Singleton):
 
         return available
 
-    def exec_sql_query(self, query, **kwargs):
+    def exec_sql_query(self, query: str, params: dict = None, **kwargs):
+        if params is None:
+            params = {}
         try:
-            return pd.read_sql(query, self.mysql_engine, **kwargs)
+            return pd.read_sql(query, self.mysql_engine, params=params, **kwargs)
         except sqlalchemy.exc.OperationalError as e:
             self.logger.error("Lost connection to MySQL database", exc_info=e)
             raise
@@ -210,17 +219,21 @@ class _DataInterface(metaclass=Singleton):
             self.logger.error("Can't connecto to MySQL database", exc_info=e)
             raise
 
-    def exec_sql_write(self, statement):
+    def exec_sql_write(self, statement: str, params: dict = None) -> None:
+        if params is None:
+            params = {}
         try:
             with self.mysql_engine.connect() as connection:
-                connection.execute(statement)
+                connection.execute(statement, params=params)
         except Exception as e:
             self.logger.error(
                 "Error occured during executing query", query=statement, exc_info=e
             )
             raise
 
-    def exec_sql_dataframe_write(self, dataframe, table, **kwargs):
+    def exec_sql_dataframe_write(
+        self, dataframe: pd.DataFrame, table: str, **kwargs
+    ) -> None:
         dataframe.to_sql(table, self.mysql_engine, **kwargs)
 
     def check_mysql_available(self):

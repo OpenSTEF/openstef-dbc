@@ -97,20 +97,20 @@ class ModelInput:
 
     def get_solar_input(
         self,
-        location,
-        forecast_horizon,
-        forecast_resolution,
-        radius=0,
-        history=14,
-        datetime_start=None,
-        sid=None,
-    ):
+        location: Union[Tuple[float, float], str],
+        forecast_horizon: int,
+        forecast_resolution: int,
+        radius: float = 0.0,
+        history: int = 14,
+        datetime_start: datetime = None,
+        sid: str = None,
+    ) -> pd.DataFrame:
         """This function retrieves the radiation and cloud forecast for the nearest weather location
         and the relevant pvdata from a specific system or region.
         It interpolates these values according to the forecast resolution.
         Parameters:
             - engine: database connection
-            - location: lat/lon values [int] or input city [str] of turbine location
+            - location: lat/lon values [float] or input city [str] of turbine location
             - radius: 'None' when using a specific system, range in kms when using a region
             - history: days of historic weather and pvdata used, default 14
             - forecastHorizon: length of forecast in minutes [int]
@@ -187,23 +187,22 @@ class ModelInput:
 
     def get_wind_input(
         self,
-        location,
-        hub_height,
-        forecast_horizon,
-        forecast_resolution,
-        datetime_start=None,
-        source="optimum",
-    ):
+        location: Union[Tuple[float, float], str],
+        hub_height: int,
+        forecast_horizon: int,
+        forecast_resolution: int,
+        datetime_start: datetime = None,
+        source: str = "optimum",
+    ) -> pd.DataFrame:
         """This function retrieves the wind speed forecast for the nearest weather location
         and calculates the wind speed based on the turbine's hub height.
         It interpolates these values according to the forecast resolution.
 
         Args:
             location: lat/lon values [int] or input city [str] of turbine location
-            hubHeight: turbine height in [int]
-            forecastHorizon: length of forecast in minutes [int]
-            forecastResolution: time resolution of forecast in minutes [int]
-            startdatetime: datetime of forecast
+            forecast_horizon: length of forecast in minutes [int]
+            forecast_resolution: time resolution of forecast in minutes [int]
+            datetime_start: datetime of forecast
             source: preferred weather source as a string, default for wind is DSN
         """
 
@@ -219,25 +218,20 @@ class ModelInput:
             source=source,
         )
 
-        # WindSpeedhubheight - not neccesary because windspeed_100m forecast is used
-        # forecast_height = 10
-        # surface_roughness = 0.143
-        # windspeed["windspeedHub"] = windspeed.windspeed * (
-        #     (hub_height / forecast_height) ** surface_roughness
-        # )
-
         # interpolate results to 15 minute values
         windspeed = windspeed.resample(str(forecast_resolution) + "T").asfreq()
         windspeed = windspeed.interpolate("cubic")
 
         return pd.DataFrame(windspeed.windspeed_100m)
 
-    def get_power_curve(self, turbine_type):
+    @classmethod
+    def get_power_curve(cls, turbine_type: str) -> dict:
         """ "This function retrieves the power curve coefficients from the genericpowercurves table,
         using the turbine type as input."""
-        query = "SELECT * FROM genericpowercurves WHERE name = '" + turbine_type + "'"
+        bind_params = {"turbine_type": turbine_type}
+        query = "SELECT * FROM genericpowercurves WHERE name = %(turbine_type)s"
 
-        result = _DataInterface.get_instance().exec_sql_query(query)
+        result = _DataInterface.get_instance().exec_sql_query(query, bind_params)
 
         if result is not None:
             result.rated_power = float(result.rated_power)

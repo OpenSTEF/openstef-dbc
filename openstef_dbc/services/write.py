@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
+from typing import Tuple, List
 from datetime import datetime
 import time
 
@@ -16,24 +17,28 @@ class Write:
     def __init__(self):
         self.logger = logging.get_logger(self.__class__.__name__)
 
-    def write_location(self, location_name, location):
-        table_name = "NameToLatLon"
-        statement = 'INSERT INTO {table_name} (regionInput, lat,lon) VALUES ("{loc}", {lat}, {lon})'.format(
-            table_name=table_name, loc=location_name, lat=location[0], lon=location[1]
-        )
+    def write_location(self, location_name: str, location: Tuple[float, float]) -> None:
+        bind_params = {
+            "table_name": "NameToLatLon",
+            "loc": location_name,
+            "lat": location[0],
+            "lon": location[1],
+        }
 
-        _DataInterface.get_instance().exec_sql_write(statement)
+        statement = "INSERT INTO %(table_name)s (regionInput, lat,lon) VALUES (%(loc)s, %(lat)s, %(lon)s)"
+
+        _DataInterface.get_instance().exec_sql_write(statement, params=bind_params)
 
         self.logger.info("Added {location_name} to {table_name} table")
 
     def write_forecast(
         self,
-        data,
-        dbname="forecast_latest",
-        influxtable="prediction",
-        t_ahead_series=False,
-        force_quality=True,
-    ):
+        data: pd.DataFrame,
+        dbname: str = "forecast_latest",
+        influxtable: str = "prediction",
+        t_ahead_series: bool = False,
+        force_quality: bool = True,
+    ) -> str:
         """Write a Forecast to the database.
 
         This function should be used to write data directly to our database.
@@ -112,7 +117,9 @@ class Write:
 
         return message
 
-    def _write_t_ahead_series(self, forecast, dbname="forecast_latest"):
+    def _write_t_ahead_series(
+        self, forecast: pd.DataFrame, dbname: str = "forecast_latest"
+    ) -> str:
         self.logger.info("Store t ahead series")
         allowed_columns = [
             "tAhead",
@@ -176,11 +183,11 @@ class Write:
 
     def write_weather_data(
         self,
-        data,
-        source,
-        table="weather",
-        dbname="forecast_latest",
-        tag_columns=None,
+        data: pd.DataFrame,
+        source: str,
+        table: str = "weather",
+        dbname: str = "forecast_latest",
+        tag_columns: List[str] = None,
     ):
         """This function should be used to write data directly to our database.
         Do not use this function for Measurements data (pvdata, demanddata, winddata).
@@ -240,7 +247,7 @@ class Write:
 
         return message
 
-    def write_realised_pvdata(self, df, region):
+    def write_realised_pvdata(self, df: pd.DataFrame, region: str) -> None:
         """Method that writes realised pv data to the influx database. This function
         also adds systems to the systems table in mysql if they do not yet excist.
 
@@ -296,57 +303,7 @@ class Write:
             )
         )
 
-    def write_hyper_params(self, pj, hyper_params):
-        """Writes site- and model specific hyperparameters to the MySQL database.
-
-        Args:
-            pj: Prediction job (dict).
-            hyper_params: Hyper parameters to be writen to the database (dict)
-
-        Returns:
-            None
-        """
-
-        # Get key to id mapping from database
-        query = f'SELECT id, name FROM `hyper_params` WHERE model="{pj["model"]}"'
-        result = _DataInterface.get_instance().exec_sql_query(query)
-        # Convert result into usable dict
-        hyper_params_id_map = result.set_index("name").to_dict()["id"]
-
-        # Get the current UTC time to update the 'created' column
-        timestamp = datetime.utcnow().replace(second=0, microsecond=0)
-
-        # Create a placeholder string to be filled with value pairs
-        values = []
-        # Fill the placeholder string
-        for param_name, value in hyper_params.items():
-            # check if this parameter already exists in the database
-            if param_name not in hyper_params_id_map.keys():
-                raise KeyError(
-                    f"Hyperparameter '{param_name}' not in database, "
-                    "check parameters and add new parameter if required"
-                )
-            hyper_params_id = hyper_params_id_map[param_name]
-            values.append(
-                f'("{pj["id"]}", "{hyper_params_id}", "{value}", "{timestamp}")'
-            )
-        # Create one csv string to use in the SQL query
-        values_str = ", ".join(values)
-
-        # Combine everything into one sql query
-        query = f"""
-            INSERT INTO `hyper_param_values`
-                (prediction_id, hyper_params_id, value, created)
-            VALUES
-                {values_str}
-            ON DUPLICATE KEY UPDATE
-                value=VALUES(value),
-                created=VALUES(created)
-        """
-        # Execute query
-        _DataInterface.get_instance().exec_sql_write(query)
-
-    def write_kpi(self, pj, kpis):
+    def write_kpi(self, pj: dict, kpis: dict) -> None:
         """Method that writes the key performance indicators of a pid to an influx DB.
         Note that NaN / Inf are converted to 0, since these are not supported in Influx.
 
@@ -393,7 +350,7 @@ class Write:
         # Let user know everything went well
         self.logger.info("Succesfully wrote KPIs for pid: {}".format(str(pj["id"])))
 
-    def write_apx_market_data(self, apx_data):
+    def write_apx_market_data(self, apx_data: pd.DataFrame) -> bool:
         success = _DataInterface.get_instance().exec_influx_write(
             apx_data,
             database="forecast_latest",
@@ -405,7 +362,9 @@ class Write:
         )
         return success
 
-    def write_sjv_load_profiles(self, sjv_load_data, field_columns):
+    def write_sjv_load_profiles(
+        self, sjv_load_data: pd.DataFrame, field_columns: List[str]
+    ) -> bool:
         success = _DataInterface.get_instance().exec_influx_write(
             sjv_load_data,
             database="realised",
@@ -417,12 +376,16 @@ class Write:
         )
         return success
 
-    def write_windturbine_powercurves(self, power_curves, if_exists="fail"):
+    def write_windturbine_powercurves(
+        self, power_curves: pd.DataFrame, if_exists: str = "fail"
+    ) -> None:
         _DataInterface.get_instance().exec_sql_dataframe_write(
             power_curves, "genericpowercurves", if_exists=if_exists, index=False
         )
 
-    def write_energy_splitting_coefficients(self, coefficients, if_exists="fail"):
+    def write_energy_splitting_coefficients(
+        self, coefficients: dict, if_exists: str = "fail"
+    ) -> None:
         _DataInterface.get_instance().exec_sql_dataframe_write(
             coefficients, "energy_split_coefs", if_exists=if_exists, index=False
         )
