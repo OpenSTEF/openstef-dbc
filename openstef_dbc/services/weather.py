@@ -285,15 +285,9 @@ class Weather:
         bind_params.update(weather_models_bind_params)
 
         # Create the query
-        query = 'SELECT source::tag, input_city::tag, "{weather_params}" FROM \
-            "forecast_latest".."weather" WHERE input_city::tag = {location} AND \
-            time >= {start} AND time <= {end} AND (source::tag = {weather_models})'.format(
-            weather_params=weather_params_str,
-            location="$location",
-            start="$dstart",
-            end="$dend",
-            weather_models=weather_models_str,
-        )
+        query = f'SELECT source::tag, input_city::tag, "{weather_params_str}" FROM \
+            "forecast_latest".."weather" WHERE input_city::tag = $location AND \
+            time >= $dstart AND time <= $dend AND (source::tag = {weather_models_str})'
 
         # Execute Query
         result = _DataInterface.get_instance().exec_influx_query(query, bind_params)

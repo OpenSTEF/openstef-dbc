@@ -18,12 +18,16 @@ class Write:
         self.logger = logging.get_logger(self.__class__.__name__)
 
     def write_location(self, location_name: str, location: Tuple[float, float]) -> None:
-        table_name = "NameToLatLon"
-        statement = 'INSERT INTO {table_name} (regionInput, lat,lon) VALUES ("{loc}", {lat}, {lon})'.format(
-            table_name=table_name, loc=location_name, lat=location[0], lon=location[1]
-        )
+        bind_params = {
+            "table_name": "NameToLatLon",
+            "loc": location_name,
+            "lat": location[0],
+            "lon": location[1],
+        }
 
-        _DataInterface.get_instance().exec_sql_write(statement)
+        statement = "INSERT INTO %(table_name)s (regionInput, lat,lon) VALUES (%(loc)s, %(lat)s, %(lon)s)"
+
+        _DataInterface.get_instance().exec_sql_write(statement, params=bind_params)
 
         self.logger.info("Added {location_name} to {table_name} table")
 

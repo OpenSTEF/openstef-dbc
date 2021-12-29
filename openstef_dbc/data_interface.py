@@ -202,7 +202,9 @@ class _DataInterface(metaclass=Singleton):
 
         return available
 
-    def exec_sql_query(self, query: str, params: dict = {}, **kwargs):
+    def exec_sql_query(self, query: str, params: dict = None, **kwargs):
+        if params is None:
+            params = {}
         try:
             return pd.read_sql(query, self.mysql_engine, params=params, **kwargs)
         except sqlalchemy.exc.OperationalError as e:
@@ -217,10 +219,12 @@ class _DataInterface(metaclass=Singleton):
             self.logger.error("Can't connecto to MySQL database", exc_info=e)
             raise
 
-    def exec_sql_write(self, statement: str) -> None:
+    def exec_sql_write(self, statement: str, params: dict = None) -> None:
+        if params is None:
+            params = {}
         try:
             with self.mysql_engine.connect() as connection:
-                connection.execute(statement)
+                connection.execute(statement, params=params)
         except Exception as e:
             self.logger.error(
                 "Error occured during executing query", query=statement, exc_info=e

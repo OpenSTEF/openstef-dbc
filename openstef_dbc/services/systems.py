@@ -116,7 +116,7 @@ class Systems:
         query = f"""
             SELECT sid, qual, freq, lag
             FROM systems
-            WHERE left(sid, 3) = 'pv_' AND autoupdate = %($autoupdate)s
+            WHERE left(sid, 3) = 'pv_' AND autoupdate = %(autoupdate)s
             ORDER BY RAND() {limit_query}
         """
 

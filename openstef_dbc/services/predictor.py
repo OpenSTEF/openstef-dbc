@@ -158,17 +158,21 @@ class Predictor:
         """
         # select all fields which start with 'sjv'
         # (there is also a 'year_created' tag in this measurement)
-        database = "realised"
-        measurement = "sjv"
+        bind_params = {
+            "dstart": datetime_start.isoformat(),
+            "dend": datetime_end.isoformat(),
+        }
 
         query = f"""
             SELECT
-                /^sjv/ FROM "{database}".."{measurement}"
+                /^sjv/ FROM "realised".."sjv"
             WHERE
-                time >= '{datetime_start.isoformat()}' AND
-                time <= '{datetime_end.isoformat()}'
+                time >= $dstart AND
+                time <= $dend
         """
-        load_profiles = _DataInterface.get_instance().exec_influx_query(query)
+        load_profiles = _DataInterface.get_instance().exec_influx_query(
+            query, bind_params=bind_params
+        )
 
         if not load_profiles:
             return pd.DataFrame(
@@ -177,7 +181,7 @@ class Predictor:
                 )
             )
 
-        load_profiles = load_profiles[measurement]
+        load_profiles = load_profiles["sjv"]
 
         if forecast_resolution and load_profiles.empty is False:
             load_profiles = load_profiles.resample(forecast_resolution).interpolate(
