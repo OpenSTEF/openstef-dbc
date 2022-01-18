@@ -84,8 +84,8 @@ class Ems:
 
         bind_params.update(
             {
-                "dstart": datetime_start.isoformat(),
-                "dend": datetime_end.isoformat(),
+                "dstart": datetime_start.isoformat() + "Z",
+                "dend": datetime_end.isoformat() + "Z",
             }
         )
 
@@ -110,7 +110,7 @@ class Ems:
                 SELECT "output" AS load, "system"
                 FROM "realised".."power"
                 WHERE
-                    "system" ({sidsection}) AND
+                    {sidsection} AND
                     time >= $dstart AND
                     time < $dend fill(null)
             """
