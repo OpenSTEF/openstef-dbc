@@ -84,8 +84,8 @@ class Ems:
 
         bind_params.update(
             {
-                "dstart": datetime_start.isoformat() + "Z",
-                "dend": datetime_end.isoformat() + "Z",
+                "dstart": datetime_start.isoformat(),
+                "dend": datetime_end.isoformat(),
             }
         )
 
