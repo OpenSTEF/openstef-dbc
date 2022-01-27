@@ -217,6 +217,9 @@ class Ems:
         # Get systems that belong to this prediction
         systems = Systems().get_systems_by_pid(pid)
 
+        if systems.empty:
+            raise ValueError(f"No systems found for given pid ({pid}).")
+
         # obtain load for all systems
         systems_load = self.get_load_sid(
             list(systems.system_id),
