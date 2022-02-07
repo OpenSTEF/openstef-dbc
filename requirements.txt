@@ -5,7 +5,7 @@
 geopy~=2.1.0
 influxdb~=5.2.3
 mysql-connector-python~=8.0.23
-numpy~=1.20.1
+numpy~=1.21.4
 pandas~=1.2.4
 PyMySQL~=1.0.2
 PyYAML~=5.4.1
