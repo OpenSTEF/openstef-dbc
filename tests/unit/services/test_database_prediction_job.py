@@ -6,10 +6,8 @@
 import unittest
 from unittest.mock import patch
 import pandas as pd
-from openstef_dbc.services.prediction_job import (
-    PredictionJobRetriever,
-    PredictionJobDataClass,
-)
+from openstef.data_classes.prediction_job import PredictionJobDataClass
+from openstef_dbc.services.prediction_job import PredictionJobRetriever
 
 prediction_job = {
     "id": 307,
