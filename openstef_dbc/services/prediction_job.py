@@ -4,36 +4,12 @@
 
 import json
 from typing import List, Optional, Union
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
+from openstef.data_classes.prediction_job import PredictionJobDataClass
 
 from openstef_dbc.data_interface import _DataInterface
 from openstef_dbc.log import logging
 from openstef_dbc.services.systems import Systems
-
-
-class PredictionJobDataClass(BaseModel):
-    id: Union[int, str]
-    model: str
-    forecast_type: str
-    horizon_minutes: int
-    resolution_minutes: int
-    lat: float
-    lon: float
-    train_components: bool
-    name: str
-    description: Optional[str]
-    quantiles: Optional[List[float]]
-
-    def __getitem__(self, item):
-        """Allows us to use subscription to get the items from the object"""
-        return getattr(self, item)
-
-    def __setitem__(self, key: str, value: any):
-        """Allows us to use subscription to set the items in the object"""
-        if hasattr(self, key):
-            self.__dict__[key] = value
-        else:
-            raise AttributeError(f"{key} not an attribute of prediction job.")
 
 
 class PredictionJobRetriever:
