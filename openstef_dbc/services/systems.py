@@ -92,7 +92,7 @@ class Systems:
         if return_list is False:
             return systems
 
-        return systems.to_dict(orient="records")
+        return systems.to_dict("records")
 
     def get_pv_systems_with_incorrect_location(self) -> pd.DataFrame:
         """Get PV systems with missing (or incorrect) lat/lon"""

@@ -41,7 +41,7 @@ class Weather:
         """
         result = _DataInterface.get_instance().exec_sql_query(query, bind_params)
 
-        locations = result.to_dict(orient="records")
+        locations = result.to_dict("records")
 
         return locations
 

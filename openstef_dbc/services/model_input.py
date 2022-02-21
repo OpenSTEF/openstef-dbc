@@ -238,4 +238,4 @@ class ModelInput:
             result.slope_center = float(result.slope_center)
             result.steepness = float(result.steepness)
 
-            return result.to_dict(orient="records")[0]
+            return result.to_dict("records")[0]

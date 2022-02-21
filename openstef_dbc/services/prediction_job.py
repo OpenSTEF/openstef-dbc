@@ -41,7 +41,7 @@ class PredictionJobRetriever:
             raise ValueError(f"No prediction job found with id '{pid}'")
 
         # Convert to dictionary
-        prediction_job_dict = result.to_dict(orient="records")[0]
+        prediction_job_dict = result.to_dict("records")[0]
 
         # Add description
         prediction_job_dict = self._add_description_to_prediction_job(
@@ -168,7 +168,7 @@ class PredictionJobRetriever:
             return []
 
         # Convert to list of dictionaries
-        prediction_jobs = results.to_dict(orient="records")
+        prediction_jobs = results.to_dict("records")
 
         # Add description to all prediction jobs
         prediction_jobs = self._add_description_to_prediction_jobs(prediction_jobs)
