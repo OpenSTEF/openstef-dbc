@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2021 2017-2021 Contributors to the OpenSTF project <korte.termijn.prognoses@alliander.com>
 #
 # SPDX-License-Identifier: MPL-2.0
+import pytz
 from typing import Union, List
 from datetime import datetime, timedelta
 
@@ -37,20 +38,20 @@ class Predictions:
             end_time = datetime.utcnow() + timedelta(days=2)
 
         bind_params = {
-            "pid": pj["id"],
-            "dstart": start_time.isoformat(),
-            "dend": end_time.isoformat(),
+            "pid": str(pj["id"]),
+            "dstart": start_time.astimezone(pytz.UTC).isoformat(),
+            "dend": end_time.astimezone(pytz.UTC).isoformat(),
         }
 
         query = """
             SELECT mean("forecast") as forecast, mean("stdev") as stdev
             FROM forecast_latest..prediction
             WHERE (
-                "pid" = pid=$pid AND
+                "pid" = $pid AND
                 "type" != 'est_demand'
                 AND "type" != 'est_pv'
                 AND "type" != 'est_wind'
-            ) AND time >= dstart=$dstart AND time < dend=$dend
+            ) AND time >= $dstart AND time < $dend
             GROUP BY time(15m)
         """
 
@@ -99,14 +100,14 @@ class Predictions:
 
                 bind_params = {
                     "pid": str(pj["id"]),
-                    "dstart": str(start_time),
-                    "dend": str(end_time),
+                    "dstart": start_time.astimezone(pytz.UTC).isoformat(),
+                    "dend": end_time.astimezone(pytz.UTC).isoformat(),
                 }
                 query = """
                     SELECT mean("forecast_solar") as forecast, mean("stdev") as stdev
                     FROM forecast_latest..prediction_tAheads
                     WHERE ("pid" = $pid
-                    AND type" != 'est_demand'
+                    AND "type" != 'est_demand'
                     AND "type" != 'est_pv'
                     AND "type" != 'est_wind')
                     AND time >= $dstart AND time < $dend
@@ -157,8 +158,8 @@ class Predictions:
             bind_params = {
                 "pid": str(pj["id"]),
                 "taheads": t_aheads,
-                "dstart": str(start_time),
-                "dend": str(end_time),
+                "dstart": start_time.astimezone(pytz.UTC).isoformat(),
+                "dend": end_time.astimezone(pytz.UTC).isoformat(),
             }
             query = """
                 SELECT mean("forecast") as forecast, mean("stdev") as stdev
