@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: MPL-2.0
 
 geopy~=2.1.0
-openstef~=3.1.0
 influxdb~=5.2.3
 mysql-connector-python~=8.0.23
 numpy~=1.21.4
