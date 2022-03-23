@@ -3,10 +3,10 @@
 # SPDX-License-Identifier: MPL-2.0
 
 geopy~=2.1.0
-openstef~=3.1.2
+openstef~=3.1.5b
 influxdb~=5.2.3
 mysql-connector-python~=8.0.23
 PyMySQL~=1.0.2
 PyYAML~=5.4.1
 requests~=2.25.1
-SQLAlchemy~=1.3.16
+SQLAlchemy~=1.4.32

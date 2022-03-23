@@ -11,7 +11,8 @@
 
 name: Black Format Code
 
-on: [pull_request]
+on:
+  - pull_request
 
 jobs:
   build:
@@ -19,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7]
+        python-version: [3.9]
 
     steps:
       # Checkout
