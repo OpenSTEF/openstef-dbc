@@ -11,9 +11,10 @@ certificates/
 ktprognoses.egg-info/
 .idea/
 .vscode/
+
 # Ignore these files
 .DS_Store
-
+git-template
 
 # default Python .gitignore template: https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore
 
