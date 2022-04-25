@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: 2021 2017-2021 Contributors to the OpenSTF project <korte.termijn.prognoses@alliander.com>
+SPDX-FileCopyrightText: 2017-2022 Contributors to the OpenSTEF project <korte.termijn.prognoses@alliander.com>
 
 SPDX-License-Identifier: MPL-2.0
 -->
@@ -8,7 +8,7 @@ SPDX-License-Identifier: MPL-2.0
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=OpenSTEF_openstef-dbc&metric=alert_status)](https://sonarcloud.io/dashboard?id=OpenSTEF_openstef-dbc)
 
 
-# Openstf-dbc - Database connector for openstef (reference)
+# Openstef-dbc - Database connector for openstef (reference)
 
 This repository houses the python package [openstef-dbc](https://pypi.org/project/openstef-dbc/), which provides an interface to openstef (reference) databases.
 
