@@ -87,7 +87,7 @@ class Weather:
                 geopy.distance.geodesic(coordinates, location_coordinates).km
             )
             city = weather_location["city"]
-            distances = distances.append(
+            distances = distances.concat(
                 {"distance": distance, "input_city": city}, ignore_index=True
             )
 
