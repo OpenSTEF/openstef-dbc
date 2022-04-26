@@ -161,7 +161,7 @@ class PredictionJobRetriever:
              query (str): the sql query to use on the database
 
         Returns:
-            prediction_jobs (list): List of prediction job dictionaries
+            prediction_jobs (list): List of prediction job objects
         """
         results = _DataInterface.get_instance().exec_sql_query(query)
         if len(results) == 0:
@@ -172,6 +172,10 @@ class PredictionJobRetriever:
 
         # Add description to all prediction jobs
         prediction_jobs = self._add_description_to_prediction_jobs(prediction_jobs)
+        prediction_jobs = [
+            self._create_prediction_job_object(prediction_job)
+            for prediction_job in prediction_jobs
+        ]
 
         return prediction_jobs
 
