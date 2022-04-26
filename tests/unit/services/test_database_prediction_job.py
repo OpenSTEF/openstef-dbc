@@ -96,7 +96,7 @@ class TestPredictionJob(unittest.TestCase):
 
         # Assert
         assert isinstance(pj, PredictionJobDataClass)
-        assert pj.id == pj_dict['id']
+        assert pj.id == pj_dict["id"]
 
     @patch(
         "openstef_dbc.services.prediction_job.PredictionJobRetriever._add_description_to_prediction_jobs"
