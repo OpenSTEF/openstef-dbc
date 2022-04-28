@@ -86,6 +86,18 @@ class TestPredictionJob(unittest.TestCase):
         with self.assertRaises(AttributeError):
             self.service._create_prediction_job_object(pj_dict)
 
+    def test_create_prediction_job_object_without_train_components(self):
+        # Arrange
+        pj_dict = self.prediction_job.copy()
+        pj_dict.pop("train_components")
+
+        # Act
+        pj = self.service._create_prediction_job_object(pj_dict)
+
+        # Assert
+        assert isinstance(pj, PredictionJobDataClass)
+        assert pj.id == pj_dict["id"]
+
     @patch(
         "openstef_dbc.services.prediction_job.PredictionJobRetriever._add_description_to_prediction_jobs"
     )
