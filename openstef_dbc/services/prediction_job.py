@@ -159,9 +159,7 @@ class PredictionJobRetriever:
 
         return prediction_jobs
 
-    def _create_prediction_job_object(
-        self, pj: dict
-    ) -> PredictionJobDataClass:
+    def _create_prediction_job_object(self, pj: dict) -> PredictionJobDataClass:
         """Create an object for the prediction job from a dictionary
 
         Args:
