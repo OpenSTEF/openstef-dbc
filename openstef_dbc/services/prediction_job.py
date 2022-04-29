@@ -27,9 +27,7 @@ class PredictionJobRetriever:
             is_active (int, optional): Active job. Defaults to None.
 
         Returns:
-            dict: Prediction job dictionairy with keys:
-                id, type, model, horizon_minutes, resolution_minutes, lat, lon, sid,
-                created, description, quantiles
+            PredictionJobDataClass: Prediction job class
         """
 
         query = self.build_get_prediction_jobs_query(
@@ -72,7 +70,7 @@ class PredictionJobRetriever:
             limit (int): Limit the number of jobs to given value.
 
         Returns:
-            List[dict]: List of prediction jobs
+            List[PredictionJobDataClass]: List of prediction jobs
         """
         query = self.build_get_prediction_jobs_query(
             model_type=model_type,
@@ -80,19 +78,8 @@ class PredictionJobRetriever:
             only_ato=only_ato,
             limit=limit,
         )
-
-        # Retrieve prediction jobs from database as a list of dictionaries
         prediction_jobs = self._get_prediction_jobs_query_results(query)
-
-        # Add quantiles
         prediction_jobs = self._add_quantiles_to_prediction_jobs(prediction_jobs)
-
-        # Change prediction jobs to dataclass
-        prediction_jobs = [
-            self._create_prediction_job_object(prediction_job)
-            for prediction_job in prediction_jobs
-        ]
-
         return prediction_jobs
 
     def get_prediction_jobs_wind(self):
@@ -155,14 +142,7 @@ class PredictionJobRetriever:
     def _get_prediction_jobs_query_results(
         self, query: str
     ) -> List[PredictionJobDataClass]:
-        """Get prediction jobs using a query to the database
-
-         Args:
-             query (str): the sql query to use on the database
-
-        Returns:
-            prediction_jobs (list): List of prediction job objects
-        """
+        """Get prediction jobs using a query to the database."""
         results = _DataInterface.get_instance().exec_sql_query(query)
         if len(results) == 0:
             return []
@@ -180,7 +160,7 @@ class PredictionJobRetriever:
         return prediction_jobs
 
     def _create_prediction_job_object(
-        self, pj: PredictionJobDataClass
+        self, pj: dict
     ) -> PredictionJobDataClass:
         """Create an object for the prediction job from a dictionary
 
