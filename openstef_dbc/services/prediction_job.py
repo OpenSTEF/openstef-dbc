@@ -183,7 +183,6 @@ class PredictionJobRetriever:
             raise AttributeError(e)
         return prediction_job_object
 
-
     def _add_description_to_prediction_job(
         self, prediction_job: PredictionJobDataClass
     ) -> PredictionJobDataClass:
