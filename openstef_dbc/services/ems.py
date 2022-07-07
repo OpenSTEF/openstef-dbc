@@ -26,6 +26,7 @@ class Ems:
         forecast_resolution: str,
         aggregated: bool = True,
         average_output: bool = False,
+        include_n_entries_column=False,
     ) -> pd.DataFrame:
         """Get the load for a single or multiple system id's.
 
@@ -136,6 +137,10 @@ class Ems:
             result["load"] = result["load"] / result["nEntries"]
 
         outputcols = ["load"]
+
+        if include_n_entries_column:
+            outputcols.append("nEntries")
+
         return result[outputcols]
 
     def get_load_created_after(
