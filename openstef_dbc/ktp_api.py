@@ -334,6 +334,13 @@ class KtpApi:
         :return: a list with all Tracy Jobs
         """
         r = self._get(KtpApi.__TRACY_JOB_URL)
+
+        # add a quick and dirty retry.
+        max_retries=3
+        while max_retries & (r.status_code != 200):
+            r = self._get(KtpApi.__TRACY_JOB_URL)
+
+        # Finally
         if r.status_code != 200:
             # Raise exception of no valid response.
             # Alternatively, we could chose to return empty job list.
