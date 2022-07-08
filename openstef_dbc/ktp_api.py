@@ -337,7 +337,7 @@ class KtpApi:
         r = self._get(KtpApi.__TRACY_JOB_URL)
 
         # add a quick and dirty retry.
-        max_retries=3
+        max_retries = 3
         while max_retries & (r.status_code != 200):
             r = self._get(KtpApi.__TRACY_JOB_URL)
             time.sleep(2)
