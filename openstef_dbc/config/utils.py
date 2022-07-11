@@ -10,7 +10,7 @@ from openstef_dbc.config.enums import RuntimeEnv, Namespace
 
 def determine_runtime_environment():
     """Determine the runtime environment based on environment variables
-    
+
     Note that 'jenkins' is considered local
 
     Returns:
