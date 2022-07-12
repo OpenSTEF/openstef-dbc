@@ -16,7 +16,11 @@ def determine_runtime_environment():
     Returns:
         RunTimeEnv: Runtime environment (LOCAL or CONTAINER)
     """
-    if "KUBERNETES_SERVICE_HOST" in os.environ and "JENKINS_VERSION" not in os.environ:
+    if (
+        "KUBERNETES_SERVICE_HOST" in os.environ
+        and "JENKINS_VERSION" not in os.environ
+        and "JENKINS_NAME" not in os.environ
+    ):
         return RuntimeEnv.CONTAINER
     return RuntimeEnv.LOCAL
 
