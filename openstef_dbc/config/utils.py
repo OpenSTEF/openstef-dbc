@@ -18,11 +18,9 @@ def determine_runtime_environment():
     """
     if (
         "KUBERNETES_SERVICE_HOST" in os.environ
-        and "JENKINS_VERSION" not in os.environ
+        and "JENKINS_HOME" not in os.environ
         and "JENKINS_NAME" not in os.environ
     ):
-        # print environment variables for debugging jenkins
-        print(os.environ)
         return RuntimeEnv.CONTAINER
     return RuntimeEnv.LOCAL
 
