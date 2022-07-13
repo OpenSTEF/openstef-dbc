@@ -21,6 +21,8 @@ def determine_runtime_environment():
         and "JENKINS_VERSION" not in os.environ
         and "JENKINS_NAME" not in os.environ
     ):
+        # print environment variables for debugging jenkins
+        print(os.environ)
         return RuntimeEnv.CONTAINER
     return RuntimeEnv.LOCAL
 
