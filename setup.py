@@ -29,7 +29,7 @@ def read_long_description_from_readme():
 
 setup(
     name="openstef_dbc",
-    version="3.2.8",
+    version="3.3.0",
     packages=find_packages(include=["openstef_dbc", "openstef_dbc.*"]),
     description="Database Connection for OpenSTEF",
     long_description=read_long_description_from_readme(),
