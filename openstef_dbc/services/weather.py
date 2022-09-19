@@ -331,5 +331,5 @@ class Weather:
         """
         result = _DataInterface.get_instance().exec_influx_query(query)
         latest = result["weather"]
-        last_stored_run = datetime.fromtimestamp(latest["created"], pytz.utc)
+        last_stored_run = datetime.fromtimestamp(latest["source_run"], pytz.utc)
         return last_stored_run
