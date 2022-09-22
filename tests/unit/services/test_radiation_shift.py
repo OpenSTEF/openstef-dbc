@@ -45,7 +45,7 @@ class TestRadiationShift(unittest.TestCase):
         self.assertEqual(df_check.index[0], start)
         self.assertEqual(df_check.index[-1], end)
         np.testing.assert_array_equal(df_check["temp"], values[4:])
-        np.testing.assert_array_equal(df_check["radiation"], values[4:] - 2)
+        np.testing.assert_array_equal(df_check["radiation"][0:3], values[6:])
 
 
 if __name__ == "__main__":
