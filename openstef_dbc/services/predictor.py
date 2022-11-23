@@ -148,8 +148,8 @@ class Predictor:
             Get the TDCV (Typical Domestic Consumption Values) load profiles from the
             database for a given range.
 
-            MFFBAS supplies the SJI (Standaard Jaarinvoeding) and SJA (Standaard Jaarafname) 
-            load profiles for The Netherlands. (These load profiles are the successors of 
+            MFFBAS supplies the SJI (Standaard Jaarinvoeding) and SJA (Standaard Jaarafname)
+            load profiles for The Netherlands. (These load profiles are the successors of
             the SJV (Standaard Jaarverbruik) profiles from NEDU.) For more information see:
             https://www.mffbas.nl/documenten/
 
