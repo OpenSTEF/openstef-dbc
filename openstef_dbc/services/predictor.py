@@ -148,9 +148,10 @@ class Predictor:
             Get the TDCV (Typical Domestic Consumption Values) load profiles from the
             database for a given range.
 
-            NEDU supplies the SJV (Standaard Jaarverbruik) load profiles for
-            The Netherlands. For more information see:
-            https://www.nedu.nl/documenten/verbruiksprofielen/
+            MFFBAS supplies the SJI (Standaard Jaarinvoeding) and SJA (Standaard Jaarafname) 
+            load profiles for The Netherlands. (These load profiles are the successors of 
+            the SJV (Standaard Jaarverbruik) profiles from NEDU.) For more information see:
+            https://www.mffbas.nl/documenten/
 
         Returns:
             pandas.DataFrame: TDCV load profiles (if available)
@@ -165,7 +166,17 @@ class Predictor:
 
         query = f"""
             SELECT
-                /^sjv/ FROM "realised".."sjv"
+                "E1A_AMI_A", "E1A_AMI_I", "E1A_AZI_A", "E1A_AZI_I",
+                "E1B_AMI_A", "E1B_AMI_I", "E1B_AZI_A", "E1B_AZI_I",
+                "E1C_AMI_A", "E1C_AMI_I", "E1C_AZI_A", "E1C_AZI_I",
+                "E2A_AMI_A", "E2A_AMI_I", "E2A_AZI_A", "E2A_AZI_I",
+                "E2B_AMI_A", "E2B_AMI_I", "E2B_AZI_A", "E2B_AZI_I",
+                "E3A_A", "E3A_I", 
+                "E3B_A", "E3B_I",
+                "E3C_A", "E3C_I",
+                "E3D_A", "E3D_I",
+                "E4A_A", "E4A_I" 
+            FROM "realised".."sjv"
             WHERE
                 time >= $dstart AND
                 time <= $dend
