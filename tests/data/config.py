@@ -5,12 +5,12 @@
 from unittest import mock
 
 config = mock.MagicMock()
-config.mysql.username = "username"
-config.mysql.password = "password"
-config.mysql.host = "host"
-config.mysql.port = 123
-config.mysql.database_name = "database_name"
-config.influxdb.username = "username"
-config.influxdb.password = "password"
-config.influxdb.host = "host"
-config.influxdb.port = 123
+config.mysql_username = "username"
+config.mysql_password = "password"
+config.mysql_host = "host"
+config.mysql_port = 123
+config.mysql_database_name = "database_name"
+config.influxdb_username = "username"
+config.influxdb_password = "password"
+config.influxdb_host = "host"
+config.influxdb_port = 123
