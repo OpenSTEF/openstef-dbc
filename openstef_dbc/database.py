@@ -97,20 +97,20 @@ class DataBase(metaclass=Singleton):
 
         Args:
             config: Configuration object. with the following attributes:
-                api.username (str): API username.
-                api.password (str): API password.
-                api.admin_username (str): API admin username.
-                api.admin_password (str): API admin password.
-                api.url (str): API url.
-                influxdb.username (str): InfluxDB username.
-                influxdb.password (str): InfluxDB password.
-                influxdb.host (str): InfluxDB host.
-                influxdb.port (int): InfluxDB port.
-                mysql.username (str): MySQL username.
-                mysql.password (str): MySQL password.
-                mysql.host (str): MySQL host.
-                mysql.port (int): MYSQL port.
-                mysql.database_name (str): MySQL database name.
+                api_username (str): API username.
+                api_password (str): API password.
+                api_admin_username (str): API admin username.
+                api_admin_password (str): API admin password.
+                api_url (str): API url.
+                influxdb_username (str): InfluxDB username.
+                influxdb_password (str): InfluxDB password.
+                influxdb_host (str): InfluxDB host.
+                influxdb_port (int): InfluxDB port.
+                mysql_username (str): MySQL username.
+                mysql_password (str): MySQL password.
+                mysql_host (str): MySQL host.
+                mysql_port (int): MYSQL port.
+                mysql_database_name (str): MySQL database name.
                 proxies Union[dict[str, str], None]: Proxies.
 
         """
