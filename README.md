@@ -28,10 +28,7 @@ This is a package with functionality to support the openstef workflow. Most impo
 This class give access to the data used by openstef-reference via a convenient interface. You can use it, for example, to retrieve a prediction job by running the following lines of code:
 
 ```python
-from openstef_dbc.config.config import ConfigManager
 from openstef_dbc.database import DataBase
-
-config = ConfigManager.load_project_config(PROJECT_ROOT)
 
 db = DataBase(config)
 
