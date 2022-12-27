@@ -16,7 +16,6 @@ Related projects:
 - [openstef-reference](https://github.com/openstef/openstef-reference)
 - [openstef](https://github.com/openstef/short-term-forecasting)
 
-
 ## Install
 
 1. Install by running `pip install openstef-dbc`
@@ -34,6 +33,7 @@ db = DataBase(config)
 
 pj = db.get_prediction_job(307)
 ```
+Where `config` is a `pydantic.BaseSettings` object.
 
 ## License
 This project is licensed under the Mozilla Public License, version 2.0 - see LICENSE for details.
