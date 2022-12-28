@@ -16,7 +16,6 @@ Related projects:
 - [openstef-reference](https://github.com/openstef/openstef-reference)
 - [openstef](https://github.com/openstef/short-term-forecasting)
 
-
 ## Install
 
 1. Install by running `pip install openstef-dbc`
@@ -28,15 +27,13 @@ This is a package with functionality to support the openstef workflow. Most impo
 This class give access to the data used by openstef-reference via a convenient interface. You can use it, for example, to retrieve a prediction job by running the following lines of code:
 
 ```python
-from openstef_dbc.config.config import ConfigManager
 from openstef_dbc.database import DataBase
-
-config = ConfigManager.load_project_config(PROJECT_ROOT)
 
 db = DataBase(config)
 
 pj = db.get_prediction_job(307)
 ```
+Where `config` is a `pydantic.BaseSettings` object.
 
 ## License
 This project is licensed under the Mozilla Public License, version 2.0 - see LICENSE for details.
