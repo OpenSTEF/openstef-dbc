@@ -4,7 +4,7 @@
 
 geopy~=2.3.0
 openstef~=3.2.47
-influxdb~=5.3.1
+influxdb~=5.2.3
 mysql-connector-python~=8.0.31
 PyMySQL~=1.0.2
 PyYAML~=6.0
