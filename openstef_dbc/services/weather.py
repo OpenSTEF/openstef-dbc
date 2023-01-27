@@ -195,6 +195,7 @@ class Weather:
         datetime_start: datetime = None,
         datetime_end: datetime = None,
         source: Union[List[str], str] = "optimum",
+        t_ahead: Union[List[str], str] = None,
         resolution: str = "15min",
     ) -> pd.DataFrame:
         """Get weather data from database.
@@ -264,9 +265,22 @@ class Weather:
         else:
             combine_sources = False
 
+        # Placeholder string
+        t_aheads = ""
+        # Loop over requested t_aheads and add them to the query
+        for item in t_ahead:
+            # Get rid of hour symbols
+            item = re.sub("[hH]", "", item)
+            # Make string for this t_ahead
+            t_aheads = t_aheads + """ "tAhead" = '{}' OR""".format(str(item) + ".0")
+
+        # Get rid of last OR
+        t_aheads = t_aheads[0:-2]
+
         # Initialize binding params
         bind_params = {
             "location": location_name,
+            "taheads": t_aheads,
             "dstart": str(datetime_start),
             "dend": str(datetime_end),
         }
@@ -285,7 +299,7 @@ class Weather:
 
         # Create the query
         query = f'SELECT source::tag, input_city::tag, "{weather_params_str}" FROM \
-            "forecast_latest".."weather" WHERE input_city::tag = $location AND \
+            "forecast_latest".."weather" WHERE input_city::tag = $location AND (taheads=$taheads))\
             time >= $dstart AND time <= $dend AND (source::tag = {weather_models_str})'
 
         # Execute Query
