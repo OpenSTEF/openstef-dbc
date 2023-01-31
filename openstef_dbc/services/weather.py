@@ -334,6 +334,6 @@ class Weather:
         # Latest is a dataframe of length 1, with the most recent data of harm_arome
         latest_unix = latest["source_run"][
             0
-        ]  # unit timestamp of most recent stored weather forecast created
+        ]  # unix timestamp of most recent stored weather forecast created
         last_stored_run = datetime.fromtimestamp(latest_unix, pytz.utc)
         return last_stored_run
