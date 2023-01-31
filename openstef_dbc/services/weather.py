@@ -331,5 +331,7 @@ class Weather:
         """
         result = _DataInterface.get_instance().exec_influx_query(query)
         latest = result["weather"]
-        last_stored_run = datetime.fromtimestamp(latest["source_run"][0], pytz.utc)
+        # Latest is a dataframe of length 1, with the most recent data of harm_arome
+        latest_unix = latest["source_run"][0] # unit timestamp of most recent stored weather forecast created
+        last_stored_run = datetime.fromtimestamp(latest_unix, pytz.utc)
         return last_stored_run
