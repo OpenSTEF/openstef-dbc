@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import geopy
-import influxdb
+import influxdb_client
 import pandas as pd
 import requests
 import sqlalchemy
@@ -95,7 +95,7 @@ class _DataInterface(metaclass=Singleton):
     ) -> None:
         """Create influx client, namespace-dependend"""
         try:
-            return influxdb.DataFrameClient(
+            return influxdb_client.DataFrameClient(
                 host=host,
                 port=port,
                 username=username,
