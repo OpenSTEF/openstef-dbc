@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import geopy
-import influxdb_client
+from influxdb_client import InfluxDBClient
 import pandas as pd
 import requests
 import sqlalchemy
@@ -59,6 +59,8 @@ class _DataInterface(metaclass=Singleton):
             port=config.influxdb_port,
         )
 
+        self.influx_query_api = self.influx_client.query_api()
+
         self.mysql_engine = self._create_mysql_engine(
             username=config.mysql_username,
             password=config.mysql_password,
@@ -95,11 +97,9 @@ class _DataInterface(metaclass=Singleton):
     ) -> None:
         """Create influx client, namespace-dependend"""
         try:
-            return influxdb_client.DataFrameClient(
-                host=host,
-                port=port,
-                username=username,
-                password=password,
+            return InfluxDBClient(
+                url=f"http://{host}:{port}",
+                token=f"{username}:{password}",                
             )
         except Exception as exc:
             self.logger("Could not connect to InfluxDB database", exc_info=exc)
@@ -138,8 +138,8 @@ class _DataInterface(metaclass=Singleton):
             defaultdict: Query result.
         """
         try:
-            return self.influx_client.query(
-                query, bind_params=bind_params, chunked=True, chunk_size=10000
+            return self.influx_query_api.query_data_frame(
+                query, params=bind_params, chunked=True, chunk_size=10000
             )
         except requests.exceptions.ConnectionError as e:
             self.logger.error("Lost connection to InfluxDB database", exc_info=e)
