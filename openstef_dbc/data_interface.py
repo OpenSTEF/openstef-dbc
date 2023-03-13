@@ -123,6 +123,12 @@ class _DataInterface(metaclass=Singleton):
         except Exception as exc:
             self.logger.error("Could not connect to MySQL database", exc_info=exc)
             raise
+        
+    @staticmethod
+    def _clean_up_data_frame(raw_dataframe: pd.DataFrame) -> pd.DataFrame:    
+        raw_dataframe["index"] = pd.to_datetime(raw_dataframe["_start"])
+        raw_dataframe = raw_dataframe.set_index(raw_dataframe["index"])
+        return raw_dataframe[["_value"]].rename(columns={"_value":raw_dataframe["_field"][0]})
 
     def exec_influx_query(self, query: str, bind_params: dict = {}) -> dict:
         """Execute an InfluxDB query.
@@ -138,9 +144,10 @@ class _DataInterface(metaclass=Singleton):
             defaultdict: Query result.
         """
         try:
-            return self.influx_query_api.query_data_frame(
-                query, params=bind_params, chunked=True, chunk_size=10000
+            raw_dataframe = self.influx_query_api.query_data_frame(
+                query, params=bind_params
             )
+            return self._clean_up_data_frame(raw_dataframe)
         except requests.exceptions.ConnectionError as e:
             self.logger.error("Lost connection to InfluxDB database", exc_info=e)
             raise
