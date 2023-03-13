@@ -280,8 +280,9 @@ class Weather:
         weather_models_str = '" or r.source == "'.join([s for s in source])
 
         # Create the query
-        query = f"""from(bucket: "forecast_latest/autogen") |> range(start: {bind_params["_start"].strftime('%Y-%m-%dT%H:%M:%SZ')}, stop: {bind_params["_stop"].strftime('%Y-%m-%dT%H:%M:%SZ')}) 
-    |> filter(fn: (r) => r._measurement == "weather" and (r._field == "{weather_params_str}") and (r.source == "{weather_models_str}") and r.input_city == "{bind_params["_input_city"]}")"""
+        query = f"""from(bucket: "forecast_latest/autogen") 
+                        |> range(start: {bind_params["_start"].strftime('%Y-%m-%dT%H:%M:%SZ')}, stop: {bind_params["_stop"].strftime('%Y-%m-%dT%H:%M:%SZ')}) 
+                        |> filter(fn: (r) => r._measurement == "weather" and (r._field == "{weather_params_str}") and (r.source == "{weather_models_str}") and r.input_city == "{bind_params["_input_city"]}")"""
 
         # Execute Query
         result = _DataInterface.get_instance().exec_influx_query(query)
@@ -330,10 +331,10 @@ class Weather:
 
     def get_datetime_last_stored_knmi_weatherdata(self) -> datetime:
         query = """from(bucket: "forecast_latest/autogen" )   
-                |> range(start: - 10d) 
-                |> limit(n:10)
-                |> filter(fn: (r) => r._measurement == "weather" and r.source == "harm_arome" and r._field == "source_run")
-                |> max()"""
+                        |> range(start: - 10d) 
+                        |> limit(n:10)
+                        |> filter(fn: (r) => r._measurement == "weather" and r.source == "harm_arome" and r._field == "source_run")
+                        |> max()"""
         result = _DataInterface.get_instance().exec_influx_query(query)
 
         if not result.emtpty:
