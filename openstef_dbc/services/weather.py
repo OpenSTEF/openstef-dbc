@@ -10,10 +10,14 @@ import numpy as np
 import pandas as pd
 import pytz
 import structlog
+import warnings
+from influxdb_client.client.warnings import MissingPivotFunction
+
 from openstef_dbc.data_interface import _DataInterface
 from openstef_dbc.services.write import Write
 from openstef_dbc.utils import genereate_datetime_index
 
+warnings.simplefilter("ignore", MissingPivotFunction)
 
 class Weather:
     def __init__(self) -> None:
@@ -265,34 +269,35 @@ class Weather:
 
         # Initialize binding params
         bind_params = {
-            "location": location_name,
-            "dstart": str(datetime_start),
-            "dend": str(datetime_end),
+            "_input_city": location_name,
+            "_start": str(datetime_start),
+            "_stop": str(datetime_end),
         }
 
         # Initialise strings for the querying influx, it is not possible to parameterize this string
-        weather_params_str = '", "'.join(weatherparams)
-
-        # Parameterize for the weather models
-        weather_models_bind_params = {}
-        for i in range(len(source)):
-            weather_models_bind_params[f"weather_model_{i}"] = source[i]
-        weather_models_str = " OR source::tag = ".join(
-            ["$" + s for s in list(weather_models_bind_params.keys())]
+        weather_params_str = '" or r._field == "'.join(weatherparams)
+        weather_models_str = '" or r.source == "'.join(
+            [s for s in source]
         )
-        bind_params.update(weather_models_bind_params)
-
+       
         # Create the query
-        query = f'SELECT source::tag, input_city::tag, "{weather_params_str}" FROM \
-            "forecast_latest".."weather" WHERE input_city::tag = $location AND \
-            time >= $dstart AND time <= $dend AND (source::tag = {weather_models_str})'
-
+        query = f'''from(bucket: "forecast_latest/autogen") |> range(start: {bind_params["_start"].strftime('%Y-%m-%dT%H:%M:%SZ')}, stop: {bind_params["_stop"].strftime('%Y-%m-%dT%H:%M:%SZ')}) 
+    |> filter(fn: (r) => r._measurement == "weather" and (r._field == "{weather_params_str}") and (r.source == "{weather_models_str}") and r.input_city == "{bind_params["_input_city"]}")'''
+                
         # Execute Query
-        result = _DataInterface.get_instance().exec_influx_query(query, bind_params)
+        result = _DataInterface.get_instance().exec_influx_query(query)
 
-        if result:
-            result = result["weather"]
+        # For multiple Fields a list is returned.
+        if isinstance(result, list):
+            result = pd.concat(result)[["_value", "_field", "_time", "source"]]
+
+        # Check if response is empty
+        if not result.empty:                       
+            result["_time"] = pd.to_datetime(result["_time"])
+            result = result.pivot_table(columns = "_field", values = "_value", index = ["_time", "source"])
+            result = result.reset_index().set_index("_time")
             result.index.name = "datetime"
+            result.columns.name = ""
         else:
             self.logger.warning("No weatherdata found. Returning empty dataframe")
             return pd.DataFrame(
