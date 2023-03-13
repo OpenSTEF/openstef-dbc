@@ -97,7 +97,6 @@ class Predictions:
         # If no t_ahead are provided ask influx for all t_ahead available
         if t_ahead is None:
             if component:
-
                 bind_params = {
                     "pid": str(pj["id"]),
                     "dstart": start_time.astimezone(pytz.UTC).isoformat(),

@@ -71,7 +71,6 @@ class Ems:
         else:
             # Create parameters for each sid
             for i in range(len(sid)):
-
                 # Escape forward slahes as inlfux cant handle them
                 sid[i] = sid[i].replace("/", "\/")
                 sid[i] = sid[i].replace("+", "\+")
@@ -260,7 +259,6 @@ class Ems:
 
         # Apply positive or negative polariy to systems
         for system_id in systems.system_id:
-
             polarity = systems.loc[systems.system_id == system_id].polarity.iloc[0]
             if polarity == 0:
                 self.logger.warning(
@@ -394,7 +392,6 @@ class Ems:
         forecast_resolution: str = "15T",
         flexnet_name: str = "BEMMEL_9017589K_10-1V2LS",
     ) -> pd.DataFrame:
-
         # Validate forecast resolution to prevent injections
         self._check_influx_group_by_time_statement(
             forecast_resolution.replace("T", "m")
