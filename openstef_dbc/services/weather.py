@@ -329,16 +329,17 @@ class Weather:
         return result
 
     def get_datetime_last_stored_knmi_weatherdata(self) -> datetime:
-        query = """
-            SELECT * FROM forecast_latest..weather
-            WHERE source::tag = 'harm_arome'
-            ORDER BY time desc limit 1
-        """
+        query = """from(bucket: "forecast_latest/autogen" )   
+                |> range(start: - 10d) 
+                |> limit(n:10)
+                |> filter(fn: (r) => r._measurement == "weather" and r.source == "harm_arome" and r._field == "source_run")
+                |> max()"""
         result = _DataInterface.get_instance().exec_influx_query(query)
-        latest = result["weather"]
-        # Latest is a dataframe of length 1, with the most recent data of harm_arome
-        latest_unix = latest["source_run"][
-            0
-        ]  # unix timestamp of most recent stored weather forecast created
+
+        if not result.emtpty:
+            # Get latest run
+            latest_unix = result["_value"].max()
+
+        # unix timestamp of most recent stored weather forecast created
         last_stored_run = datetime.fromtimestamp(latest_unix, pytz.utc)
         return last_stored_run
