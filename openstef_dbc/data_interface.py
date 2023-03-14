@@ -99,7 +99,7 @@ class _DataInterface(metaclass=Singleton):
         try:
             return InfluxDBClient(
                 url=f"http://{host}:{port}",
-                token=f"{username}:{password}",                
+                token=f"{username}:{password}",
             )
         except Exception as exc:
             self.logger("Could not connect to InfluxDB database", exc_info=exc)
@@ -160,7 +160,6 @@ class _DataInterface(metaclass=Singleton):
         time_precision: str = "s",
         protocol: str = "json",
     ) -> bool:
-
         if field_columns is None:
             field_columns = []
         if type(tag_columns) is not list:

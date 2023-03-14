@@ -96,7 +96,6 @@ class Weather:
 
         # Find closest weather location
         if distances.index.min() < threshold:
-
             if isinstance(nearest_location, pd.Series):
                 return nearest_location.reset_index(drop=True)[0]
             else:
