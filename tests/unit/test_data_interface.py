@@ -11,7 +11,7 @@ from openstef_dbc.data_interface import _DataInterface
 
 @patch("openstef_dbc.data_interface.KtpApi", MagicMock())
 @patch("openstef_dbc.data_interface.logging", MagicMock())
-@patch("openstef_dbc.data_interface.influxdb", MagicMock())
+@patch("openstef_dbc.data_interface.InfluxDBClient", MagicMock())
 @patch("openstef_dbc.data_interface.sqlalchemy", MagicMock())
 class TestDataInterface(unittest.TestCase):
     def test_exec_influx_write(self):

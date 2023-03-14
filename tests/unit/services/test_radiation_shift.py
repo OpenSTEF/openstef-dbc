@@ -22,15 +22,16 @@ class TestRadiationShift(unittest.TestCase):
 
         df_test = pd.DataFrame(
             {
-                "temp": values,
-                "radiation": values,
+                "_value": np.concatenate((values, values)),
+                "_field": ["radiation"] * index.size + ["temp"] * index.size,
+                "_time": np.concatenate((index, index)),
+                "source": ["harm_arome"] * index.size * 2,
             },
-            index=index,
         )
 
-        data_interface_get_instance_mock.return_value.exec_influx_query.return_value = {
-            "weather": df_test
-        }
+        data_interface_get_instance_mock.return_value.exec_influx_query.return_value = (
+            df_test
+        )
 
         # Mock other functions
         weather = Weather()
