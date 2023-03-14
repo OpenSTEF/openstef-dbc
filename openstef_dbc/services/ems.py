@@ -128,10 +128,9 @@ class Ems:
                         .set_index("_time"))
             
             forecast_resolution_mins = int(forecast_resolution[:-1])
-            
             # Correction because flux takes the right instead of the left boundary when 
-            # aggregating over a time window. In the flux query, two aggregation are performed
-            # over a time window the size of the forecast_resolution.
+            # aggregating over a time window. In the flux query, two aggregations are performed
+            # over a `forecast_resolution`-sized time window.
             result.index = result.index - 2 * timedelta(minutes=forecast_resolution_mins)
             # The first two rows are dropped since their timestamps are before the `datetime_start`.
             result = result.iloc[2:, :]
