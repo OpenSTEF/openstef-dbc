@@ -213,7 +213,7 @@ class _DataInterface(metaclass=Singleton):
             )
             raise
         except sqlalchemy.exc.DatabaseError as e:
-            self.logger.error("Can't connecto to MySQL database", exc_info=e)
+            self.logger.error("Can't connect to MySQL database", exc_info=e)
             raise
 
     def exec_sql_write(self, statement: str, params: dict = None) -> None:

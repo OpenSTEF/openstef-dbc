@@ -67,7 +67,7 @@ class Ems:
             sid[0] = sid[0].replace("/", "\/")
             sid[0] = sid[0].replace("+", "\+")
             bind_params[f"param_sid_0"] = sid[0]
-            sidsection = '"system" = $param_sid_0'
+            sidsection = f'r.system == "{bind_params["param_sid_0"]}"'
         else:
             # Create parameters for each sid
             for i in range(len(sid)):
@@ -77,10 +77,10 @@ class Ems:
                 bind_params[f"param_sid_{i}"] = sid[i]
 
             # Build parameters in query
-            section = ' OR "system" = '.join(
-                ["$" + s for s in list(bind_params.keys())]
+            section = ' or r.system == '.join(
+                ['"' + s + '"' for s in list(bind_params.values())]
             )
-            sidsection = f'("system" = {section})'
+            sidsection = f'r.system == {section}'
 
         bind_params.update(
             {
@@ -106,41 +106,34 @@ class Ems:
                 GROUP BY time({forecast_resolution.replace("T", "m")})
             """
         else:
-            query = f"""
-                SELECT "output" AS load, "system"
-                FROM "realised".."power"
-                WHERE
-                    {sidsection} AND
-                    time >= $dstart AND
-                    time < $dend fill(null)
-            """
+            query = f'''
+                from(bucket: "realised/autogen") 
+                    |> range(start: {bind_params['dstart']}, stop: {bind_params['dend']}) 
+                    |> filter(fn: (r) => r._measurement == "power")
+                    |> filter(fn: (r) => r._field == "output")
+                    |> filter(fn: (r) => {sidsection})
+                    |> pivot(rowKey:["_time"], columnKey: ["system"], valueColumn: "_value")
+            '''
 
         # Query load
         result = _DataInterface.get_instance().exec_influx_query(query, bind_params)
 
-        # no data was found, return empty dataframe
-        if "power" not in result:
-            return pd.DataFrame()
-
-        result = result["power"]
-
         if aggregated:
             result = result[["load", "nEntries"]]
+            result = result.dropna()
+            if average_output:
+                result["load"] = result["load"] / result["nEntries"]
+
+            outputcols = ["load"]
+
+            if include_n_entries_column:
+                outputcols.append("nEntries")
+
+            return result[outputcols]
         else:
-            result = result.pivot_table(index=result.index, columns="system")["load"]
+            result = result.set_index("_time")[sid]
             result = result.resample(forecast_resolution).mean()
             return result
-
-        result = result.dropna()
-        if average_output:
-            result["load"] = result["load"] / result["nEntries"]
-
-        outputcols = ["load"]
-
-        if include_n_entries_column:
-            outputcols.append("nEntries")
-
-        return result[outputcols]
 
     def get_load_created_after(
         self, sid: str, created_after: datetime.datetime, group_by_time: str = "5m"
