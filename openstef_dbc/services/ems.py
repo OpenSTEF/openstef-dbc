@@ -91,20 +91,22 @@ class Ems:
 
         # Prepare query
         if aggregated:
-            query = f"""
-                SELECT sum("output") AS load, count("output") AS nEntries
-                FROM (
-                    SELECT mean("output") AS output
-                    FROM "realised".."power"
-                    WHERE
-                        {sidsection} AND
-                        time >= $dstart AND
-                        time <= $dend
-                    GROUP BY time({forecast_resolution.replace("T", "m")}), "system" fill(null)
-                )
-                WHERE time <= NOW()
-                GROUP BY time({forecast_resolution.replace("T", "m")})
-            """
+            query = f'''
+                data = from(bucket: "realised/autogen") 
+                    |> range(start: {bind_params['dstart']}, stop: {bind_params['dend']}) 
+                    |> filter(fn: (r) => r._measurement == "power")
+                    |> filter(fn: (r) => r._field == "output")
+                    |> filter(fn: (r) => {sidsection})
+                    |> aggregateWindow(every: {forecast_resolution.replace("T", "m")}, fn: mean)
+
+                data
+                    |> group() |> aggregateWindow(every: {forecast_resolution.replace("T", "m")}, fn: sum)
+                    |> yield(name: "load")
+
+                data
+                    |> group() |> aggregateWindow(every: {forecast_resolution.replace("T", "m")}, fn: count)
+                    |> yield(name: "nEntries")
+            '''
         else:
             query = f'''
                 from(bucket: "realised/autogen") 
@@ -116,11 +118,27 @@ class Ems:
             '''
 
         # Query load
-        result = _DataInterface.get_instance().exec_influx_query(query, bind_params)
+        result_raw = _DataInterface.get_instance().exec_influx_query(query, bind_params)
 
         if aggregated:
-            result = result[["load", "nEntries"]]
-            result = result.dropna()
+            
+            result = (pd.concat([result_raw[0][["_time", "_value"]].rename(columns={"_value": "load"}), 
+                                 result_raw[1][["_value"]].rename(columns={"_value": "nEntries"})], 
+                                axis=1)
+                        .set_index("_time"))
+            
+            forecast_resolution_mins = int(forecast_resolution[:-1])
+            
+            # Correction because flux takes the right instead of the left boundary when 
+            # aggregating over a time window. In the flux query, two aggregation are performed
+            # over a time window the size of the forecast_resolution.
+            result.index = result.index - 2 * timedelta(minutes=forecast_resolution_mins)
+            # The first two rows are dropped since their timestamps are before the `datetime_start`.
+            result = result.iloc[2:, :]
+
+            # TODO: Last timestamp of result is two timestamps before `datetime_end`. Should that be fixed?
+
+            result = result.dropna()       
             if average_output:
                 result["load"] = result["load"] / result["nEntries"]
 
@@ -131,7 +149,7 @@ class Ems:
 
             return result[outputcols]
         else:
-            result = result.set_index("_time")[sid]
+            result = result_raw.set_index("_time")[sid]
             result = result.resample(forecast_resolution).mean()
             return result
 
