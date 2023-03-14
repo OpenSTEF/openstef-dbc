@@ -91,6 +91,10 @@ class Ems:
 
         # Prepare query
         if aggregated:
+            forecast_resolution_timedelta = timedelta(minutes=int(forecast_resolution[:-1]))
+            # Extending the range is necessary to make sure the final timestamps are also in 
+            # the reponse after aggregations.
+            bind_params["dend"] = (datetime_end + 2 * forecast_resolution_timedelta).isoformat()
             query = f"""
                 data = from(bucket: "realised/autogen") 
                     |> range(start: {bind_params['dstart']}, stop: {bind_params['dend']}) 
@@ -131,15 +135,12 @@ class Ems:
                 axis=1,
             ).set_index("_time")
 
-            forecast_resolution_mins = int(forecast_resolution[:-1])
             # Correction because flux takes the right instead of the left boundary when 
             # aggregating over a time window. In the flux query, two aggregations are performed
             # over a `forecast_resolution`-sized time window.
-            result.index = result.index - 2 * timedelta(minutes=forecast_resolution_mins)
+            result.index = result.index - 2 * forecast_resolution_timedelta
             # The first two rows are dropped since their timestamps are before the `datetime_start`.
             result = result.iloc[2:, :]
-
-            # TODO: Last timestamp of result is two timestamps before `datetime_end`. Should that be fixed?
 
             result = result.dropna()
             if average_output:
