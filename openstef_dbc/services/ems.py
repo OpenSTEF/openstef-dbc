@@ -77,10 +77,10 @@ class Ems:
                 bind_params[f"param_sid_{i}"] = sid[i]
 
             # Build parameters in query
-            section = ' or r.system == '.join(
+            section = " or r.system == ".join(
                 ['"' + s + '"' for s in list(bind_params.values())]
             )
-            sidsection = f'r.system == {section}'
+            sidsection = f"r.system == {section}"
 
         bind_params.update(
             {
@@ -106,14 +106,14 @@ class Ems:
                 GROUP BY time({forecast_resolution.replace("T", "m")})
             """
         else:
-            query = f'''
+            query = f"""
                 from(bucket: "realised/autogen") 
                     |> range(start: {bind_params['dstart']}, stop: {bind_params['dend']}) 
                     |> filter(fn: (r) => r._measurement == "power")
                     |> filter(fn: (r) => r._field == "output")
                     |> filter(fn: (r) => {sidsection})
                     |> pivot(rowKey:["_time"], columnKey: ["system"], valueColumn: "_value")
-            '''
+            """
 
         # Query load
         result = _DataInterface.get_instance().exec_influx_query(query, bind_params)
