@@ -138,7 +138,7 @@ class _DataInterface(metaclass=Singleton):
             defaultdict: Query result.
         """
         try:
-            return self.influx_query_api.query_data_frame(query)
+            return self.influx_query_api.query_data_frame(query, params=bind_params)
         except requests.exceptions.ConnectionError as e:
             self.logger.error("Lost connection to InfluxDB database", exc_info=e)
             raise
