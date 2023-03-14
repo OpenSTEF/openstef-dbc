@@ -91,7 +91,7 @@ class Ems:
 
         # Prepare query
         if aggregated:
-            query = f'''
+            query = f"""
                 data = from(bucket: "realised/autogen") 
                     |> range(start: {bind_params['dstart']}, stop: {bind_params['dend']}) 
                     |> filter(fn: (r) => r._measurement == "power")
@@ -106,7 +106,7 @@ class Ems:
                 data
                     |> group() |> aggregateWindow(every: {forecast_resolution.replace("T", "m")}, fn: count)
                     |> yield(name: "nEntries")
-            '''
+            """
         else:
             query = f"""
                 from(bucket: "realised/autogen") 
@@ -121,12 +121,16 @@ class Ems:
         result_raw = _DataInterface.get_instance().exec_influx_query(query, bind_params)
 
         if aggregated:
-            
-            result = (pd.concat([result_raw[0][["_time", "_value"]].rename(columns={"_value": "load"}), 
-                                 result_raw[1][["_value"]].rename(columns={"_value": "nEntries"})], 
-                                axis=1)
-                        .set_index("_time"))
-            
+            result = pd.concat(
+                [
+                    result_raw[0][["_time", "_value"]].rename(
+                        columns={"_value": "load"}
+                    ),
+                    result_raw[1][["_value"]].rename(columns={"_value": "nEntries"}),
+                ],
+                axis=1,
+            ).set_index("_time")
+
             forecast_resolution_mins = int(forecast_resolution[:-1])
             # Correction because flux takes the right instead of the left boundary when 
             # aggregating over a time window. In the flux query, two aggregations are performed
@@ -137,7 +141,7 @@ class Ems:
 
             # TODO: Last timestamp of result is two timestamps before `datetime_end`. Should that be fixed?
 
-            result = result.dropna()       
+            result = result.dropna()
             if average_output:
                 result["load"] = result["load"] / result["nEntries"]
 
