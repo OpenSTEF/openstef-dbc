@@ -63,8 +63,6 @@ class DataBase(metaclass=Singleton):
     get_load_sid = _historic_cdb_data_service.get_load_sid
     get_load_created_after = _historic_cdb_data_service.get_load_created_after
     get_load_pid = _historic_cdb_data_service.get_load_pid
-    get_states_flexnet = _historic_cdb_data_service.get_states_flexnet
-    get_curtailments = _historic_cdb_data_service.get_curtailments
     get_load_created_datetime_sid = (
         _historic_cdb_data_service.get_load_created_datetime_sid
     )
