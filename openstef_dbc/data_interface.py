@@ -60,6 +60,7 @@ class _DataInterface(metaclass=Singleton):
         )
 
         self.influx_query_api = self.influx_client.query_api()
+        self.influx_write_api = self.influx_client.write_api()
 
         self.mysql_engine = self._create_mysql_engine(
             username=config.mysql_username,
@@ -156,7 +157,6 @@ class _DataInterface(metaclass=Singleton):
         tag_columns: list,
         field_columns: list = None,
         time_precision: str = "s",
-        protocol: str = "json",
     ) -> bool:
         if field_columns is None:
             field_columns = []
@@ -174,14 +174,13 @@ class _DataInterface(metaclass=Singleton):
             )
 
         try:
-            self.influx_client.write_points(
-                df,
-                measurement=measurement,
-                database=database,
-                tag_columns=tag_columns,
-                field_columns=field_columns,
-                time_precision=time_precision,
-                protocol=protocol,
+            self.influx_write_api.write(
+                record=df,
+                data_frame_measurement_name=measurement,
+                bucket=f"{database}/autogen",
+                record_tag_keys=tag_columns,
+                record_field_keys=field_columns,
+                write_precision=time_precision,
             )
             return True
         except Exception as e:
@@ -192,10 +191,12 @@ class _DataInterface(metaclass=Singleton):
 
     def check_influx_available(self):
         """Check if a basic influx query gives a valid response"""
-        query = "SHOW DATABASES"
+        query = "buckets()"
         response = self.exec_influx_query(query)
-
-        available = len(list(response["databases"])) > 0
+        if isinstance(response, pd.DataFrame):
+            available = not response.empty
+        else:
+            available = False
 
         return available
 

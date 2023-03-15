@@ -271,8 +271,8 @@ class Weather:
         # Initialize binding params
         bind_params = {
             "_input_city": location_name,
-            "_start": str(datetime_start),
-            "_stop": str(datetime_end),
+            "_start": datetime_start,
+            "_stop": datetime_end,
         }
 
         # Initialise strings for the querying influx, it is not possible to parameterize this string

@@ -103,20 +103,16 @@ class Predictor:
         datetime_end: datetime.datetime,
         forecast_resolution: str = None,
     ) -> pd.DataFrame:
-        database = "forecast_latest"
-        measurement = "marketprices"
         bind_params = {
-            "dstart": datetime_start.isoformat(),
-            "dend": datetime_end.isoformat(),
+            "_start": datetime_start,
+            "_stop": datetime_end,
         }
-        query = f"""
-            SELECT
-                "Price" FROM "{database}".."{measurement}"
-            WHERE
-                "Name" = 'APX' AND
-                time >= $dstart AND
-                time <= $dend
-        """
+
+        query = f"""from(bucket: "forecast_latest/autogen")
+                    |> range(start: {bind_params["_start"].strftime('%Y-%m-%dT%H:%M:%SZ')}, stop: {bind_params["_stop"].strftime('%Y-%m-%dT%H:%M:%SZ')}) 
+                    |> filter(fn: (r) =>
+                        r._measurement == "marketprices" and r._field == "Price" and r.Name=="APX")"""
+
         electricity_price = _DataInterface.get_instance().exec_influx_query(
             query, bind_params
         )
@@ -160,26 +156,50 @@ class Predictor:
         # select all fields which start with 'sjv'
         # (there is also a 'year_created' tag in this measurement)
         bind_params = {
-            "dstart": datetime_start.isoformat(),
-            "dend": datetime_end.isoformat(),
+            "_start": datetime_start,
+            "_stop": datetime_end,
         }
 
+        sjv_profles = [
+            "E1A_AMI_A",
+            "E1A_AMI_I",
+            "E1A_AZI_A",
+            "E1A_AZI_I",
+            "E1B_AMI_A",
+            "E1B_AMI_I",
+            "E1B_AZI_A",
+            "E1B_AZI_I",
+            "E1C_AMI_A",
+            "E1C_AMI_I",
+            "E1C_AZI_A",
+            "E1C_AZI_I",
+            "E2A_AMI_A",
+            "E2A_AMI_I",
+            "E2A_AZI_A",
+            "E2A_AZI_I",
+            "E2B_AMI_A",
+            "E2B_AMI_I",
+            "E2B_AZI_A",
+            "E2B_AZI_I",
+            "E3A_A",
+            "E3A_I",
+            "E3B_A",
+            "E3B_I",
+            "E3C_A",
+            "E3C_I",
+            "E3D_A",
+            "E3D_I",
+            "E4A_A",
+            "E4A_I",
+        ]
+
+        field_selection = '" or r._field == "'.join(sjv_profles)
+
         query = f"""
-            SELECT
-                "E1A_AMI_A", "E1A_AMI_I", "E1A_AZI_A", "E1A_AZI_I",
-                "E1B_AMI_A", "E1B_AMI_I", "E1B_AZI_A", "E1B_AZI_I",
-                "E1C_AMI_A", "E1C_AMI_I", "E1C_AZI_A", "E1C_AZI_I",
-                "E2A_AMI_A", "E2A_AMI_I", "E2A_AZI_A", "E2A_AZI_I",
-                "E2B_AMI_A", "E2B_AMI_I", "E2B_AZI_A", "E2B_AZI_I",
-                "E3A_A", "E3A_I", 
-                "E3B_A", "E3B_I",
-                "E3C_A", "E3C_I",
-                "E3D_A", "E3D_I",
-                "E4A_A", "E4A_I" 
-            FROM "realised".."sjv"
-            WHERE
-                time >= $dstart AND
-                time <= $dend
+        from(bucket: "realised/autogen")
+            |> range(start: {bind_params["_start"].strftime('%Y-%m-%dT%H:%M:%SZ')}, stop: {bind_params["_stop"].strftime('%Y-%m-%dT%H:%M:%SZ')}) 
+            |> filter(fn: (r) =>
+                r._measurement == "sjv" and r._field == "{field_selection}")
         """
         load_profiles = _DataInterface.get_instance().exec_influx_query(
             query, bind_params=bind_params
