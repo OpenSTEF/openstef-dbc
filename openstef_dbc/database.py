@@ -60,8 +60,8 @@ class DataBase(metaclass=Singleton):
     get_electricity_price = _predictor.get_electricity_price
     get_load_profiles = _predictor.get_load_profiles
     # historic cdb data service
-    get_load_sid = _historic_cdb_data_service.get_load_sid    
-    get_load_pid = _historic_cdb_data_service.get_load_pid  
+    get_load_sid = _historic_cdb_data_service.get_load_sid
+    get_load_pid = _historic_cdb_data_service.get_load_pid
 
     # splitting methods
     get_wind_ref = _splitting.get_wind_ref
