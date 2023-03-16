@@ -8,7 +8,11 @@ from typing import List, Optional, Tuple, Union
 import pandas as pd
 from openstef_dbc.data_interface import _DataInterface
 from openstef_dbc.services.weather import Weather
-from openstef_dbc.utils import genereate_datetime_index, process_datetime_range
+from openstef_dbc.utils import (
+    genereate_datetime_index,
+    process_datetime_range,
+    parse_influx_result,
+)
 
 
 class PredictorGroups(Enum):
@@ -122,7 +126,7 @@ class Predictor:
 
         # Check if response is empty
         if not result.empty:
-            electricity_price = _DataInterface.get_instance().parse_result(result)
+            electricity_price = parse_influx_result(result)
         else:
             return pd.DataFrame(
                 index=genereate_datetime_index(
@@ -211,7 +215,7 @@ class Predictor:
             result = pd.concat(result)[["_value", "_field", "_time"]]
 
         if not result.empty:
-            load_profiles = _DataInterface.get_instance().parse_result(result)
+            load_profiles = parse_influx_result(result)
         else:
             return pd.DataFrame(
                 index=genereate_datetime_index(

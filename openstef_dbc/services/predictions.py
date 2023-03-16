@@ -9,6 +9,7 @@ import pandas as pd
 import re
 
 from openstef_dbc.data_interface import _DataInterface
+from openstef_dbc.utils import parse_influx_result
 
 
 class Predictions:
@@ -66,9 +67,7 @@ class Predictions:
         # Return result
         if not result.empty:
             # Shifting is needed to output the same as with the old influx client
-            return (
-                _DataInterface.get_instance().parse_result(result).shift(-15, freq="T")
-            )
+            return parse_influx_result(result).shift(-15, freq="T")
         else:
             return pd.Series()
 
@@ -197,10 +196,8 @@ class Predictions:
         # Return result
         if not result.empty:
             # Shifting is needed to output the same as with the old influx client
-            result = (
-                _DataInterface.get_instance()
-                .parse_result(result, aditional_indices=["tAhead"])
-                .shift(-15, freq="T")
+            result = parse_influx_result(result, aditional_indices=["tAhead"]).shift(
+                -15, freq="T"
             )
         else:
             return pd.Series()

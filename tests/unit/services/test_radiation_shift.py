@@ -14,8 +14,8 @@ from openstef_dbc.services.weather import Weather
 class TestRadiationShift(unittest.TestCase):
     def test(self, data_interface_get_instance_mock):
         # Mock database response
-        start = pd.to_datetime("2077-01-01T02:00")
-        end = pd.to_datetime("2077-01-01T04:00")
+        start = pd.to_datetime("2077-01-01 02:00:00+0000")
+        end = pd.to_datetime("2077-01-01 04:00:00+0000")
 
         index = pd.date_range(start, end, freq="15T")
         values = np.arange(index.size)
@@ -29,7 +29,7 @@ class TestRadiationShift(unittest.TestCase):
             },
         )
 
-        data_interface_get_instance_mock.return_value.parse_result.return_value = (
+        data_interface_get_instance_mock.return_value.exec_influx_query.return_value = (
             df_test
         )
 

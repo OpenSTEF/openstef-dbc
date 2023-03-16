@@ -15,7 +15,7 @@ from influxdb_client.client.warnings import MissingPivotFunction
 
 from openstef_dbc.data_interface import _DataInterface
 from openstef_dbc.services.write import Write
-from openstef_dbc.utils import genereate_datetime_index
+from openstef_dbc.utils import genereate_datetime_index, parse_influx_result
 
 warnings.simplefilter("ignore", MissingPivotFunction)
 
@@ -295,7 +295,7 @@ class Weather:
 
         # Check if response is empty
         if not result.empty:
-            result = _DataInterface.get_instance().parse_result(result, ["source"])
+            result = parse_influx_result(result, ["source"])
         else:
             self.logger.warning("No weatherdata found. Returning empty dataframe")
             return pd.DataFrame(

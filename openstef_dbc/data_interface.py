@@ -242,19 +242,3 @@ class _DataInterface(metaclass=Singleton):
         available = len(list(response["Database"])) > 0
 
         return available
-
-    @staticmethod
-    def parse_result(
-        result: pd.DataFrame, aditional_indices: list[str] = None
-    ) -> pd.DataFrame:
-        """Parse resulting DataFrame of flux query to a format we expect in the rest of the lib."""
-        indices = ["_time"]
-        if aditional_indices is not None:
-            indices.extend(aditional_indices)
-
-        result["_time"] = pd.to_datetime(result["_time"])
-        result = result.pivot_table(columns="_field", values="_value", index=indices)
-        result = result.reset_index().set_index("_time")
-        result.index.name = "datetime"
-        result.columns.name = ""
-        return result
