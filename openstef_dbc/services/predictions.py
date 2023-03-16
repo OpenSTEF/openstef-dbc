@@ -39,20 +39,21 @@ class Predictions:
 
         bind_params = {
             "pid": str(pj["id"]),
-            "dstart": start_time.astimezone(pytz.UTC).isoformat(),
-            "dend": end_time.astimezone(pytz.UTC).isoformat(),
+            "_start": start_time.astimezone(pytz.UTC).isoformat(),
+            "_end": end_time.astimezone(pytz.UTC).isoformat(),
         }
 
-        query = """
-            SELECT mean("forecast") as forecast, mean("stdev") as stdev
-            FROM forecast_latest..prediction
-            WHERE (
-                "pid" = $pid AND
-                "type" != 'est_demand'
-                AND "type" != 'est_pv'
-                AND "type" != 'est_wind'
-            ) AND time >= $dstart AND time < $dend
-            GROUP BY time(15m)
+        query = f"""
+            from(bucket: "forecast_latest/autogen")
+                |> range(start: {bind_params['_start']}, stop: {bind_params['_end']})
+                |> filter(fn: (r) => 
+                    r._measurement == "prediction")
+                |> filter(fn: (r) => 
+                    r._field == "forecast" or r._field == "stdev") 
+                |> filter(fn: (r) => 
+                    r.type != "est_demand" and  r.type != "est_wind" and  r.type != "est_pv") 
+                |> filter(fn: (r) => r.pid == "{bind_params["pid"]}")
+                |> aggregateWindow(every: {pj["resolution_minutes"]}m, fn: mean)
         """
 
         # Query the database
@@ -99,34 +100,38 @@ class Predictions:
             if component:
                 bind_params = {
                     "pid": str(pj["id"]),
-                    "dstart": start_time.astimezone(pytz.UTC).isoformat(),
-                    "dend": end_time.astimezone(pytz.UTC).isoformat(),
+                    "_start": start_time.astimezone(pytz.UTC).isoformat(),
+                    "_end": end_time.astimezone(pytz.UTC).isoformat(),
                 }
-                query = """
-                    SELECT mean("forecast_solar") as forecast, mean("stdev") as stdev
-                    FROM forecast_latest..prediction_tAheads
-                    WHERE ("pid" = $pid
-                    AND "type" != 'est_demand'
-                    AND "type" != 'est_pv'
-                    AND "type" != 'est_wind')
-                    AND time >= $dstart AND time < $dend
-                    GROUP BY time(15m), "tAhead"
+                query = f"""
+                    from(bucket: "forecast_latest/autogen")
+                        |> range(start: {bind_params['_start']}, stop: {bind_params['_end']})
+                        |> filter(fn: (r) => 
+                            r._measurement == "prediction_tAheads")
+                        |> filter(fn: (r) => 
+                            r._field == "forecast_solar" or r._field == "stdev") 
+                        |> filter(fn: (r) => 
+                            r.type != "est_demand" and  r.type != "est_wind" and  r.type != "est_pv") 
+                        |> filter(fn: (r) => r.pid == "{bind_params["pid"]}")
+                        |> aggregateWindow(every: {pj["resolution_minutes"]}m, fn: mean)
                 """
             else:
                 bind_params = {
                     "pid": str(pj["id"]),
-                    "dstart": str(start_time),
-                    "dend": str(end_time),
+                    "_start": str(start_time),
+                    "_end": str(end_time),
                 }
-                query = """
-                    SELECT mean("forecast") as forecast, mean("stdev") as stdev
-                    FROM forecast_latest..prediction_tAheads
-                    WHERE ("pid" = $pid
-                    AND "type" != 'est_demand'
-                    AND "type" != 'est_pv'
-                    AND "type" != 'est_wind')
-                    AND time >= $dstart AND time < $dend
-                    GROUP BY time(15m), "tAhead"
+                query = f"""
+                    from(bucket: "forecast_latest/autogen")
+                        |> range(start: {bind_params['_start']}, stop: {bind_params['_end']})
+                        |> filter(fn: (r) => 
+                            r._measurement == "prediction_tAheads")
+                        |> filter(fn: (r) => 
+                            r._field == "forecast" or r._field == "stdev") 
+                        |> filter(fn: (r) => 
+                            r.type != "est_demand" and  r.type != "est_wind" and  r.type != "est_pv") 
+                        |> filter(fn: (r) => r.pid == "{bind_params["pid"]}")
+                        |> aggregateWindow(every: {pj["resolution_minutes"]}m, fn: mean)
                 """
 
         # For a selection of t_aheads a custom query is generated
@@ -156,20 +161,23 @@ class Predictions:
             # Make query for a selection of t_aheads
             bind_params = {
                 "pid": str(pj["id"]),
-                "taheads": t_aheads,
-                "dstart": start_time.astimezone(pytz.UTC).isoformat(),
-                "dend": end_time.astimezone(pytz.UTC).isoformat(),
+                "_start": start_time.astimezone(pytz.UTC).isoformat(),
+                "_end": end_time.astimezone(pytz.UTC).isoformat(),
             }
-            query = """
-                SELECT mean("forecast") as forecast, mean("stdev") as stdev
-                FROM forecast_latest..prediction_tAheads
-                WHERE ("pid" = $pid
-                    AND "type" != 'est_demand'
-                    AND "type" != 'est_pv'
-                    AND "type" != 'est_wind'
-                    AND (taheads=$taheads))
-                    AND time >= $dstart AND time < $dend
-                GROUP BY time(15m), "tAhead"
+            t_aheads_section = '" or r.taheads == "'.join(t_aheads)
+
+            query = f"""
+                from(bucket: "forecast_latest/autogen")
+                    |> range(start: {bind_params['_start']}, stop: {bind_params['_end']})
+                    |> filter(fn: (r) => 
+                        r._measurement == "prediction_tAheads")
+                    |> filter(fn: (r) => 
+                        r._field == "forecast" or r._field == "stdev") 
+                    |> filter(fn: (r) => 
+                        r.type != "est_demand" and  r.type != "est_wind" and  r.type != "est_pv") 
+                    |> filter(fn: (r) => r.pid == "{bind_params["pid"]}")
+                    |> filter(fn: (r) => r.taheads == "{t_aheads_section}")
+                    |> aggregateWindow(every: {pj["resolution_minutes"]}m, fn: mean)
             """
 
         # Query the database

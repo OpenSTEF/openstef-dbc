@@ -139,7 +139,7 @@ class _DataInterface(metaclass=Singleton):
             defaultdict: Query result.
         """
         try:
-            return self.influx_query_api.query_data_frame(query, params=bind_params)
+            return self.influx_query_api.query_data_frame(query)
         except requests.exceptions.ConnectionError as e:
             self.logger.error("Lost connection to InfluxDB database", exc_info=e)
             raise
@@ -242,3 +242,19 @@ class _DataInterface(metaclass=Singleton):
         available = len(list(response["Database"])) > 0
 
         return available
+
+    @staticmethod
+    def parse_result(
+        result: pd.DataFrame, aditional_indices: list[str] = None
+    ) -> pd.DataFrame:
+        """Parse resulting DataFrame of flux query to a format we expect in the rest of the lib."""
+        indices = ["_time"]
+        if aditional_indices is not None:
+            indices.extend(aditional_indices)
+
+        result["_time"] = pd.to_datetime(result["_time"])
+        result = result.pivot_table(columns="_field", values="_value", index=indices)
+        result = result.reset_index().set_index("_time")
+        result.index.name = "datetime"
+        result.columns.name = ""
+        return result

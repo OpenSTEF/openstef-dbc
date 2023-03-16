@@ -29,7 +29,7 @@ class TestRadiationShift(unittest.TestCase):
             },
         )
 
-        data_interface_get_instance_mock.return_value.exec_influx_query.return_value = (
+        data_interface_get_instance_mock.return_value.parse_result.return_value = (
             df_test
         )
 

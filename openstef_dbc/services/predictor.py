@@ -108,16 +108,18 @@ class Predictor:
             "_stop": datetime_end,
         }
 
-        query = f"""from(bucket: "forecast_latest/autogen")
-                    |> range(start: {bind_params["_start"].strftime('%Y-%m-%dT%H:%M:%SZ')}, stop: {bind_params["_stop"].strftime('%Y-%m-%dT%H:%M:%SZ')}) 
-                    |> filter(fn: (r) =>
-                        r._measurement == "marketprices" and r._field == "Price" and r.Name=="APX")"""
+        query = f"""
+            from(bucket: "forecast_latest/autogen")
+                |> range(start: {bind_params["_start"].strftime('%Y-%m-%dT%H:%M:%SZ')}, stop: {bind_params["_stop"].strftime('%Y-%m-%dT%H:%M:%SZ')}) 
+                |> filter(fn: (r) => r._measurement == "marketprices" and r._field == "Price" and r.Name=="APX")
+        """
 
-        electricity_price = _DataInterface.get_instance().exec_influx_query(
-            query, bind_params
-        )
+        result = _DataInterface.get_instance().exec_influx_query(query, bind_params)
 
-        if not electricity_price:
+        # Check if response is empty
+        if not result.empty:
+            electricity_price = _DataInterface.get_instance().parse_result(result)
+        else:
             return pd.DataFrame(
                 index=genereate_datetime_index(
                     start=datetime_start, end=datetime_end, freq=forecast_resolution
@@ -196,16 +198,16 @@ class Predictor:
         field_selection = '" or r._field == "'.join(sjv_profles)
 
         query = f"""
-        from(bucket: "realised/autogen")
-            |> range(start: {bind_params["_start"].strftime('%Y-%m-%dT%H:%M:%SZ')}, stop: {bind_params["_stop"].strftime('%Y-%m-%dT%H:%M:%SZ')}) 
-            |> filter(fn: (r) =>
-                r._measurement == "sjv" and r._field == "{field_selection}")
+            from(bucket: "realised/autogen")
+                |> range(start: {bind_params["_start"].strftime('%Y-%m-%dT%H:%M:%SZ')}, stop: {bind_params["_stop"].strftime('%Y-%m-%dT%H:%M:%SZ')}) 
+                |> filter(fn: (r) => r._measurement == "sjv" and r._field == "{field_selection}")
         """
-        load_profiles = _DataInterface.get_instance().exec_influx_query(
+        result = _DataInterface.get_instance().exec_influx_query(
             query, bind_params=bind_params
         )
-
-        if not load_profiles:
+        if not result.emtpy:
+            load_profiles = _DataInterface.get_instance().parse_result(result)
+        else:
             return pd.DataFrame(
                 index=genereate_datetime_index(
                     start=datetime_start, end=datetime_end, freq=forecast_resolution

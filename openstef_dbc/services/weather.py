@@ -277,12 +277,14 @@ class Weather:
 
         # Initialise strings for the querying influx, it is not possible to parameterize this string
         weather_params_str = '" or r._field == "'.join(weatherparams)
-        weather_models_str = '" or r.source == "'.join([s for s in source])
+        weather_models_str = '" or r.source == "'.join(source)
 
         # Create the query
-        query = f"""from(bucket: "forecast_latest/autogen") 
-                        |> range(start: {bind_params["_start"].strftime('%Y-%m-%dT%H:%M:%SZ')}, stop: {bind_params["_stop"].strftime('%Y-%m-%dT%H:%M:%SZ')}) 
-                        |> filter(fn: (r) => r._measurement == "weather" and (r._field == "{weather_params_str}") and (r.source == "{weather_models_str}") and r.input_city == "{bind_params["_input_city"]}")"""
+        query = f"""
+            from(bucket: "forecast_latest/autogen") 
+                |> range(start: {bind_params["_start"].strftime('%Y-%m-%dT%H:%M:%SZ')}, stop: {bind_params["_stop"].strftime('%Y-%m-%dT%H:%M:%SZ')}) 
+                |> filter(fn: (r) => r._measurement == "weather" and (r._field == "{weather_params_str}") and (r.source == "{weather_models_str}") and r.input_city == "{bind_params["_input_city"]}")
+        """
 
         # Execute Query
         result = _DataInterface.get_instance().exec_influx_query(query)
@@ -293,13 +295,7 @@ class Weather:
 
         # Check if response is empty
         if not result.empty:
-            result["_time"] = pd.to_datetime(result["_time"])
-            result = result.pivot_table(
-                columns="_field", values="_value", index=["_time", "source"]
-            )
-            result = result.reset_index().set_index("_time")
-            result.index.name = "datetime"
-            result.columns.name = ""
+            result = _DataInterface.get_instance().parse_result(result, ["source"])
         else:
             self.logger.warning("No weatherdata found. Returning empty dataframe")
             return pd.DataFrame(
@@ -330,11 +326,13 @@ class Weather:
         return result
 
     def get_datetime_last_stored_knmi_weatherdata(self) -> datetime:
-        query = """from(bucket: "forecast_latest/autogen" )   
-                        |> range(start: - 10d) 
-                        |> limit(n:10)
-                        |> filter(fn: (r) => r._measurement == "weather" and r.source == "harm_arome" and r._field == "source_run")
-                        |> max()"""
+        query = """
+            from(bucket: "forecast_latest/autogen" )   
+                |> range(start: - 10d) 
+                |> limit(n:10)
+                |> filter(fn: (r) => r._measurement == "weather" and r.source == "harm_arome" and r._field == "source_run")
+                |> max()
+        """
         result = _DataInterface.get_instance().exec_influx_query(query)
 
         if not result.emtpty:

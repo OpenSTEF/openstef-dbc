@@ -161,36 +161,6 @@ class Ems:
             result = result.resample(forecast_resolution).mean()
             return result
 
-    def get_load_created_after(
-        self, sid: str, created_after: datetime.datetime, group_by_time: str = "5m"
-    ) -> pd.DataFrame:
-        """Get load created after a certain datetime for a given system id.
-
-        Args:
-            sid (str): System id.
-            created_after (datetime): Created after datetime.
-            group_by_time (str, optional): Group by time. Defaults to "5m".
-
-        Returns:
-            pd.DataFrame: Load created after requested datetime.
-        """
-        # Validate forecast resolution to prevent injections
-        self._check_influx_group_by_time_statement(group_by_time)
-
-        bind_params = {"sid": sid}
-        query = f"""
-            SELECT mean("output") as output, min("created") as created
-            FROM "realised".."power"
-            WHERE "system" = $sid
-            GROUP BY time({group_by_time})
-        """
-
-        load = _DataInterface.get_instance().exec_influx_query(query, bind_params)
-
-        return {
-            "power": load["power"][load["power"]["created"] > created_after][["output"]]
-        }
-
     def get_load_pid(
         self,
         pid: int,
@@ -363,45 +333,6 @@ class Ems:
 
         #  Return sum all load columns
         return pd.DataFrame(combined_load.sum(axis=1).rename("load"))
-
-    def get_load_created_datetime_sid(
-        self,
-        sid: str,
-        datetime_start: datetime.datetime,
-        datetime_end: datetime.datetime,
-        limit: int,
-    ) -> pd.DataFrame:
-        """Helper function so the other function can be accurately unit-tested.
-        This function gets a dataframe of time, created for a given sid.
-
-        Args:
-            sid (str): sid of the desired system
-            datetime_start (str): start of period
-            datetime_end (str): end of period
-            limit (int): maximum number of rows retrieved. Max is 10000.
-
-        Returns:
-            pd.DataFrame(index=datetime, columns=[created])
-        """
-        limit = min(limit, 10000)
-
-        bind_params = {
-            "name": sid,
-            "dstart": datetime_start.isoformat(),
-            "dend": datetime_end.isoformat(),
-            "limit": limit,
-        }
-
-        q = """
-            SELECT created FROM "realised".."power"
-            WHERE "system" = $name AND time >= $dstart and time < $dend fill(null)
-            LIMIT $limit
-        """
-
-        createds = _DataInterface.get_instance().influx_client.query(q, bind_params)[
-            "power"
-        ]
-        return createds
 
     @staticmethod
     def _check_influx_group_by_time_statement(statement: str) -> None:
