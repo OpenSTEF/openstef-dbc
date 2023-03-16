@@ -139,11 +139,11 @@ class Ems:
                 axis=1,
             ).set_index("_time")
 
-            # Correction because flux takes the right instead of the left boundary when
-            # aggregating over a time window. In the flux query, two aggregations are performed
-            # over a `forecast_resolution`-sized time window.
-            result.index = result.index - 2 * forecast_resolution_timedelta
-            # The first two rows are dropped since their timestamps are before the `datetime_start`.
+            # Shifting the index two timeperiods back, because flux takes the right instead 
+            # of the left boundary when aggregating over a time window. In the flux query, 
+            # two aggregations are performed over a `forecast_resolution`-sized time window.
+            result = result.shift(periods=-2, freq=forecast_resolution)
+            # The first two rows are dropped, since their timestamps are before the `datetime_start`.
             result = result.iloc[2:, :]
 
             result = result.dropna()
