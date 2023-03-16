@@ -99,7 +99,7 @@ class _DataInterface(metaclass=Singleton):
         """Create influx client, namespace-dependend"""
         try:
             return InfluxDBClient(
-                url=f"http://{host}:{port}",
+                url=f"{host}:{port}",
                 token=f"{username}:{password}",
             )
         except Exception as exc:
