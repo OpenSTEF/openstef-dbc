@@ -39,13 +39,13 @@ class Predictions:
 
         bind_params = {
             "pid": str(pj["id"]),
-            "_start": start_time.astimezone(pytz.UTC).isoformat(),
-            "_end": end_time.astimezone(pytz.UTC).isoformat(),
+            "_start": start_time.astimezone(pytz.UTC),
+            "_stop": end_time.astimezone(pytz.UTC),
         }
 
         query = f"""
             from(bucket: "forecast_latest/autogen")
-                |> range(start: {bind_params['_start']}, stop: {bind_params['_end']})
+                |> range(start: {bind_params["_start"].strftime('%Y-%m-%dT%H:%M:%SZ')}, stop: {bind_params["_stop"].strftime('%Y-%m-%dT%H:%M:%SZ')}) 
                 |> filter(fn: (r) => 
                     r._measurement == "prediction")
                 |> filter(fn: (r) => 
@@ -59,9 +59,16 @@ class Predictions:
         # Query the database
         result = _DataInterface.get_instance().exec_influx_query(query, bind_params)
 
+        # For multiple Fields a list is returned.
+        if isinstance(result, list):
+            result = pd.concat(result)[["_value", "_field", "_time"]]
+
         # Return result
-        if "prediction" in result:
-            return result["prediction"]
+        if not result.empty:
+            # Shifting is needed to output the same as with the old influx client
+            return (
+                _DataInterface.get_instance().parse_result(result).shift(-15, freq="T")
+            )
         else:
             return pd.Series()
 
@@ -100,12 +107,12 @@ class Predictions:
             if component:
                 bind_params = {
                     "pid": str(pj["id"]),
-                    "_start": start_time.astimezone(pytz.UTC).isoformat(),
-                    "_end": end_time.astimezone(pytz.UTC).isoformat(),
+                    "_start": start_time.astimezone(pytz.UTC),
+                    "_stop": end_time.astimezone(pytz.UTC),
                 }
                 query = f"""
                     from(bucket: "forecast_latest/autogen")
-                        |> range(start: {bind_params['_start']}, stop: {bind_params['_end']})
+                        |> range(start: {bind_params["_start"].strftime('%Y-%m-%dT%H:%M:%SZ')}, stop: {bind_params["_stop"].strftime('%Y-%m-%dT%H:%M:%SZ')}) 
                         |> filter(fn: (r) => 
                             r._measurement == "prediction_tAheads")
                         |> filter(fn: (r) => 
@@ -118,12 +125,12 @@ class Predictions:
             else:
                 bind_params = {
                     "pid": str(pj["id"]),
-                    "_start": str(start_time),
-                    "_end": str(end_time),
+                    "_start": start_time,
+                    "_stop": end_time,
                 }
                 query = f"""
                     from(bucket: "forecast_latest/autogen")
-                        |> range(start: {bind_params['_start']}, stop: {bind_params['_end']})
+                        |> range(start: {bind_params["_start"].strftime('%Y-%m-%dT%H:%M:%SZ')}, stop: {bind_params["_stop"].strftime('%Y-%m-%dT%H:%M:%SZ')}) 
                         |> filter(fn: (r) => 
                             r._measurement == "prediction_tAheads")
                         |> filter(fn: (r) => 
@@ -161,14 +168,14 @@ class Predictions:
             # Make query for a selection of t_aheads
             bind_params = {
                 "pid": str(pj["id"]),
-                "_start": start_time.astimezone(pytz.UTC).isoformat(),
-                "_end": end_time.astimezone(pytz.UTC).isoformat(),
+                "_start": start_time.astimezone(pytz.UTC),
+                "_stop": end_time.astimezone(pytz.UTC),
             }
             t_aheads_section = '" or r.taheads == "'.join(t_aheads)
 
             query = f"""
                 from(bucket: "forecast_latest/autogen")
-                    |> range(start: {bind_params['_start']}, stop: {bind_params['_end']})
+                    |> range(start: {bind_params["_start"].strftime('%Y-%m-%dT%H:%M:%SZ')}, stop: {bind_params["_stop"].strftime('%Y-%m-%dT%H:%M:%SZ')}) 
                     |> filter(fn: (r) => 
                         r._measurement == "prediction_tAheads")
                     |> filter(fn: (r) => 
@@ -183,18 +190,27 @@ class Predictions:
         # Query the database
         result = _DataInterface.get_instance().exec_influx_query(query, bind_params)
 
-        # Convert to pandas DataFrame with a column for each tAhead
-        predicted_load = pd.DataFrame()
+        # For multiple Fields a list is returned.
+        if isinstance(result, list):
+            result = pd.concat(result)[["_value", "_field", "_time"]]
 
-        for t_ahead in list(result):
-            h_ahead = str(t_ahead[1][0][1])
-            renames = dict(forecast=f"forecast_{h_ahead}h", stdev=f"stdev_{h_ahead}h")
-            predicted_load = predicted_load.merge(
-                result[t_ahead].rename(columns=renames),
-                how="outer",
-                left_index=True,
-                right_index=True,
+        # Return result
+        if not result.empty:
+            # Shifting is needed to output the same as with the old influx client
+            result = (
+                _DataInterface.get_instance()
+                .parse_result(result, aditional_indices=["tAhead"])
+                .shift(-15, freq="T")
             )
+        else:
+            return pd.Series()
+
+        # Convert to pandas DataFrame with a column for each tAhead
+        predicted_load = result.pivot(columns="tAhead")
+
+        predicted_load.columns = [
+            "_".join(col) + "h" for col in predicted_load.columns.values
+        ]
 
         # Return result
         return predicted_load

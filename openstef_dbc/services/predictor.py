@@ -116,6 +116,10 @@ class Predictor:
 
         result = _DataInterface.get_instance().exec_influx_query(query, bind_params)
 
+        # For multiple Fields a list is returned.
+        if isinstance(result, list):
+            result = pd.concat(result)[["_value", "_field", "_time"]]
+
         # Check if response is empty
         if not result.empty:
             electricity_price = _DataInterface.get_instance().parse_result(result)
@@ -125,9 +129,6 @@ class Predictor:
                     start=datetime_start, end=datetime_end, freq=forecast_resolution
                 )
             )
-
-        electricity_price = electricity_price["marketprices"]
-
         electricity_price.rename(columns=dict(Price="APX"), inplace=True)
 
         if forecast_resolution and electricity_price.empty is False:
@@ -205,7 +206,11 @@ class Predictor:
         result = _DataInterface.get_instance().exec_influx_query(
             query, bind_params=bind_params
         )
-        if not result.emtpy:
+        # For multiple Fields a list is returned.
+        if isinstance(result, list):
+            result = pd.concat(result)[["_value", "_field", "_time"]]
+
+        if not result.empty:
             load_profiles = _DataInterface.get_instance().parse_result(result)
         else:
             return pd.DataFrame(
@@ -213,8 +218,6 @@ class Predictor:
                     start=datetime_start, end=datetime_end, freq=forecast_resolution
                 )
             )
-
-        load_profiles = load_profiles["sjv"]
 
         if forecast_resolution and load_profiles.empty is False:
             load_profiles = load_profiles.resample(forecast_resolution).interpolate(
