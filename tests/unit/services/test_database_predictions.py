@@ -49,7 +49,7 @@ class TestPredictions(unittest.TestCase):
         should_contain = [
             "forecast",
             "stdev",
-            "forecast_latest..prediction_tAheads",
+            "prediction_tAheads",
             "demand",
         ]
         should_not_containe = ["forecast_solar"]

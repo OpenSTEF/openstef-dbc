@@ -67,21 +67,20 @@ class Ems:
             sid[0] = sid[0].replace("/", "\/")
             sid[0] = sid[0].replace("+", "\+")
             bind_params[f"param_sid_0"] = sid[0]
-            sidsection = '"system" = $param_sid_0'
+            sidsection = f'r.system == "{bind_params["param_sid_0"]}"'
         else:
             # Create parameters for each sid
             for i in range(len(sid)):
-
                 # Escape forward slahes as inlfux cant handle them
                 sid[i] = sid[i].replace("/", "\/")
                 sid[i] = sid[i].replace("+", "\+")
                 bind_params[f"param_sid_{i}"] = sid[i]
 
             # Build parameters in query
-            section = ' OR "system" = '.join(
-                ["$" + s for s in list(bind_params.keys())]
+            section = " or r.system == ".join(
+                ['"' + s + '"' for s in list(bind_params.values())]
             )
-            sidsection = f'("system" = {section})'
+            sidsection = f"r.system == {section}"
 
         bind_params.update(
             {
@@ -92,86 +91,75 @@ class Ems:
 
         # Prepare query
         if aggregated:
+            forecast_resolution_timedelta = timedelta(
+                minutes=int(forecast_resolution[:-1])
+            )
+            # Extending the range is necessary to make sure the final timestamps are also in
+            # the reponse after aggregations.
+            bind_params["dend"] = (
+                datetime_end + 2 * forecast_resolution_timedelta
+            ).isoformat()
             query = f"""
-                SELECT sum("output") AS load, count("output") AS nEntries
-                FROM (
-                    SELECT mean("output") AS output
-                    FROM "realised".."power"
-                    WHERE
-                        {sidsection} AND
-                        time >= $dstart AND
-                        time <= $dend
-                    GROUP BY time({forecast_resolution.replace("T", "m")}), "system" fill(null)
-                )
-                WHERE time <= NOW()
-                GROUP BY time({forecast_resolution.replace("T", "m")})
+                data = from(bucket: "realised/autogen") 
+                    |> range(start: {bind_params['dstart']}, stop: {bind_params['dend']}) 
+                    |> filter(fn: (r) => r._measurement == "power")
+                    |> filter(fn: (r) => r._field == "output")
+                    |> filter(fn: (r) => {sidsection})
+                    |> aggregateWindow(every: {forecast_resolution.replace("T", "m")}, fn: mean)
+
+                data
+                    |> group() |> aggregateWindow(every: {forecast_resolution.replace("T", "m")}, fn: sum)
+                    |> yield(name: "load")
+
+                data
+                    |> group() |> aggregateWindow(every: {forecast_resolution.replace("T", "m")}, fn: count)
+                    |> yield(name: "nEntries")
             """
         else:
             query = f"""
-                SELECT "output" AS load, "system"
-                FROM "realised".."power"
-                WHERE
-                    {sidsection} AND
-                    time >= $dstart AND
-                    time < $dend fill(null)
+                from(bucket: "realised/autogen") 
+                    |> range(start: {bind_params['dstart']}, stop: {bind_params['dend']}) 
+                    |> filter(fn: (r) => r._measurement == "power")
+                    |> filter(fn: (r) => r._field == "output")
+                    |> filter(fn: (r) => {sidsection})
+                    |> pivot(rowKey:["_time"], columnKey: ["system"], valueColumn: "_value")
             """
 
         # Query load
-        result = _DataInterface.get_instance().exec_influx_query(query, bind_params)
-
-        # no data was found, return empty dataframe
-        if "power" not in result:
-            return pd.DataFrame()
-
-        result = result["power"]
+        result_raw = _DataInterface.get_instance().exec_influx_query(query, bind_params)
 
         if aggregated:
-            result = result[["load", "nEntries"]]
+            result = pd.concat(
+                [
+                    result_raw[0][["_time", "_value"]].rename(
+                        columns={"_value": "load"}
+                    ),
+                    result_raw[1][["_value"]].rename(columns={"_value": "nEntries"}),
+                ],
+                axis=1,
+            ).set_index("_time")
+
+            # Shifting the index two timeperiods back, because flux takes the right instead
+            # of the left boundary when aggregating over a time window. In the flux query,
+            # two aggregations are performed over a `forecast_resolution`-sized time window.
+            result = result.shift(periods=-2, freq=forecast_resolution)
+            # The first two rows are dropped, since their timestamps are before the `datetime_start`.
+            result = result.iloc[2:, :]
+
+            result = result.dropna()
+            if average_output:
+                result["load"] = result["load"] / result["nEntries"]
+
+            outputcols = ["load"]
+
+            if include_n_entries_column:
+                outputcols.append("nEntries")
+
+            return result[outputcols]
         else:
-            result = result.pivot_table(index=result.index, columns="system")["load"]
+            result = result_raw.set_index("_time")[sid]
             result = result.resample(forecast_resolution).mean()
             return result
-
-        result = result.dropna()
-        if average_output:
-            result["load"] = result["load"] / result["nEntries"]
-
-        outputcols = ["load"]
-
-        if include_n_entries_column:
-            outputcols.append("nEntries")
-
-        return result[outputcols]
-
-    def get_load_created_after(
-        self, sid: str, created_after: datetime.datetime, group_by_time: str = "5m"
-    ) -> pd.DataFrame:
-        """Get load created after a certain datetime for a given system id.
-
-        Args:
-            sid (str): System id.
-            created_after (datetime): Created after datetime.
-            group_by_time (str, optional): Group by time. Defaults to "5m".
-
-        Returns:
-            pd.DataFrame: Load created after requested datetime.
-        """
-        # Validate forecast resolution to prevent injections
-        self._check_influx_group_by_time_statement(group_by_time)
-
-        bind_params = {"sid": sid}
-        query = f"""
-            SELECT mean("output") as output, min("created") as created
-            FROM "realised".."power"
-            WHERE "system" = $sid
-            GROUP BY time({group_by_time})
-        """
-
-        load = _DataInterface.get_instance().exec_influx_query(query, bind_params)
-
-        return {
-            "power": load["power"][load["power"]["created"] > created_after][["output"]]
-        }
 
     def get_load_pid(
         self,
@@ -260,7 +248,6 @@ class Ems:
 
         # Apply positive or negative polariy to systems
         for system_id in systems.system_id:
-
             polarity = systems.loc[systems.system_id == system_id].polarity.iloc[0]
             if polarity == 0:
                 self.logger.warning(
@@ -346,174 +333,6 @@ class Ems:
 
         #  Return sum all load columns
         return pd.DataFrame(combined_load.sum(axis=1).rename("load"))
-
-    def get_curtailments(
-        self,
-        datetime_start: datetime.datetime,
-        datetime_end: datetime.datetime,
-        name: str,
-        resolution: str = "15T",
-    ) -> pd.DataFrame:
-        """Get curtailments from influx
-        input:
-            - datetime_start (pd.Datetime)
-            - datetime_end (pd.Datetime)
-            - name (str): name of curtailment
-            - resolution (str): time resolution in pd.resample() format. e.g. 15T
-
-        return
-            - pd.DataFrame(index=pd.DatetimeIndex, columns=['curtailment_fraction'])"""
-
-        # Validate forecast resolution to prevent injections
-        self._check_influx_group_by_time_statement(resolution.replace("T", "m"))
-
-        bind_params = {
-            "name": name,
-            "dstart": datetime_start.isoformat(),
-            "dend": datetime_end.isoformat(),
-        }
-
-        q = f"""
-            SELECT mean("curtailment") as curtailment_fraction
-            FROM "realised".."curtailments"
-            WHERE ("curtailment_name" = $name) AND time >= $dstart and time < $dend'
-            GROUP BY time({resolution.replace("T", "m")}) fill(null)
-        """
-
-        # Excecute query
-        res = _DataInterface.get_instance().exec_influx_query(q, bind_params)
-        if len(res) == 0:
-            return pd.DataFrame()
-        else:
-            return res["curtailments"].dropna().tz_localize("UTC")
-
-    def _get_states_from_db(
-        self,
-        datetime_start: datetime.datetime,
-        datetime_end: datetime.datetime,
-        forecast_resolution: str = "15T",
-        flexnet_name: str = "BEMMEL_9017589K_10-1V2LS",
-    ) -> pd.DataFrame:
-
-        # Validate forecast resolution to prevent injections
-        self._check_influx_group_by_time_statement(
-            forecast_resolution.replace("T", "m")
-        )
-
-        bind_params = {
-            "name": flexnet_name,
-            "dstart": datetime_start.isoformat(),
-            "dend": datetime_end.isoformat(),
-        }
-
-        query = f"""
-            SELECT last("output")
-            FROM "realised".."power"
-            WHERE ("system" = $name AND time >= $dstart and time < $dend')
-            GROUP BY time({forecast_resolution.replace("T", "m")}) fill(previous)
-        """
-
-        # Excecute query
-        res = _DataInterface.get_instance().exec_influx_query(query, bind_params)
-
-        # Check if we got a DataFrame with the column name we expect
-        if "power" in res:
-            states = pd.DataFrame(res["power"]).rename(columns={"last": "state"})
-
-            return states
-        else:
-            return pd.DataFrame()
-
-    def get_states_flexnet(
-        self,
-        datetime_start: datetime.datetime,
-        datetime_end: datetime.datetime,
-        forecast_resolution: str = "15T",
-        flexnet_name: str = "BEMMEL_9017589K_10-1V2LS",
-    ) -> pd.DataFrame:
-        """Get flexnet states for given flexnet name.
-        If no result is found, return empty dataframe.
-
-        Parameters:
-            - datetime_start: "2018-10-12 08:45:00"
-            - datetime_end: "2018-12-12 08:45:00"
-            - forecast_resolution = '15T'
-            - flexnet_name: name of the flexnet
-
-        Output:
-            - pd.DataFrame(index=datetimeIndex, columns)
-            columns = [last]
-        """
-
-        # make sure inputs are datetime aware datetimes
-        datetime_start = pd.to_datetime(datetime_start, utc=True)
-        datetime_end = pd.to_datetime(datetime_end, utc=True)
-
-        # Get flexnet states from database
-        # Define starting variables
-        extended_period = 0
-        states = pd.DataFrame()
-
-        # Loop until we have enough information
-        while len(states[states.isna().any(axis=1)]) > 0 or len(states) == 0:
-            # Get states for requested period
-            states = self._get_states_from_db(
-                datetime_start - timedelta(days=extended_period),
-                datetime_end,
-                forecast_resolution=forecast_resolution,
-                flexnet_name=flexnet_name,
-            )
-
-            # Select the requested period
-            states = states[datetime_start:datetime_end]
-
-            # Extend by 90 days
-            extended_period = extended_period + 90
-
-            # Safety break to prevent being stuck in an infinte loop
-            if extended_period > 900:
-                break
-
-        return states
-
-    def get_load_created_datetime_sid(
-        self,
-        sid: str,
-        datetime_start: datetime.datetime,
-        datetime_end: datetime.datetime,
-        limit: int,
-    ) -> pd.DataFrame:
-        """Helper function so the other function can be accurately unit-tested.
-        This function gets a dataframe of time, created for a given sid.
-
-        Args:
-            sid (str): sid of the desired system
-            datetime_start (str): start of period
-            datetime_end (str): end of period
-            limit (int): maximum number of rows retrieved. Max is 10000.
-
-        Returns:
-            pd.DataFrame(index=datetime, columns=[created])
-        """
-        limit = min(limit, 10000)
-
-        bind_params = {
-            "name": sid,
-            "dstart": datetime_start.isoformat(),
-            "dend": datetime_end.isoformat(),
-            "limit": limit,
-        }
-
-        q = """
-            SELECT created FROM "realised".."power"
-            WHERE "system" = $name AND time >= $dstart and time < $dend fill(null)
-            LIMIT $limit
-        """
-
-        createds = _DataInterface.get_instance().influx_client.query(q, bind_params)[
-            "power"
-        ]
-        return createds
 
     @staticmethod
     def _check_influx_group_by_time_statement(statement: str) -> None:

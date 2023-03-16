@@ -136,7 +136,6 @@ def _disable_third_party_loggers():
 
 
 def _configure_logging_development(loglevel):
-
     shared_processors = [
         # threadlocal processors
         structlog.threadlocal.merge_threadlocal_context,
