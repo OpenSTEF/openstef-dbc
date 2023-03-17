@@ -33,6 +33,7 @@ class _DataInterface(metaclass=Singleton):
                 influxdb_password (str): InfluxDB password.
                 influxdb_host (str): InfluxDB host.
                 influxdb_port (int): InfluxDB port.
+                influx_organization (str): InfluxDB organization.
                 mysql_username (str): MySQL username.
                 mysql_password (str): MySQL password.
                 mysql_host (str): MySQL host.
@@ -42,6 +43,7 @@ class _DataInterface(metaclass=Singleton):
         """
 
         self.logger = logging.get_logger(self.__class__.__name__)
+        self.influx_organization = config.influx_organization
 
         self.ktp_api = KtpApi(
             username=config.api_username,
@@ -155,6 +157,7 @@ class _DataInterface(metaclass=Singleton):
         database: str,
         measurement: str,
         tag_columns: list,
+        organization: str = None,
         field_columns: list = None,
         time_precision: str = "s",
     ) -> bool:
@@ -162,6 +165,8 @@ class _DataInterface(metaclass=Singleton):
             field_columns = []
         if type(tag_columns) is not list:
             raise ValueError("'tag_columns' should be a list")
+        if organization is None:
+            organization = self.influx_organization
 
         if len(tag_columns) == 0:
             raise ValueError("At least one tag column should be given in 'tag_columns'")
@@ -178,9 +183,10 @@ class _DataInterface(metaclass=Singleton):
                 record=df,
                 data_frame_measurement_name=measurement,
                 bucket=f"{database}/autogen",
-                record_tag_keys=tag_columns,
+                data_frame_tag_columns=tag_columns,
                 record_field_keys=field_columns,
                 write_precision=time_precision,
+                org=organization                
             )
             return True
         except Exception as e:
