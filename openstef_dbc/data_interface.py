@@ -186,7 +186,7 @@ class _DataInterface(metaclass=Singleton):
                 data_frame_tag_columns=tag_columns,
                 record_field_keys=field_columns,
                 write_precision=time_precision,
-                org=organization                
+                org=organization,
             )
             return True
         except Exception as e:
