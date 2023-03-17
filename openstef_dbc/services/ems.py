@@ -56,24 +56,15 @@ class Ems:
 
         # Convert sid to list
         if type(sid) is str:
-            # Escape forward slahes as inlfux cant handle them
-            sid = sid.replace("/", "\/")
-            sid = sid.replace("+", "\+")
             sid = [sid]
 
         # Prepare sid query string
         if len(sid) == 1:
-            # Escape forward slahes as inlfux cant handle them
-            sid[0] = sid[0].replace("/", "\/")
-            sid[0] = sid[0].replace("+", "\+")
             bind_params[f"param_sid_0"] = sid[0]
             sidsection = f'r.system == "{bind_params["param_sid_0"]}"'
         else:
             # Create parameters for each sid
             for i in range(len(sid)):
-                # Escape forward slahes as inlfux cant handle them
-                sid[i] = sid[i].replace("/", "\/")
-                sid[i] = sid[i].replace("+", "\+")
                 bind_params[f"param_sid_{i}"] = sid[i]
 
             # Build parameters in query
@@ -127,6 +118,9 @@ class Ems:
 
         # Query load
         result_raw = _DataInterface.get_instance().exec_influx_query(query, bind_params)
+
+        if result_raw.empty:
+            raise Exception(f"The following query yields an empty dataframe: {query}")
 
         if aggregated:
             result = pd.concat(
