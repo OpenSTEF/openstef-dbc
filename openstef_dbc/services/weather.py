@@ -335,7 +335,7 @@ class Weather:
         """
         result = _DataInterface.get_instance().exec_influx_query(query)
 
-        if not result.emtpty:
+        if isinstance(result, pd.DataFrame) and not result.empty:
             # Get latest run
             latest_unix = result["_value"].max()
 
