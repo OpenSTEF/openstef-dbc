@@ -10,9 +10,14 @@ import numpy as np
 import pandas as pd
 import pytz
 import structlog
+import warnings
+from influxdb_client.client.warnings import MissingPivotFunction
+
 from openstef_dbc.data_interface import _DataInterface
 from openstef_dbc.services.write import Write
-from openstef_dbc.utils import genereate_datetime_index
+from openstef_dbc.utils import genereate_datetime_index, parse_influx_result
+
+warnings.simplefilter("ignore", MissingPivotFunction)
 
 
 class Weather:
@@ -96,7 +101,6 @@ class Weather:
 
         # Find closest weather location
         if distances.index.min() < threshold:
-
             if isinstance(nearest_location, pd.Series):
                 return nearest_location.reset_index(drop=True)[0]
             else:
@@ -266,34 +270,32 @@ class Weather:
 
         # Initialize binding params
         bind_params = {
-            "location": location_name,
-            "dstart": str(datetime_start),
-            "dend": str(datetime_end),
+            "_input_city": location_name,
+            "_start": datetime_start,
+            "_stop": datetime_end,
         }
 
         # Initialise strings for the querying influx, it is not possible to parameterize this string
-        weather_params_str = '", "'.join(weatherparams)
-
-        # Parameterize for the weather models
-        weather_models_bind_params = {}
-        for i in range(len(source)):
-            weather_models_bind_params[f"weather_model_{i}"] = source[i]
-        weather_models_str = " OR source::tag = ".join(
-            ["$" + s for s in list(weather_models_bind_params.keys())]
-        )
-        bind_params.update(weather_models_bind_params)
+        weather_params_str = '" or r._field == "'.join(weatherparams)
+        weather_models_str = '" or r.source == "'.join(source)
 
         # Create the query
-        query = f'SELECT source::tag, input_city::tag, "{weather_params_str}" FROM \
-            "forecast_latest".."weather" WHERE input_city::tag = $location AND \
-            time >= $dstart AND time <= $dend AND (source::tag = {weather_models_str})'
+        query = f"""
+            from(bucket: "forecast_latest/autogen") 
+                |> range(start: {bind_params["_start"].strftime('%Y-%m-%dT%H:%M:%SZ')}, stop: {bind_params["_stop"].strftime('%Y-%m-%dT%H:%M:%SZ')}) 
+                |> filter(fn: (r) => r._measurement == "weather" and (r._field == "{weather_params_str}") and (r.source == "{weather_models_str}") and r.input_city == "{bind_params["_input_city"]}")
+        """
 
         # Execute Query
-        result = _DataInterface.get_instance().exec_influx_query(query, bind_params)
+        result = _DataInterface.get_instance().exec_influx_query(query)
 
-        if result:
-            result = result["weather"]
-            result.index.name = "datetime"
+        # For multiple Fields a list is returned.
+        if isinstance(result, list):
+            result = pd.concat(result)[["_value", "_field", "_time", "source"]]
+
+        # Check if response is empty
+        if not result.empty:
+            result = parse_influx_result(result, ["source"])
         else:
             self.logger.warning("No weatherdata found. Returning empty dataframe")
             return pd.DataFrame(
@@ -325,15 +327,18 @@ class Weather:
 
     def get_datetime_last_stored_knmi_weatherdata(self) -> datetime:
         query = """
-            SELECT * FROM forecast_latest..weather
-            WHERE source::tag = 'harm_arome'
-            ORDER BY time desc limit 1
+            from(bucket: "forecast_latest/autogen" )   
+                |> range(start: - 10d) 
+                |> limit(n:10)
+                |> filter(fn: (r) => r._measurement == "weather" and r.source == "harm_arome" and r._field == "source_run")
+                |> max()
         """
         result = _DataInterface.get_instance().exec_influx_query(query)
-        latest = result["weather"]
-        # Latest is a dataframe of length 1, with the most recent data of harm_arome
-        latest_unix = latest["source_run"][
-            0
-        ]  # unix timestamp of most recent stored weather forecast created
+
+        if isinstance(result, pd.DataFrame) and not result.empty:
+            # Get latest run
+            latest_unix = result["_value"].max()
+
+        # unix timestamp of most recent stored weather forecast created
         last_stored_run = datetime.fromtimestamp(latest_unix, pytz.utc)
         return last_stored_run

@@ -358,7 +358,6 @@ class Write:
             tag_columns=["Name"],
             field_columns=["Price"],
             time_precision="s",
-            protocol="json",
         )
         return success
 
@@ -372,7 +371,6 @@ class Write:
             tag_columns=["year_created"],
             field_columns=field_columns,
             time_precision="s",
-            protocol="json",
         )
         return success
 

@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import geopy
-import influxdb
+from influxdb_client import InfluxDBClient
 import pandas as pd
 import requests
 import sqlalchemy
@@ -33,6 +33,7 @@ class _DataInterface(metaclass=Singleton):
                 influxdb_password (str): InfluxDB password.
                 influxdb_host (str): InfluxDB host.
                 influxdb_port (int): InfluxDB port.
+                influx_organization (str): InfluxDB organization.
                 mysql_username (str): MySQL username.
                 mysql_password (str): MySQL password.
                 mysql_host (str): MySQL host.
@@ -42,6 +43,7 @@ class _DataInterface(metaclass=Singleton):
         """
 
         self.logger = logging.get_logger(self.__class__.__name__)
+        self.influx_organization = config.influx_organization
 
         self.ktp_api = KtpApi(
             username=config.api_username,
@@ -58,6 +60,9 @@ class _DataInterface(metaclass=Singleton):
             host=config.influxdb_host,
             port=config.influxdb_port,
         )
+
+        self.influx_query_api = self.influx_client.query_api()
+        self.influx_write_api = self.influx_client.write_api()
 
         self.mysql_engine = self._create_mysql_engine(
             username=config.mysql_username,
@@ -95,11 +100,9 @@ class _DataInterface(metaclass=Singleton):
     ) -> None:
         """Create influx client, namespace-dependend"""
         try:
-            return influxdb.DataFrameClient(
-                host=host,
-                port=port,
-                username=username,
-                password=password,
+            return InfluxDBClient(
+                url=f"{host}:{port}",
+                token=f"{username}:{password}",
             )
         except Exception as exc:
             self.logger("Could not connect to InfluxDB database", exc_info=exc)
@@ -138,9 +141,7 @@ class _DataInterface(metaclass=Singleton):
             defaultdict: Query result.
         """
         try:
-            return self.influx_client.query(
-                query, bind_params=bind_params, chunked=True, chunk_size=10000
-            )
+            return self.influx_query_api.query_data_frame(query)
         except requests.exceptions.ConnectionError as e:
             self.logger.error("Lost connection to InfluxDB database", exc_info=e)
             raise
@@ -156,15 +157,16 @@ class _DataInterface(metaclass=Singleton):
         database: str,
         measurement: str,
         tag_columns: list,
+        organization: str = None,
         field_columns: list = None,
         time_precision: str = "s",
-        protocol: str = "json",
     ) -> bool:
-
         if field_columns is None:
             field_columns = []
         if type(tag_columns) is not list:
             raise ValueError("'tag_columns' should be a list")
+        if organization is None:
+            organization = self.influx_organization
 
         if len(tag_columns) == 0:
             raise ValueError("At least one tag column should be given in 'tag_columns'")
@@ -177,14 +179,14 @@ class _DataInterface(metaclass=Singleton):
             )
 
         try:
-            self.influx_client.write_points(
-                df,
-                measurement=measurement,
-                database=database,
-                tag_columns=tag_columns,
-                field_columns=field_columns,
-                time_precision=time_precision,
-                protocol=protocol,
+            self.influx_write_api.write(
+                record=df,
+                data_frame_measurement_name=measurement,
+                bucket=f"{database}/autogen",
+                data_frame_tag_columns=tag_columns,
+                record_field_keys=field_columns,
+                write_precision=time_precision,
+                org=organization,
             )
             return True
         except Exception as e:
@@ -195,10 +197,12 @@ class _DataInterface(metaclass=Singleton):
 
     def check_influx_available(self):
         """Check if a basic influx query gives a valid response"""
-        query = "SHOW DATABASES"
+        query = "buckets()"
         response = self.exec_influx_query(query)
-
-        available = len(list(response["databases"])) > 0
+        if isinstance(response, pd.DataFrame):
+            available = not response.empty
+        else:
+            available = False
 
         return available
 
@@ -216,7 +220,7 @@ class _DataInterface(metaclass=Singleton):
             )
             raise
         except sqlalchemy.exc.DatabaseError as e:
-            self.logger.error("Can't connecto to MySQL database", exc_info=e)
+            self.logger.error("Can't connect to MySQL database", exc_info=e)
             raise
 
     def exec_sql_write(self, statement: str, params: dict = None) -> None:

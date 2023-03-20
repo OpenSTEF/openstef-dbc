@@ -8,7 +8,6 @@ import pandas as pd
 
 
 class TestData:
-
     DATA_FILES_FOLDER = Path(__file__).parent.parent / "unit" / "data"
 
     LAG_FUNCTIONS_KEYS = [
@@ -64,7 +63,6 @@ class TestData:
         return super().__getattribute__(name)
 
     def _get_pickled_dataframe(self, name):
-
         return self._load_stored_dataframe(name, self._PICKLED_DF_FILES, pd.read_pickle)
 
     def _get_csv_dataframe(self, name):

@@ -39,7 +39,6 @@ class TestPredictionJob(unittest.TestCase):
 
     @patch("openstef_dbc.services.prediction_job._DataInterface")
     def test_get_prediction_jobs_result_size_is_zero(self, data_interface_mock):
-
         self.service.get_prediction_jobs()
 
     @patch("openstef_dbc.services.prediction_job._DataInterface")
