@@ -326,6 +326,7 @@ class Weather:
         return result
 
     def get_datetime_last_stored_knmi_weatherdata(self) -> datetime:
+        """Returns datetime of latest KNMI run in influx Database. If no run is found return first unix time."""
         query = """
             from(bucket: "forecast_latest/autogen" )   
                 |> range(start: - 2d) 
@@ -338,6 +339,8 @@ class Weather:
         if isinstance(result, pd.DataFrame) and not result.empty:
             # Get latest run
             latest_unix = result["_value"].max()
+        else:
+            latest_unix = "0"  # Return first unix time if no run is found
 
         # unix timestamp of most recent stored weather forecast created
         last_stored_run = datetime.fromtimestamp(latest_unix, pytz.utc)
