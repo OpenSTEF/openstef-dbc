@@ -103,6 +103,7 @@ class _DataInterface(metaclass=Singleton):
             return InfluxDBClient(
                 url=f"{host}:{port}",
                 token=f"{username}:{password}",
+                timeout=30_000,
             )
         except Exception as exc:
             self.logger("Could not connect to InfluxDB database", exc_info=exc)

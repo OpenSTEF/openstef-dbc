@@ -328,7 +328,7 @@ class Weather:
     def get_datetime_last_stored_knmi_weatherdata(self) -> datetime:
         query = """
             from(bucket: "forecast_latest/autogen" )   
-                |> range(start: - 10d) 
+                |> range(start: - 2d) 
                 |> limit(n:10)
                 |> filter(fn: (r) => r._measurement == "weather" and r.source == "harm_arome" and r._field == "source_run")
                 |> max()
