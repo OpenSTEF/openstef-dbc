@@ -29,8 +29,7 @@ class _DataInterface(metaclass=Singleton):
                 api_admin_username (str): API admin username.
                 api_admin_password (str): API admin password.
                 api_url (str): API url.
-                influxdb_username (str): InfluxDB username.
-                influxdb_password (str): InfluxDB password.
+                influxdb_token (str): Token to authenticate to InfluxDB.
                 influxdb_host (str): InfluxDB host.
                 influxdb_port (int): InfluxDB port.
                 influx_organization (str): InfluxDB organization.
@@ -55,10 +54,10 @@ class _DataInterface(metaclass=Singleton):
         )
 
         self.influx_client = self._create_influx_client(
-            username=config.influxdb_username,
-            password=config.influxdb_password,
+            token=config.influxdb_token,
             host=config.influxdb_host,
             port=config.influxdb_port,
+            organization=config.influx_organization,
         )
 
         self.influx_query_api = self.influx_client.query_api()
@@ -96,13 +95,14 @@ class _DataInterface(metaclass=Singleton):
             ) from exc
 
     def _create_influx_client(
-        self, username: str, password: str, host: str, port: int
+        self, token: str, host: str, port: int, organization: str
     ) -> None:
         """Create influx client, namespace-dependend"""
         try:
             return InfluxDBClient(
                 url=f"{host}:{port}",
-                token=f"{username}:{password}",
+                token=token,
+                org=organization,
                 timeout=30_000,
             )
         except Exception as exc:

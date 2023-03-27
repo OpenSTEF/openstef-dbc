@@ -97,8 +97,7 @@ class DataBase(metaclass=Singleton):
                 api_admin_username (str): API admin username.
                 api_admin_password (str): API admin password.
                 api_url (str): API url.
-                influxdb_username (str): InfluxDB username.
-                influxdb_password (str): InfluxDB password.
+                influxdb_token (str): Token to authenticate to InfluxDB.
                 influxdb_host (str): InfluxDB host.
                 influxdb_port (int): InfluxDB port.
                 mysql_username (str): MySQL username.
