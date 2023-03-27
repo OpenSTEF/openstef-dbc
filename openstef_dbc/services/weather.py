@@ -340,7 +340,7 @@ class Weather:
             # Get latest run
             latest_unix = result["_value"].max()
         else:
-            latest_unix = "0"  # Return first unix time if no run is found
+            latest_unix = 0  # Return first unix time if no run is found
 
         # unix timestamp of most recent stored weather forecast created
         last_stored_run = datetime.fromtimestamp(latest_unix, pytz.utc)
