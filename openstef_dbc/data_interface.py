@@ -4,6 +4,7 @@
 
 import geopy
 from influxdb_client import InfluxDBClient
+from influxdb_client.client.write_api import SYNCHRONOUS
 import pandas as pd
 import requests
 import sqlalchemy
@@ -61,7 +62,7 @@ class _DataInterface(metaclass=Singleton):
         )
 
         self.influx_query_api = self.influx_client.query_api()
-        self.influx_write_api = self.influx_client.write_api()
+        self.influx_write_api = self.influx_client.write_api(write_options=SYNCHRONOUS)
 
         self.mysql_engine = self._create_mysql_engine(
             username=config.mysql_username,
