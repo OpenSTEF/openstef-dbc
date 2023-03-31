@@ -114,8 +114,8 @@ class Write:
 
         # If desired, write tAhead series to influx - tAhead table
         if t_ahead_series:
-            if len(forecast)==0:
-                self.logger.info('Len forecasts=0, not going to write them to tAheads')
+            if len(forecast) == 0:
+                self.logger.info("Len forecasts=0, not going to write them to tAheads")
                 return message
             message += self._write_t_ahead_series(forecast=forecast, dbname=dbname)
 
@@ -162,11 +162,13 @@ class Write:
         ]
         tag_columns = ["pid", "customer", "type", "tAhead"]
         field_columns = [x for x in t_adf.columns if x not in tag_columns]
-        
+
         # Force a hard typecast so floats are definetly stored as floats!
-        float_columns = ["tAhead","forecast", "stdev"] + quantile_forecasts
-        t_adf[float_columns] = t_adf[float_columns].apply(pd.to_numeric, downcast='float', errors='coerce')
-        
+        float_columns = ["tAhead", "forecast", "stdev"] + quantile_forecasts
+        t_adf[float_columns] = t_adf[float_columns].apply(
+            pd.to_numeric, downcast="float", errors="coerce"
+        )
+
         try:
             result = _DataInterface.get_instance().exec_influx_write(
                 t_adf.copy(),
@@ -178,10 +180,12 @@ class Write:
             )
             if not result:
                 return ""
-            
-        # Temporary workaround for invalid dtypes in tAheads (FK@20230331; expected to be required until 20230407, since then shard rolls over)            
+
+        # Temporary workaround for invalid dtypes in tAheads (FK@20230331; expected to be required until 20230407, since then shard rolls over)
         except ApiException:
-            self.logger.exception('Invalid dtypes for fiels, writing to *field*_temp instead')
+            self.logger.exception(
+                "Invalid dtypes for fiels, writing to *field*_temp instead"
+            )
             # rename field_columns to '_temp' so they are still stored
             rename_dict = {colname: f"{colname}_temp" for colname in float_columns}
             result = _DataInterface.get_instance().exec_influx_write(
