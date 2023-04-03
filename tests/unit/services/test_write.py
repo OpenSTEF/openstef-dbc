@@ -24,7 +24,7 @@ class Config:
     def __getattr__(self, item):
         return None
 
-    @unittest.skip()
+    @unittest.skip("Run locally to actually write data to the database)
     def test_write_taheads():
         """Used to manually test if writing taheads went okay during invalid field dtype period"""
         # Setup connection
