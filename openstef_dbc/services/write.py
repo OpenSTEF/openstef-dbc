@@ -84,7 +84,7 @@ class Write:
         field_columns = [x for x in forecast.columns if x not in tag_columns]
 
         # Cast columns to correct type, as influx is extremely picky
-        casting_dict = {"prediction": float, "stdev": float}
+        casting_dict = {"prediction": float, "stdev": float, "created": int}
         for col, cast in casting_dict.items():
             if col in field_columns:
                 forecast = forecast.astype({col: cast})
