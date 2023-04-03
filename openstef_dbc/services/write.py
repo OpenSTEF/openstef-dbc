@@ -84,7 +84,13 @@ class Write:
         field_columns = [x for x in forecast.columns if x not in tag_columns]
 
         # Cast columns to correct type, as influx is extremely picky
-        casting_dict = {"forecast": float, "stdev": float, "created": int, "forecast_other" : float, 'tAhead': float}
+        casting_dict = {
+            "forecast": float,
+            "stdev": float,
+            "created": int,
+            "forecast_other": float,
+            "tAhead": float,
+        }
         quantile_forecasts = [name for name in forecast.columns if "quantile_" in name]
         casting_dict.update({qf: float for qf in quantile_forecasts})
         for col, cast in casting_dict.items():
