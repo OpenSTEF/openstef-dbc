@@ -97,12 +97,6 @@ class Write:
             if col in field_columns and col in forecast.columns:
                 forecast = forecast.astype({col: cast})
 
-        # TEMPORARY FIX - do not store created, as data types are int on one
-        # shard, but str on another...
-        # FK 20230403
-        forecast = forecast.drop("created", axis=1)
-        # END TEMPORARY FIX
-
         result = _DataInterface.get_instance().exec_influx_write(
             forecast.copy(),
             database=dbname,
