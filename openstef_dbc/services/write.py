@@ -247,6 +247,41 @@ class Write:
 
         return message
 
+    def write_realised_power_measurements(self, df: pd.DataFrame, sid: str):
+        """Method that writes measurement data to the influx database.
+
+        Args:
+            df: pd.DataFrame(index = "datetime", columns = ['output'])
+            sid: (str) String with system id of the measurement
+
+        Returns:
+            None
+        """
+        df["type"] = "measurement"
+        df["system"] = str(sid)
+        df["created"] = int(time.time())
+        df = df.astype({"output": np.float64})
+        # Write to influx database
+        result = _DataInterface.get_instance().exec_influx_write(
+            df,
+            database="realised",
+            measurement="power",
+            tag_columns=["system", "type"],
+            field_columns=["output", "created"],
+            time_precision="s",
+        )
+        if not result:
+            self.logger.error(
+                "Something wend wrong while writing measurement data to influx"
+            )
+            return
+
+        self.logger.info(
+            "Wrote measurement data for {} systems to influx".format(
+                df["system"].nunique()
+            )
+        )
+
     def write_realised_pvdata(self, df: pd.DataFrame, region: str) -> None:
         """Method that writes realised pv data to the influx database. This function
         also adds systems to the systems table in mysql if they do not yet excist.
