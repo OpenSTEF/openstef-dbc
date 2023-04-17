@@ -49,6 +49,7 @@ class DataBase(metaclass=Singleton):
     get_prediction_jobs_wind = _prediction_job.get_prediction_jobs_wind
     get_prediction_jobs = _prediction_job.get_prediction_jobs
     get_prediction_job = _prediction_job.get_prediction_job
+    get_pids_for_api_key = _prediction_job.get_pids_for_api_key
     # weather methods
     get_weather_forecast_locations = _weather.get_weather_forecast_locations
     get_weather_data = _weather.get_weather_data
@@ -82,6 +83,7 @@ class DataBase(metaclass=Singleton):
         _systems.get_pv_systems_with_incorrect_location
     )
     get_random_pv_systems = _systems.get_random_pv_systems
+    get_api_key_for_system = _systems.get_api_key_for_system
 
     def __init__(self, config):
         """Construct the DataBase singleton.

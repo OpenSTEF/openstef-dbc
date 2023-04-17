@@ -5,6 +5,8 @@
 import json
 from typing import List, Optional, Union
 from pydantic import ValidationError
+import pandas as pd
+
 from openstef.data_classes.prediction_job import PredictionJobDataClass
 
 from openstef_dbc.data_interface import _DataInterface
@@ -337,3 +339,20 @@ class PredictionJobRetriever:
         # make sure we always get 0 or 1 (anything not 0 -> 1)
         active = int(active != 0)
         return f"p.active = {active}"
+
+    def get_pids_for_api_key(self, api_key: str) -> list[int]:
+        bind_params = {"apiKey": api_key}
+        query = """
+            SELECT
+                p.id 
+            FROM `customersApiKeys` as cak 
+            LEFT JOIN `customers` as cu ON cak.cid = cu.id 
+            LEFT JOIN `customers_predictions` as cp ON cu.id = cp.customer_id 
+            LEFT JOIN `predictions` as p ON p.id = cp.prediction_id 
+            WHERE cak.api_key = %(apiKey)s 
+        """
+        result = _DataInterface.get_instance().exec_sql_query(query, bind_params)
+        if isinstance(result, pd.DataFrame) and result.empty:
+            return []
+        else:
+            return result["id"].to_list()

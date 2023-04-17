@@ -121,3 +121,21 @@ class Systems:
         """
 
         return _DataInterface.get_instance().exec_sql_query(query, bind_params)
+
+    def get_api_key_for_system(self, sid: str) -> str:
+
+        bind_params = {"system": sid}
+
+        query = """
+            SELECT 
+                sa.apiKey 
+            FROM `systems` as s 
+            LEFT JOIN `systemsApiKeys` as sa ON s.measurements_customer_api_key_id = sa.id 
+            WHERE s.sid = %(system)s;
+        """
+
+        result = _DataInterface.get_instance().exec_sql_query(query, bind_params)
+        if isinstance(result, pd.DataFrame) and result.empty:
+            return ""
+        else:
+            result["apiKey"][0]
