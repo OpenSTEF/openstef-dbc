@@ -123,6 +123,14 @@ class Systems:
         return _DataInterface.get_instance().exec_sql_query(query, bind_params)
 
     def get_api_key_for_system(self, sid: str) -> str:
+        """Get (sysetm) API key that is connected to a given system.
+
+        Args:
+            sid (str): The system ID
+
+        Returns:
+            str: The API key that is connected to the given system.
+        """
         bind_params = {"system": sid}
 
         query = """

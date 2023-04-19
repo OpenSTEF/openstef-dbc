@@ -195,6 +195,53 @@ class PredictionJobRetriever:
     ) -> PredictionJobDataClass:
         return self._add_quantiles_to_prediction_jobs([prediction_job])[0]
 
+    def get_pids_for_api_key(self, api_key: str) -> list[int]:
+        """Get all pids that belong to a given API key.
+
+        Args:
+            api_key (str): The API key
+
+        Returns:
+            list[int]: dList of pids
+        """
+        bind_params = {"apiKey": api_key}
+        query = """
+            SELECT
+                p.id 
+            FROM `customersApiKeys` as cak 
+            LEFT JOIN `customers` as cu ON cak.cid = cu.id 
+            LEFT JOIN `customers_predictions` as cp ON cu.id = cp.customer_id 
+            LEFT JOIN `predictions` as p ON p.id = cp.prediction_id 
+            WHERE cak.api_key = %(apiKey)s 
+        """
+        result = _DataInterface.get_instance().exec_sql_query(query, bind_params)
+        if isinstance(result, pd.DataFrame) and result.empty:
+            return []
+        else:
+            return result["id"].to_list()
+
+    def get_ean_for_pid(self, pid: int) -> str:
+        """Get EAN that is connectec to a prediction
+
+        Args:
+            pid (int): The prediction ID
+
+        Returns:
+            str: The corresponding EAN code
+        """
+        bind_params = {"pid": pid}
+        query = """
+            SELECT
+                p.ean 
+            FROM `predictions` as p  
+            WHERE p.id = %(pid)s 
+        """
+        result = _DataInterface.get_instance().exec_sql_query(query, bind_params)
+        if isinstance(result, pd.DataFrame) and result.empty:
+            return []
+        else:
+            return result["ean"].to_list()
+
     @classmethod
     def _add_quantiles_to_prediction_jobs(
         cls, prediction_jobs: List[PredictionJobDataClass]
@@ -340,34 +387,3 @@ class PredictionJobRetriever:
         # make sure we always get 0 or 1 (anything not 0 -> 1)
         active = int(active != 0)
         return f"p.active = {active}"
-
-    def get_pids_for_api_key(self, api_key: str) -> list[int]:
-        bind_params = {"apiKey": api_key}
-        query = """
-            SELECT
-                p.id 
-            FROM `customersApiKeys` as cak 
-            LEFT JOIN `customers` as cu ON cak.cid = cu.id 
-            LEFT JOIN `customers_predictions` as cp ON cu.id = cp.customer_id 
-            LEFT JOIN `predictions` as p ON p.id = cp.prediction_id 
-            WHERE cak.api_key = %(apiKey)s 
-        """
-        result = _DataInterface.get_instance().exec_sql_query(query, bind_params)
-        if isinstance(result, pd.DataFrame) and result.empty:
-            return []
-        else:
-            return result["id"].to_list()
-
-    def get_ean_for_pid(self, pid: int) -> str:
-        bind_params = {"pid": pid}
-        query = """
-            SELECT
-                p.ean 
-            FROM `predictions` as p  
-            WHERE p.id = %(pid)s 
-        """
-        result = _DataInterface.get_instance().exec_sql_query(query, bind_params)
-        if isinstance(result, pd.DataFrame) and result.empty:
-            return []
-        else:
-            return result["ean"].to_list()

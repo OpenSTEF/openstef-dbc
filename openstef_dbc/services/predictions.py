@@ -74,6 +74,17 @@ class Predictions:
     def get_forecast_quality(
         self, pj: dict, start_time: datetime = None, end_time: datetime = None
     ):
+        """Get forecast quality for historic load predictions for given pid.
+
+        Args:
+            pj (dict): Prediction job
+            start_time (datetime): Start time to retrieve the historic load prediction.
+            end_time (datetime): End time to retrieve the historic load prediction.
+
+        Returns:
+            pandas.Series: Quality column with the quality of the predicted values
+
+        """
         if start_time is None:
             start_time = datetime.utcnow()
         if end_time is None:
@@ -116,6 +127,19 @@ class Predictions:
         end_time: datetime = None,
         quantiles: bool = False,
     ):
+        """Get historic load predictions for given pid including component forecasts.
+
+        Args:
+            pj (dict): Prediction job
+            start_time (datetime): Start time  to retrieve the historic load prediction.
+            end_time (datetime): End timeto retrieve the historic load prediction.
+            quantiles: (boo): Indicates wheter quantiles should be retrieved as well.
+
+        Returns:
+            pandas.DataFrame: Dataframe with the total forecast,
+            the components forecasts and the quantiles if they are requested.
+
+        """
         # Apply default parameters if none are provided
         if start_time is None:
             start_time = datetime.utcnow()
