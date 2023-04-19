@@ -8,6 +8,7 @@ import time
 
 import numpy as np
 import pandas as pd
+from influxdb_client.rest import ApiException
 
 from openstef_dbc.data_interface import _DataInterface
 from openstef_dbc.log import logging
@@ -113,6 +114,9 @@ class Write:
 
         # If desired, write tAhead series to influx - tAhead table
         if t_ahead_series:
+            if len(forecast) == 0:
+                self.logger.info("Len forecasts=0, not going to write them to tAheads")
+                return message
             message += self._write_t_ahead_series(forecast=forecast, dbname=dbname)
 
         return message
@@ -120,7 +124,6 @@ class Write:
     def _write_t_ahead_series(
         self, forecast: pd.DataFrame, dbname: str = "forecast_latest"
     ) -> str:
-        self.logger.info("Store t ahead series")
         allowed_columns = [
             "tAhead",
             "pid",
@@ -141,8 +144,8 @@ class Write:
         # specify desired t_aheads
         desired_t_aheads = [0.0, 1.0, 4.0, 8.0, 24.0, 47.0, 50.0, 144.0]
 
-        # Add tAhead column, round to hour
         t_adf = forecast.copy()
+
         t_adf["tAhead"] = np.floor(
             (t_adf.index.tz_localize(None) - datetime.utcnow()).total_seconds() / 3600
         )
@@ -159,16 +162,42 @@ class Write:
         ]
         tag_columns = ["pid", "customer", "type", "tAhead"]
         field_columns = [x for x in t_adf.columns if x not in tag_columns]
-        result = _DataInterface.get_instance().exec_influx_write(
-            t_adf.copy(),
-            database=dbname,
-            measurement=influxtable,
-            tag_columns=tag_columns,
-            field_columns=field_columns,
-            time_precision="s",
+
+        # Force a hard typecast so floats are definetly stored as floats!
+        float_columns = ["tAhead", "forecast", "stdev"] + quantile_forecasts
+        t_adf[float_columns] = t_adf[float_columns].apply(
+            pd.to_numeric, downcast="float", errors="coerce"
         )
-        if not result:
-            return ""
+
+        try:
+            result = _DataInterface.get_instance().exec_influx_write(
+                t_adf.copy(),
+                database=dbname,
+                measurement=influxtable,
+                tag_columns=tag_columns,
+                field_columns=field_columns,
+                time_precision="s",
+            )
+            if not result:
+                return ""
+
+        # Temporary workaround for invalid dtypes in tAheads (FK@20230331; expected to be required until 20230407, since then shard rolls over)
+        except ApiException:
+            self.logger.exception(
+                "Invalid dtypes for fiels, writing to *field*_temp instead"
+            )
+            # rename field_columns to '_temp' so they are still stored
+            rename_dict = {colname: f"{colname}_temp" for colname in float_columns}
+            result = _DataInterface.get_instance().exec_influx_write(
+                t_adf.copy().rename(columns=rename_dict),
+                database=dbname,
+                measurement=influxtable,
+                tag_columns=tag_columns,
+                field_columns=list(rename_dict.values()),
+                time_precision="s",
+            )
+            if not result:
+                return ""
 
         num_rows = str(len(t_adf))
         self.logger.info(
