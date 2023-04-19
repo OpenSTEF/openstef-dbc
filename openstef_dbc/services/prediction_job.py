@@ -282,6 +282,7 @@ class PredictionJobRetriever:
         query = f"""
             SELECT
                 p.id, 
+                p.ean,
                 p.name,
                 p.forecast_type, 
                 p.model, 
@@ -356,3 +357,17 @@ class PredictionJobRetriever:
             return []
         else:
             return result["id"].to_list()
+
+    def get_ean_for_pid(self, pid: int) -> str:
+        bind_params = {"pid": pid}
+        query = """
+            SELECT
+                p.ean 
+            FROM `predictions` as p  
+            WHERE p.id = %(pid)s 
+        """
+        result = _DataInterface.get_instance().exec_sql_query(query, bind_params)
+        if isinstance(result, pd.DataFrame) and result.empty:
+            return []
+        else:
+            return result["ean"].to_list()

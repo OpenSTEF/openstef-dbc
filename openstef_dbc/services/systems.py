@@ -138,4 +138,4 @@ class Systems:
         if isinstance(result, pd.DataFrame) and result.empty:
             return ""
         else:
-            result["apiKey"][0]
+            return result["apiKey"][0]
