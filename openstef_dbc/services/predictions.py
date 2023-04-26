@@ -73,7 +73,7 @@ class Predictions:
 
     def get_forecast_quality(
         self, pj: dict, start_time: datetime = None, end_time: datetime = None
-    ):
+    ) -> pd.Series:
         """Get forecast quality for historic load predictions for given pid.
 
         Args:
