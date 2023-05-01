@@ -73,7 +73,7 @@ class Predictions:
 
     def get_forecast_quality(
         self, pj: dict, start_time: datetime = None, end_time: datetime = None
-    ):
+    ) -> pd.Series:
         """Get forecast quality for historic load predictions for given pid.
 
         Args:
@@ -133,7 +133,7 @@ class Predictions:
             pj (dict): Prediction job
             start_time (datetime): Start time  to retrieve the historic load prediction.
             end_time (datetime): End timeto retrieve the historic load prediction.
-            quantiles: (boo): Indicates wheter quantiles should be retrieved as well.
+            quantiles: (bool): Indicates wheter quantiles should be retrieved as well.
 
         Returns:
             pandas.DataFrame: Dataframe with the total forecast,

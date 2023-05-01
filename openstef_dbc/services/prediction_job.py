@@ -221,7 +221,7 @@ class PredictionJobRetriever:
             return result["id"].to_list()
 
     def get_ean_for_pid(self, pid: int) -> str:
-        """Get EAN that is connectec to a prediction
+        """Get EAN that is connected to a prediction
 
         Args:
             pid (int): The prediction ID
