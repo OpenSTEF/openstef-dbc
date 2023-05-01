@@ -8,7 +8,6 @@ import time
 
 import numpy as np
 import pandas as pd
-from influxdb_client.rest import ApiException
 
 from openstef_dbc.data_interface import _DataInterface
 from openstef_dbc.log import logging
@@ -115,7 +114,7 @@ class Write:
         # If desired, write tAhead series to influx - tAhead table
         if t_ahead_series:
             if len(forecast) == 0:
-                self.logger.info("Len forecasts=0, not going to write them to tAheads")
+                message += "Len forecasts=0, not going to write them to tAheads"
                 return message
             message += self._write_t_ahead_series(forecast=forecast, dbname=dbname)
 
@@ -165,39 +164,23 @@ class Write:
 
         # Force a hard typecast so floats are definetly stored as floats!
         float_columns = ["tAhead", "forecast", "stdev"] + quantile_forecasts
-        t_adf[float_columns] = t_adf[float_columns].apply(
+        float_columns_in_dataframe = [
+            df_column for df_column in t_adf.columns if df_column in float_columns
+        ]
+        t_adf[float_columns_in_dataframe] = t_adf[float_columns_in_dataframe].apply(
             pd.to_numeric, downcast="float", errors="coerce"
         )
 
-        try:
-            result = _DataInterface.get_instance().exec_influx_write(
-                t_adf.copy(),
-                database=dbname,
-                measurement=influxtable,
-                tag_columns=tag_columns,
-                field_columns=field_columns,
-                time_precision="s",
-            )
-            if not result:
-                return ""
-
-        # Temporary workaround for invalid dtypes in tAheads (FK@20230331; expected to be required until 20230407, since then shard rolls over)
-        except ApiException:
-            self.logger.exception(
-                "Invalid dtypes for fiels, writing to *field*_temp instead"
-            )
-            # rename field_columns to '_temp' so they are still stored
-            rename_dict = {colname: f"{colname}_temp" for colname in float_columns}
-            result = _DataInterface.get_instance().exec_influx_write(
-                t_adf.copy().rename(columns=rename_dict),
-                database=dbname,
-                measurement=influxtable,
-                tag_columns=tag_columns,
-                field_columns=list(rename_dict.values()),
-                time_precision="s",
-            )
-            if not result:
-                return ""
+        result = _DataInterface.get_instance().exec_influx_write(
+            t_adf.copy(),
+            database=dbname,
+            measurement=influxtable,
+            tag_columns=tag_columns,
+            field_columns=field_columns,
+            time_precision="s",
+        )
+        if not result:
+            return ""
 
         num_rows = str(len(t_adf))
         self.logger.info(
