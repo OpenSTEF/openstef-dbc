@@ -121,3 +121,42 @@ class Systems:
         """
 
         return _DataInterface.get_instance().exec_sql_query(query, bind_params)
+
+    def get_api_key_for_system(self, sid: str) -> str:
+        """Get (sysetm) API key that is connected to a given system.
+
+        Args:
+            sid (str): The system ID
+
+        Returns:
+            str: The API key that is connected to the given system.
+        """
+        bind_params = {"system": sid}
+
+        query = """
+            SELECT 
+                sa.apiKey 
+            FROM `systems` as s 
+            LEFT JOIN `systemsApiKeys` as sa ON s.measurements_customer_api_key_id = sa.id 
+            WHERE s.sid = %(system)s;
+        """
+
+        result = _DataInterface.get_instance().exec_sql_query(query, bind_params)
+        if isinstance(result, pd.DataFrame) and result.empty:
+            return ""
+        else:
+            return result["apiKey"][0]
+
+    def get_api_keys_for_systems(self, sids: list[str]) -> list[str]:
+        """Get (sysetm) API keys that are connected to a given list of systems.
+
+        Args:
+            sid (str): The list with system IDs
+
+        Returns:
+            list(str): The API keys that are connected to the given systems in the list.
+        """
+        api_keys = []
+        for sid in sids:
+            api_keys.append(self.get_api_key_for_system(sid))
+        return list(set(api_keys))

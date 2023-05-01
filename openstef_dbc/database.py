@@ -37,6 +37,7 @@ class DataBase(metaclass=Singleton):
 
     # write methods
     write_weather_data = _write.write_weather_data
+    write_realised = _write.write_realised
     write_realised_pvdata = _write.write_realised_pvdata
     write_kpi = _write.write_kpi
     write_forecast = _write.write_forecast
@@ -44,11 +45,17 @@ class DataBase(metaclass=Singleton):
     write_sjv_load_profiles = _write.write_sjv_load_profiles
     write_windturbine_powercurves = _write.write_windturbine_powercurves
     write_energy_splitting_coefficients = _write.write_energy_splitting_coefficients
+
     # prediction job methods
     get_prediction_jobs_solar = _prediction_job.get_prediction_jobs_solar
     get_prediction_jobs_wind = _prediction_job.get_prediction_jobs_wind
     get_prediction_jobs = _prediction_job.get_prediction_jobs
     get_prediction_job = _prediction_job.get_prediction_job
+    get_pids_for_api_key = _prediction_job.get_pids_for_api_key
+    get_pids_for_api_keys = _prediction_job.get_pids_for_api_keys
+    get_ean_for_pid = _prediction_job.get_ean_for_pid
+    get_eans_for_pids = _prediction_job.get_eans_for_pids
+
     # weather methods
     get_weather_forecast_locations = _weather.get_weather_forecast_locations
     get_weather_data = _weather.get_weather_data
@@ -70,6 +77,10 @@ class DataBase(metaclass=Singleton):
     # predictions methods
     get_predicted_load = _predictions.get_predicted_load
     get_predicted_load_tahead = _predictions.get_predicted_load_tahead
+    get_prediction_including_components = (
+        _predictions.get_prediction_including_components
+    )
+    get_forecast_quality = _predictions.get_forecast_quality
     # model input methods
     get_model_input = _model_input.get_model_input
     get_wind_input = _model_input.get_wind_input
@@ -82,6 +93,8 @@ class DataBase(metaclass=Singleton):
         _systems.get_pv_systems_with_incorrect_location
     )
     get_random_pv_systems = _systems.get_random_pv_systems
+    get_api_key_for_system = _systems.get_api_key_for_system
+    get_api_keys_for_systems = _systems.get_api_keys_for_systems
 
     def __init__(self, config):
         """Construct the DataBase singleton.

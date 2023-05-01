@@ -113,6 +113,9 @@ class Write:
 
         # If desired, write tAhead series to influx - tAhead table
         if t_ahead_series:
+            if len(forecast) == 0:
+                message += "Len forecasts=0, not going to write them to tAheads"
+                return message
             message += self._write_t_ahead_series(forecast=forecast, dbname=dbname)
 
         return message
@@ -120,7 +123,6 @@ class Write:
     def _write_t_ahead_series(
         self, forecast: pd.DataFrame, dbname: str = "forecast_latest"
     ) -> str:
-        self.logger.info("Store t ahead series")
         allowed_columns = [
             "tAhead",
             "pid",
@@ -141,8 +143,8 @@ class Write:
         # specify desired t_aheads
         desired_t_aheads = [0.0, 1.0, 4.0, 8.0, 24.0, 47.0, 50.0, 144.0]
 
-        # Add tAhead column, round to hour
         t_adf = forecast.copy()
+
         t_adf["tAhead"] = np.floor(
             (t_adf.index.tz_localize(None) - datetime.utcnow()).total_seconds() / 3600
         )
@@ -159,6 +161,16 @@ class Write:
         ]
         tag_columns = ["pid", "customer", "type", "tAhead"]
         field_columns = [x for x in t_adf.columns if x not in tag_columns]
+
+        # Force a hard typecast so floats are definetly stored as floats!
+        float_columns = ["tAhead", "forecast", "stdev"] + quantile_forecasts
+        float_columns_in_dataframe = [
+            df_column for df_column in t_adf.columns if df_column in float_columns
+        ]
+        t_adf[float_columns_in_dataframe] = t_adf[float_columns_in_dataframe].apply(
+            pd.to_numeric, downcast="float", errors="coerce"
+        )
+
         result = _DataInterface.get_instance().exec_influx_write(
             t_adf.copy(),
             database=dbname,
@@ -246,6 +258,41 @@ class Write:
             )
 
         return message
+
+    def write_realised(self, df: pd.DataFrame, sid: str):
+        """Method that writes measurement data to the influx database.
+
+        Args:
+            df: pd.DataFrame(index = "datetime", columns = ['output'])
+            sid: (str) String with system id of the measurement
+
+        Returns:
+            None
+        """
+        df["type"] = "measurement"
+        df["system"] = str(sid)
+        df["created"] = int(time.time())
+        df = df.astype({"output": np.float64})
+        # Write to influx database
+        result = _DataInterface.get_instance().exec_influx_write(
+            df,
+            database="realised",
+            measurement="power",
+            tag_columns=["system", "type"],
+            field_columns=["output", "created"],
+            time_precision="s",
+        )
+        if not result:
+            self.logger.error(
+                "Something wend wrong while writing measurement data to influx"
+            )
+            return
+
+        self.logger.info(
+            "Wrote measurement data for {} systems to influx".format(
+                df["system"].nunique()
+            )
+        )
 
     def write_realised_pvdata(self, df: pd.DataFrame, region: str) -> None:
         """Method that writes realised pv data to the influx database. This function

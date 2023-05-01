@@ -11,6 +11,14 @@ import re
 from openstef_dbc.data_interface import _DataInterface
 from openstef_dbc.utils import parse_influx_result
 
+FIELDS_OF_INTEREST = [
+    "forecast",
+    "stedev",
+    "forecast_other",
+    "forecast_solar",
+    "forecast_wind_on_shore",
+]
+
 
 class Predictions:
     def get_predicted_load(
@@ -56,6 +64,140 @@ class Predictions:
                 |> filter(fn: (r) => r.pid == "{bind_params["pid"]}")
                 |> aggregateWindow(every: {pj["resolution_minutes"]}m, fn: mean)
         """
+
+        # Query the database
+        result = _DataInterface.get_instance().exec_influx_query(query, bind_params)
+
+        # For multiple Fields a list is returned.
+        if isinstance(result, list):
+            result = pd.concat(result)[["_value", "_field", "_time"]]
+
+        # Return result
+        if not result.empty:
+            # Shifting is needed to output the same as with the old influx client
+            return parse_influx_result(result).shift(-15, freq="T")
+        else:
+            return pd.Series()
+
+    def get_forecast_quality(
+        self, pj: dict, start_time: datetime = None, end_time: datetime = None
+    ) -> pd.Series:
+        """Get forecast quality for historic load predictions for given pid.
+
+        Args:
+            pj (dict): Prediction job
+            start_time (datetime): Start time to retrieve the historic load prediction.
+            end_time (datetime): End time to retrieve the historic load prediction.
+
+        Returns:
+            pandas.Series: Quality column with the quality of the predicted values
+
+        """
+        if start_time is None:
+            start_time = datetime.utcnow()
+        if end_time is None:
+            end_time = datetime.utcnow() + timedelta(days=2)
+
+        bind_params = {
+            "pid": str(pj["id"]),
+            "_start": start_time.astimezone(pytz.UTC),
+            "_stop": end_time.astimezone(pytz.UTC),
+        }
+
+        query = f"""
+        from(bucket: "forecast_latest/autogen")
+            |> range(start: {bind_params["_start"].strftime('%Y-%m-%dT%H:%M:%SZ')}, stop: {bind_params["_stop"].strftime('%Y-%m-%dT%H:%M:%SZ')}) 
+            |> filter(fn: (r) => 
+                r._measurement == "prediction")
+            |> filter(fn: (r) => 
+                r._field == "quality" )                 
+            |> filter(fn: (r) => r.pid == "{bind_params["pid"]}")
+        """
+
+        # Query the database
+        result = _DataInterface.get_instance().exec_influx_query(query, bind_params)
+
+        # For multiple Fields a list is returned.
+        if isinstance(result, list):
+            result = pd.concat(result)[["_value", "_field", "_time"]]
+
+        # Return result
+        if not result.empty:
+            # Shifting is needed to output the same as with the old influx client
+            return parse_influx_result(result, aggfunc="first").shift(-15, freq="T")
+        else:
+            return pd.Series()
+
+    def get_prediction_including_components(
+        self,
+        pj: dict,
+        start_time: datetime = None,
+        end_time: datetime = None,
+        quantiles: bool = False,
+    ):
+        """Get historic load predictions for given pid including component forecasts.
+
+        Args:
+            pj (dict): Prediction job
+            start_time (datetime): Start time  to retrieve the historic load prediction.
+            end_time (datetime): End timeto retrieve the historic load prediction.
+            quantiles: (bool): Indicates wheter quantiles should be retrieved as well.
+
+        Returns:
+            pandas.DataFrame: Dataframe with the total forecast,
+            the components forecasts and the quantiles if they are requested.
+
+        """
+        # Apply default parameters if none are provided
+        if start_time is None:
+            start_time = datetime.utcnow()
+        if end_time is None:
+            end_time = datetime.utcnow() + timedelta(days=2)
+
+        bind_params = {
+            "pid": str(pj["id"]),
+            "_start": start_time.astimezone(pytz.UTC),
+            "_stop": end_time.astimezone(pytz.UTC),
+        }
+        quantile_section = (
+            """or r._field == "quantile_P"""
+            + """" or r._field == "quantile_P""".join(
+                [f"{quantile * 100:02.0f}" for quantile in pj["quantiles"]]
+            )
+            + '"'
+        )
+        fields_of_interest_section = (
+            ''' r._field == "'''
+            + """" or r._field == "
+            """.join(
+                FIELDS_OF_INTEREST
+            )
+            + '"'
+        )
+
+        if quantiles:
+            query = f"""
+            from(bucket: "forecast_latest/autogen")
+                |> range(start: {bind_params["_start"].strftime('%Y-%m-%dT%H:%M:%SZ')}, stop: {bind_params["_stop"].strftime('%Y-%m-%dT%H:%M:%SZ')}) 
+                |> filter(fn: (r) => 
+                    r._measurement == "prediction")
+                |> filter(fn: (r) => 
+                   {fields_of_interest_section} {quantile_section})                 
+                |> filter(fn: (r) => r.pid == "{bind_params["pid"]}")
+                |> aggregateWindow(every: {pj["resolution_minutes"]}m, fn: mean)
+        """
+
+        else:
+            query = f"""
+                from(bucket: "forecast_latest/autogen")
+                    |> range(start: {bind_params["_start"].strftime('%Y-%m-%dT%H:%M:%SZ')}, stop: {bind_params["_stop"].strftime('%Y-%m-%dT%H:%M:%SZ')}) 
+                    |> filter(fn: (r) => 
+                        r._measurement == "prediction")
+                    |> filter(fn: (r) => 
+                        {fields_of_interest_section})                 
+                    |> filter(fn: (r) => r.pid == "{bind_params["pid"]}")
+                    |> aggregateWindow(every: {pj["resolution_minutes"]}m, fn: mean)
+            """
 
         # Query the database
         result = _DataInterface.get_instance().exec_influx_query(query, bind_params)

@@ -5,6 +5,8 @@
 import json
 from typing import List, Optional, Union
 from pydantic import ValidationError
+import pandas as pd
+
 from openstef.data_classes.prediction_job import PredictionJobDataClass
 
 from openstef_dbc.data_interface import _DataInterface
@@ -193,6 +195,81 @@ class PredictionJobRetriever:
     ) -> PredictionJobDataClass:
         return self._add_quantiles_to_prediction_jobs([prediction_job])[0]
 
+    def get_pids_for_api_key(self, api_key: str) -> list[int]:
+        """Get all pids that belong to a given API key.
+
+        Args:
+            api_key (str): The API key
+
+        Returns:
+            list[int]: dList of pids
+        """
+        bind_params = {"apiKey": api_key}
+        query = """
+            SELECT
+                p.id 
+            FROM `customersApiKeys` as cak 
+            LEFT JOIN `customers` as cu ON cak.cid = cu.id 
+            LEFT JOIN `customers_predictions` as cp ON cu.id = cp.customer_id 
+            LEFT JOIN `predictions` as p ON p.id = cp.prediction_id 
+            WHERE cak.api_key = %(apiKey)s 
+        """
+        result = _DataInterface.get_instance().exec_sql_query(query, bind_params)
+        if isinstance(result, pd.DataFrame) and result.empty:
+            return []
+        else:
+            return result["id"].to_list()
+
+    def get_pids_for_api_keys(self, api_keys: list[str]) -> list[int]:
+        """Get all pids that belong to a given list of API keys.
+
+        Args:
+            api_key (str): The list with API keys
+
+        Returns:
+            list[int]: List of pids
+        """
+        pids = []
+        for api_key in api_keys:
+            pids.append(self.get_pids_for_api_key(api_key))
+        return list(set(pids))
+
+    def get_eans_for_pids(self, pids: list[int]) -> dict[int : list[str]]:
+        """Get EANs that are connected to a prediction.
+
+        Args:
+            pid (int): The prediction ID
+
+        Returns:
+            dict{int:list[str]}: The pid to eans mapping
+        """
+        eans = {}
+        for pid in pids:
+            eans.update({pid: eans.append(self.get_ean_for_pid(pid))})
+        return eans
+
+    def get_ean_for_pid(self, pid: int) -> list[str]:
+        """Get EAN that is connected to a prediction
+
+        Args:
+            pid (int): The prediction ID
+
+        Returns:
+            str: The corresponding EAN code
+        """
+        bind_params = {"pid": pid}
+        query = """
+            SELECT
+                p.ean 
+            FROM `predictions` as p  
+            WHERE p.id = %(pid)s 
+        """
+        result = _DataInterface.get_instance().exec_sql_query(query, bind_params)
+        if isinstance(result, pd.DataFrame) and result.empty:
+            return []
+        else:
+            return result["ean"].to_list()
+
     @classmethod
     def _add_quantiles_to_prediction_jobs(
         cls, prediction_jobs: List[PredictionJobDataClass]
@@ -280,6 +357,7 @@ class PredictionJobRetriever:
         query = f"""
             SELECT
                 p.id, 
+                p.ean,
                 p.name,
                 p.forecast_type, 
                 p.model, 

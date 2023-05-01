@@ -120,10 +120,11 @@ class Ems:
         result_raw = _DataInterface.get_instance().exec_influx_query(query, bind_params)
 
         if isinstance(result_raw, pd.DataFrame) and result_raw.empty:
-            raise RuntimeError(
+            self.logger.warning(
                 f"Probably no load data avalailable for the following system(s): \n {sid} \n"
                 f"The following query yields an empty dataframe: {query}"
             )
+            return pd.DataFrame()
 
         if aggregated:
             result = pd.concat(
