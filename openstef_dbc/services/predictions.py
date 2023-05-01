@@ -11,6 +11,14 @@ import re
 from openstef_dbc.data_interface import _DataInterface
 from openstef_dbc.utils import parse_influx_result
 
+FIELDS_OF_INTEREST = [
+    "forecast",
+    "stedev",
+    "forecast_other",
+    "forecast_solar",
+    "forecast_wind_on_shore",
+]
+
 
 class Predictions:
     def get_predicted_load(
@@ -158,6 +166,14 @@ class Predictions:
             )
             + '"'
         )
+        fields_of_interest_section = (
+            ''' r._field == "'''
+            + """" or r._field == "
+            """.join(
+                FIELDS_OF_INTEREST
+            )
+            + '"'
+        )
 
         if quantiles:
             query = f"""
@@ -166,7 +182,7 @@ class Predictions:
                 |> filter(fn: (r) => 
                     r._measurement == "prediction")
                 |> filter(fn: (r) => 
-                   r._field == "forecast" or r._field == "stdev" or r._field == "forecast_other" or r._field == "forecast_solar" or r._field == "forecast_wind_on_shore"{quantile_section})                 
+                   {fields_of_interest_section} {quantile_section})                 
                 |> filter(fn: (r) => r.pid == "{bind_params["pid"]}")
                 |> aggregateWindow(every: {pj["resolution_minutes"]}m, fn: mean)
         """
@@ -178,7 +194,7 @@ class Predictions:
                     |> filter(fn: (r) => 
                         r._measurement == "prediction")
                     |> filter(fn: (r) => 
-                        r._field == "forecast" or r._field == "stdev" or r._field == "forecast_other" or r._field == "forecast_solar" or r._field == "forecast_wind_on_shore")                 
+                        {fields_of_interest_section})                 
                     |> filter(fn: (r) => r.pid == "{bind_params["pid"]}")
                     |> aggregateWindow(every: {pj["resolution_minutes"]}m, fn: mean)
             """
