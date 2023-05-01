@@ -50,7 +50,7 @@ class Predictions:
                 |> filter(fn: (r) => 
                     r._measurement == "prediction")
                 |> filter(fn: (r) => 
-                    r._field == "forecast" or r._field == "stdev") 
+                    r._field == "forecast_temp" or r._field == "forecast" or r._field == "stdev") 
                 |> filter(fn: (r) => 
                     r.type != "est_demand" and  r.type != "est_wind" and  r.type != "est_pv") 
                 |> filter(fn: (r) => r.pid == "{bind_params["pid"]}")
@@ -178,7 +178,7 @@ class Predictions:
                     |> filter(fn: (r) => 
                         r._measurement == "prediction")
                     |> filter(fn: (r) => 
-                        r._field == "quality" or r._field == "forecast" or r._field == "stdev" or r._field == "forecast_other" or r._field == "forecast_solar" or r._field == "forecast_wind_on_shore")                 
+                        r._field == "forecast" or r._field == "stdev" or r._field == "forecast_other" or r._field == "forecast_solar" or r._field == "forecast_wind_on_shore")                 
                     |> filter(fn: (r) => r.pid == "{bind_params["pid"]}")
                     |> aggregateWindow(every: {pj["resolution_minutes"]}m, fn: mean)
             """
