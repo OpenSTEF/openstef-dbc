@@ -37,7 +37,7 @@ class DataBase(metaclass=Singleton):
 
     # write methods
     write_weather_data = _write.write_weather_data
-    write_realised_power_measurements = _write.write_realised_power_measurements
+    write_realised = _write.write_realised
     write_realised_pvdata = _write.write_realised_pvdata
     write_kpi = _write.write_kpi
     write_forecast = _write.write_forecast
@@ -52,7 +52,9 @@ class DataBase(metaclass=Singleton):
     get_prediction_jobs = _prediction_job.get_prediction_jobs
     get_prediction_job = _prediction_job.get_prediction_job
     get_pids_for_api_key = _prediction_job.get_pids_for_api_key
+    get_pids_for_api_keys = _prediction_job.get_pids_for_api_keys
     get_ean_for_pid = _prediction_job.get_ean_for_pid
+    get_eans_for_pids = _prediction_job.get_eans_for_pids
 
     # weather methods
     get_weather_forecast_locations = _weather.get_weather_forecast_locations
@@ -92,6 +94,7 @@ class DataBase(metaclass=Singleton):
     )
     get_random_pv_systems = _systems.get_random_pv_systems
     get_api_key_for_system = _systems.get_api_key_for_system
+    get_api_keys_for_systems = _systems.get_api_keys_for_systems
 
     def __init__(self, config):
         """Construct the DataBase singleton.

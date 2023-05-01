@@ -259,7 +259,7 @@ class Write:
 
         return message
 
-    def write_realised_power_measurements(self, df: pd.DataFrame, sid: str):
+    def write_realised(self, df: pd.DataFrame, sid: str):
         """Method that writes measurement data to the influx database.
 
         Args:

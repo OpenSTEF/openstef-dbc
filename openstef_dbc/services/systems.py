@@ -146,3 +146,17 @@ class Systems:
             return ""
         else:
             return result["apiKey"][0]
+
+    def get_api_keys_for_systems(self, sids: list[str]) -> list[str]:
+        """Get (sysetm) API keys that are connected to a given list of systems.
+
+        Args:
+            sid (str): The list with system IDs
+
+        Returns:
+            list(str): The API keys that are connected to the given systems in the list.
+        """
+        api_keys = []
+        for sid in sids:
+            api_keys.append(self.get_api_key_for_system(sid))
+        return list(set(api_keys))

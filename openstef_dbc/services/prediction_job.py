@@ -220,6 +220,34 @@ class PredictionJobRetriever:
         else:
             return result["id"].to_list()
 
+    def get_pids_for_api_keys(self, api_keys: list[str]) -> list[int]:
+        """Get all pids that belong to a given list of API keys.
+
+        Args:
+            api_key (str): The list with API keys
+
+        Returns:
+            list[int]: List of pids
+        """
+        pids = []
+        for api_key in api_keys:
+            pids.append(self.get_pids_for_api_key(api_key))
+        return list(set(pids))
+
+    def get_eans_for_pids(self, pids: list[int]) -> dict[int : list[str]]:
+        """Get EANs that are connected to a prediction.
+
+        Args:
+            pid (int): The prediction ID
+
+        Returns:
+            dict{int:list[str]}: The pid to eans mapping
+        """
+        eans = {}
+        for pid in pids:
+            eans.update({pid: eans.append(self.get_ean_for_pid(pid))})
+        return eans
+
     def get_ean_for_pid(self, pid: int) -> list[str]:
         """Get EAN that is connected to a prediction
 
