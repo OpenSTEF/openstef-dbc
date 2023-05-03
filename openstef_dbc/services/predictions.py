@@ -167,9 +167,7 @@ class Predictions:
             + '"'
         )
         fields_of_interest_section = (
-            '''r._field == "'''
-            + '''" or r._field == "'''.join(FIELDS_OF_INTEREST)
-            + '"'
+            'r._field == "' + '" or r._field == "'.join(FIELDS_OF_INTEREST) + '"'
         )
 
         if quantiles:
