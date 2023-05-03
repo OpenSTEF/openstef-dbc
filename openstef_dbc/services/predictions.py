@@ -13,7 +13,7 @@ from openstef_dbc.utils import parse_influx_result
 
 FIELDS_OF_INTEREST = [
     "forecast",
-    "stedev",
+    "stdev",
     "forecast_other",
     "forecast_solar",
     "forecast_wind_on_shore",
@@ -167,12 +167,7 @@ class Predictions:
             + '"'
         )
         fields_of_interest_section = (
-            ''' r._field == "'''
-            + """" or r._field == "
-            """.join(
-                FIELDS_OF_INTEREST
-            )
-            + '"'
+            'r._field == "' + '" or r._field == "'.join(FIELDS_OF_INTEREST) + '"'
         )
 
         if quantiles:
