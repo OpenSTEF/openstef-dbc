@@ -123,8 +123,7 @@ class Predictions:
 
         # Return result
         if not result.empty:
-            # Shifting is needed to output the same as with the old influx client
-            return parse_influx_result(result, aggfunc="first").shift(-15, freq="T")
+            return parse_influx_result(result, aggfunc="first")
         else:
             return pd.Series()
 
