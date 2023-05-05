@@ -74,7 +74,7 @@ class Write:
             if "quality" not in forecast.columns:
                 forecast["quality"] = "actual"
             else:
-                forecast[forecast["quality"].isna()] = "actual"
+                forecast.loc[forecast["quality"].isna(), "quality"] = "actual"
 
         # Write DataFrame to influx database
         # Find tag columns
