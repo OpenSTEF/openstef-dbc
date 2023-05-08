@@ -64,7 +64,7 @@ class Predictor:
             raise ValueError(
                 "Need to provide a location when weather data predictors are requested."
             )
-        predictors = pd.DataFrame(index=datetime_index)
+        predictors = []
 
         if PredictorGroups.WEATHER_DATA in predictor_groups:
             weather_data_predictors = self.get_weather_data(
@@ -73,21 +73,21 @@ class Predictor:
                 location=location,
                 forecast_resolution=forecast_resolution,
             )
-            predictors = pd.concat([predictors, weather_data_predictors], axis=1)
+            predictors.append(weather_data_predictors)
 
         if PredictorGroups.MARKET_DATA in predictor_groups:
             market_data_predictors = self.get_market_data(
                 datetime_start, datetime_end, forecast_resolution=forecast_resolution
             )
-            predictors = pd.concat([predictors, market_data_predictors], axis=1)
+            predictors.append(market_data_predictors)
 
         if PredictorGroups.LOAD_PROFILES in predictor_groups:
             load_profiles_predictors = self.get_load_profiles(
                 datetime_start, datetime_end, forecast_resolution=forecast_resolution
             )
-            predictors = pd.concat([predictors, load_profiles_predictors], axis=1)
+            predictors.append(load_profiles_predictors)
 
-        return predictors
+        return pd.concat(predictors, axis=1)
 
     def get_market_data(
         self,
@@ -200,12 +200,15 @@ class Predictor:
             "E4A_I",
         ]
 
-        field_selection = '" or r._field == "'.join(sjv_profles)
-
+        field_selection = '" or r["_field"] == "'.join(sjv_profles)
         query = f"""
-            from(bucket: "realised/autogen")
-                |> range(start: {bind_params["_start"].strftime('%Y-%m-%dT%H:%M:%SZ')}, stop: {bind_params["_stop"].strftime('%Y-%m-%dT%H:%M:%SZ')}) 
-                |> filter(fn: (r) => r._measurement == "sjv" and r._field == "{field_selection}")
+        from(bucket: "realised/autogen")
+            |> range(start: {bind_params["_start"].strftime('%Y-%m-%dT%H:%M:%SZ')}, stop: {bind_params["_stop"].strftime('%Y-%m-%dT%H:%M:%SZ')}) 
+            |> filter(fn: (r) => r["_measurement"] == "sjv")
+            |> filter(fn: (r) => r["_field"] == "{field_selection}")
+            |> aggregateWindow(every: {forecast_resolution[:-3]}m, fn: mean, createEmpty: false)
+            |> yield(name: "mean")
+        
         """
         result = _DataInterface.get_instance().exec_influx_query(
             query, bind_params=bind_params
