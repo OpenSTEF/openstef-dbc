@@ -230,7 +230,7 @@ class Predictor:
             load_profiles = load_profiles.resample(forecast_resolution).interpolate(
                 limit=3
             )
-        return load_profiles
+        return load_profiles.shift(periods=-1, freq=forecast_resolution)
 
     def get_weather_data(
         self,
