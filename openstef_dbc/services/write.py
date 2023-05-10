@@ -271,7 +271,7 @@ class Write:
         """
         df["type"] = "measurement"
         df["system"] = str(sid)
-        df["created"] = int(time.time())
+        df["created"] = int(datetime.utcnow().timestamp())
         df = df.astype({"output": np.float64})
         # Write to influx database
         result = _DataInterface.get_instance().exec_influx_write(
@@ -306,7 +306,7 @@ class Write:
             None
         """
         df["type"] = "solar"
-        df["created"] = int(time.time())
+        df["created"] = int(datetime.utcnow().timestamp())
         df = df.astype({"output": np.float64})
         # Write to influx database
         result = _DataInterface.get_instance().exec_influx_write(
