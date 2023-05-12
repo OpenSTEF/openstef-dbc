@@ -101,8 +101,6 @@ class KtpApi:
         :param payload: the POST payload
         :return: `Response <Response>` object
         """
-        # TODO: Why not have _post raise an exception when it fails
-        # (Note: need to change code which checks for the success string)
         endpoint = requests.compat.urljoin(self.base_url, path)
         credentials = self._get_credentials(path)
 
