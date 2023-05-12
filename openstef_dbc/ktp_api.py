@@ -20,7 +20,7 @@ class ApiException(Exception):
 class KtpApi:
     """Used for all api traffic to Influx API"""
 
-    __INFLUX_TEST_URL = "api/influx/ping"
+    __INFLUX_TEST_URL = "api/_core/health/liveness"
     __MEASUREMENTS_URL = "api/measurements"
     __SYSTEMS_URL = "admin/systems"
     __TRACY_JOB_URL = "admin/tracyjobs"
