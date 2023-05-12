@@ -74,8 +74,8 @@ def mocked_requests_get(*args, **kwargs):
         def json(self):
             return self.json_data
 
-    if "api/influx/ping" in args[0]:
-        return MockResponse({"status": "OK"}, 200)
+    if "api/_core/health/liveness" in args[0]:
+        return MockResponse({"liveness": "OK!"}, 200)
 
     elif "admin/customers" in args[0]:
         return MockResponse(customers_list, 200)
