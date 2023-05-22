@@ -88,14 +88,24 @@ class Write:
             if col in field_columns:
                 forecast = forecast.astype({col: cast})
 
-        result = _DataInterface.get_instance().exec_influx_write(
-            forecast.copy(),
-            database=dbname,
-            measurement=influxtable,
-            tag_columns=tag_columns,
-            field_columns=field_columns,
-            time_precision="s",
-        )
+        try:
+            result = _DataInterface.get_instance().exec_influx_write(
+                forecast.copy(),
+                database=dbname,
+                measurement=influxtable,
+                tag_columns=tag_columns,
+                field_columns=field_columns,
+                time_precision="s",
+            )
+        except Exception as e:
+            result = _DataInterface.get_instance().exec_influx_write(
+                forecast.copy().rename(columns={"created": "created_temp"}),
+                database=dbname,
+                measurement=influxtable,
+                tag_columns=tag_columns,
+                field_columns=field_columns,
+                time_precision="s",
+            )
 
         message = ""
 
