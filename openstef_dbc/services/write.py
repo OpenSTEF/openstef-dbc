@@ -98,8 +98,10 @@ class Write:
                 time_precision="s",
             )
         except Exception as e:
+            forecast = forecast.rename(columns={"created": "created_temp"})
+            field_columns = [x for x in forecast.columns if x not in tag_columns]
             result = _DataInterface.get_instance().exec_influx_write(
-                forecast.copy().rename(columns={"created": "created_temp"}),
+                forecast.copy(),
                 database=dbname,
                 measurement=influxtable,
                 tag_columns=tag_columns,
