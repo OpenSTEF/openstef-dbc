@@ -4,7 +4,7 @@
 
 ciso8601~=2.3.0 # To speed up influxDB queries
 geopy~=2.3.0
-openstef~=3.2.58
+openstef~=3.2.69
 influxdb-client~=1.36.1
 mysql-connector-python~=8.0.31
 PyMySQL~=1.0.2
