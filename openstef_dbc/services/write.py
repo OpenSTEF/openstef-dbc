@@ -98,6 +98,7 @@ class Write:
             "forecast_other": np.float64,
             "forecast": np.float64,
             "quality": str,
+            "tAhead": np.float64,
         }
         # Generate casting dict for available quantiles
         p = re.compile(r"quantile_P\d\d")

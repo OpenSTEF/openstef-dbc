@@ -6,6 +6,7 @@ import geopy
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
 import pandas as pd
+import numpy as np
 import requests
 import sqlalchemy
 
@@ -180,7 +181,7 @@ class _DataInterface(metaclass=Singleton):
                 f"Dataframe contains NaN's. Found NaN's in columns: {nan_columns}"
             )
         # Check if a value is inf
-        if True in df.isinf().values:
+        if df.isin([np.inf, -np.inf]).any().any():
             nan_columns = df.columns[df.isinf().any()].tolist()
             raise ValueError(
                 f"Dataframe contains Inf's. Found Inf's in columns: {nan_columns}"
