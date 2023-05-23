@@ -179,6 +179,18 @@ class _DataInterface(metaclass=Singleton):
             raise ValueError(
                 f"Dataframe contains NaN's. Found NaN's in columns: {nan_columns}"
             )
+        # Check if a value is inf
+        if True in df.isinf().values:
+            nan_columns = df.columns[df.isinf().any()].tolist()
+            raise ValueError(
+                f"Dataframe contains Inf's. Found Inf's in columns: {nan_columns}"
+            )
+
+        if True in df.isnull().values:
+            nan_columns = df.columns[df.isinf().any()].tolist()
+            raise ValueError(
+                f"Dataframe contains missing values. Found missing values in columns: {nan_columns}"
+            )
 
         try:
             self.influx_write_api.write(
