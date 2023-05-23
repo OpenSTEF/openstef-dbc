@@ -105,13 +105,14 @@ class Write:
         casting_dict.update(dict.fromkeys(quantile_columns, np.float64))
 
         # Check if we have all columns and not some extra
-        for k in casting_dict.keys():
+        casting_dict_columns = list(casting_dict.keys())
+        for k in casting_dict_columns:
             # Remove any casting dict entries that are not in the dataframe
             if k not in forecast.columns:
                 casting_dict.pop(k, None)
 
-        if (
-            casting_dict.keys() != forecast.columns.to_list()
+        if set(casting_dict.keys()) != set(
+            forecast.columns.to_list()
         ):  # Check if we have a type description for every column, if not raise an error
             raise ValueError(
                 "Got unexpected columns, unable to cast these columns in the correct datatype."
