@@ -68,7 +68,7 @@ class Write:
 
         forecast = data.copy()
         # Add created to data
-        forecast["created"] = int(datetime.utcnow().timestamp())
+        forecast["created"] = str(int(datetime.utcnow().timestamp()))
 
         # Add quality column. Fill nan's or missing column with 'actual'
         if force_quality:
@@ -90,7 +90,7 @@ class Write:
             "pid": np.int64,
             "type": str,
             "customer": str,
-            "created": np.int64,
+            "created": str,
             "algtype": str,
             "description": str,
             "forecast_solar": np.float64,
