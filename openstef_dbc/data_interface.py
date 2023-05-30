@@ -182,9 +182,9 @@ class _DataInterface(metaclass=Singleton):
             )
         # Check if a value is inf
         if df.isin([np.inf, -np.inf]).any().any():
-            nan_columns = df.columns[df.isinf().any()].tolist()
+            inf_columns = df.columns[df.isinf().any()].tolist()
             raise ValueError(
-                f"Dataframe contains Inf's. Found Inf's in columns: {nan_columns}"
+                f"Dataframe contains Inf's. Found Inf's in columns: {inf_columns}"
             )
 
         if True in df.isnull().values:
