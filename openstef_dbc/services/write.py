@@ -5,6 +5,7 @@
 from typing import Tuple, List
 from datetime import datetime
 import time
+import re
 
 import numpy as np
 import pandas as pd
@@ -67,7 +68,7 @@ class Write:
 
         forecast = data.copy()
         # Add created to data
-        forecast["created"] = int(datetime.utcnow().timestamp())
+        forecast["created"] = str(int(datetime.utcnow().timestamp()))
 
         # Add quality column. Fill nan's or missing column with 'actual'
         if force_quality:
@@ -83,10 +84,42 @@ class Write:
         field_columns = [x for x in forecast.columns if x not in tag_columns]
 
         # Cast columns to correct type, as influx is extremely picky
-        casting_dict = {"prediction": float, "stdev": float}
-        for col, cast in casting_dict.items():
-            if col in field_columns:
-                forecast = forecast.astype({col: cast})
+        casting_dict = {
+            "prediction": np.float64,
+            "stdev": np.float64,
+            "pid": np.int64,
+            "type": str,
+            "customer": str,
+            "created": str,
+            "algtype": str,
+            "description": str,
+            "forecast_solar": np.float64,
+            "forecast_wind_on_shore": np.float64,
+            "forecast_other": np.float64,
+            "forecast": np.float64,
+            "quality": str,
+            "tAhead": np.float64,
+        }
+        # Generate casting dict for available quantiles
+        p = re.compile(r"quantile_P\d\d")
+        quantile_columns = [s for s in field_columns if p.match(s)]
+        casting_dict.update(dict.fromkeys(quantile_columns, np.float64))
+
+        # Check if we have all columns and not some extra
+        casting_dict_columns = list(casting_dict.keys())
+        for k in casting_dict_columns:
+            # Remove any casting dict entries that are not in the dataframe
+            if k not in forecast.columns:
+                casting_dict.pop(k, None)
+
+        if set(casting_dict.keys()) != set(
+            forecast.columns.to_list()
+        ):  # Check if we have a type description for every column, if not raise an error
+            raise ValueError(
+                "Got unexpected columns, unable to cast these columns in the correct datatype."
+            )
+
+        forecast = forecast.astype(casting_dict)
 
         result = _DataInterface.get_instance().exec_influx_write(
             forecast.copy(),
