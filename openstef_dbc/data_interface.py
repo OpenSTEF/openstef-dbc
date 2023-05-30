@@ -188,7 +188,7 @@ class _DataInterface(metaclass=Singleton):
             )
 
         if True in df.isnull().values:
-            nan_columns = df.columns[df.isinf().any()].tolist()
+            nan_columns = df.columns[df.isnull().any()].tolist()
             raise ValueError(
                 f"Dataframe contains missing values. Found missing values in columns: {nan_columns}"
             )
