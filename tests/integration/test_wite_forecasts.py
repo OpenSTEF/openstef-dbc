@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     mysql_database_name: str = "test"
     proxies: Union[dict[str, str], None] = None
 
+
 config = Settings()
 
 database = DataBase(config)
