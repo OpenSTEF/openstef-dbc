@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  influxdb:
+    image: influxdb:2.7.1-alpine
+    env_file:
+      - influxv2.env
+    volumes:
+      # Mount for influxdb data directory and configuration
+      - influxdbv2:/var/lib/influxdb2:rw
+      - ./init_db.sh:/mnt/init/init_db.sh
+    ports:
+      - "8086:8086"
+    entrypoint: bash /mnt/init/init_db.sh
+
+volumes:
+  influxdbv2:

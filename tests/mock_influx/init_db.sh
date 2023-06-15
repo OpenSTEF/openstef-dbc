@@ -1,0 +1,1 @@
+influx bucket create -n realised/autogen -o "$DOCKER_INFLUXDB_INIT_ORG" -t "$DOCKER_INFLUXDB_INIT_ADMIN_TOKEN"
