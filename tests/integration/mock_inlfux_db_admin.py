@@ -2,20 +2,20 @@ import requests
 
 from pydantic import BaseSettings
 
+BUCKETS = ["realised/autogen", "forecast_latest/autogen"]
+
 
 class MockInfluxDBAdmin:
     def __init__(self, config: BaseSettings) -> None:
         self._config = config
         self._headers = {
-            "Authorization": f"Token {self._config.influxdb_token}",
+            "Authorization": f"Token {self._config.docker_influxdb_init_admin_token}",
             "Content-type": "application/json",
         }
 
     def reset_mock_influx_db(self) -> None:
         """Resets influxdb to initial conditions."""
-        buckets = ["realised/autogen", "forecast_latest/autogen"]
-
-        for bucket in buckets:
+        for bucket in BUCKETS:
             # Delete Buckets if exists
             self.delete_bucket(bucket)
             # Create new Buckets
@@ -23,7 +23,7 @@ class MockInfluxDBAdmin:
 
     def init_bucket(self, bucket_name: str) -> None:
         """Creates a new bucket."""
-        org_id = self._get_org_id(self._config.influx_organization)
+        org_id = self._get_org_id(self._config.docker_influxdb_init_org)
         json_data = {
             "orgId": org_id,
             "name": bucket_name,
@@ -35,7 +35,7 @@ class MockInfluxDBAdmin:
             ],
         }
         requests.post(
-            "http://localhost:8086/api/v2/buckets",
+            f"{self._config.influxdb_host}:{self._config.influxdb_port}/api/v2/buckets",
             headers=self._headers,
             json=json_data,
         )
@@ -49,7 +49,8 @@ class MockInfluxDBAdmin:
             return
 
         response = requests.delete(
-            f"http://localhost:8086/api/v2/buckets/{bucket_id}", headers=self._headers
+            f"{self._config.influxdb_host}:{self._config.influxdb_port}/api/v2/buckets/{bucket_id}",
+            headers=self._headers,
         )
         print(response.text)
 
@@ -59,7 +60,7 @@ class MockInfluxDBAdmin:
         parameters = {"name": bucket_name}
 
         buckets = requests.get(
-            "http://localhost:8086/api/v2/buckets",
+            f"{self._config.influxdb_host}:{self._config.influxdb_port}/api/v2/buckets",
             params=parameters,
             headers=self._headers,
         )
@@ -77,7 +78,7 @@ class MockInfluxDBAdmin:
         parameters = {"org": org_name}
 
         orgs = requests.get(
-            "http://localhost:8086/api/v2/orgs",
+            f"{self._config.influxdb_host}:{self._config.influxdb_port}/api/v2/orgs",
             params=parameters,
             headers=self._headers,
         )

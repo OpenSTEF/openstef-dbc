@@ -10,6 +10,6 @@ config.mysql_password = "password"
 config.mysql_host = "host"
 config.mysql_port = 123
 config.mysql_database_name = "database_name"
-config.influxdb_token = "token"
+config.docker_influxdb_init_admin_token = "token"
 config.influxdb_host = "host"
 config.influxdb_port = 123
