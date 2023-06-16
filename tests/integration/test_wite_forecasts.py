@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     api_url: str = "localhost"
     docker_influxdb_init_org: str = "myorg"
     docker_influxdb_init_admin_token: str = "tokenonlyfortesting"
+    influx_organization: str = "myorg"
+    influxdb_token: str = "tokenonlyfortesting"
     influxdb_host: str = "http://localhost"
     influxdb_port: str = "8086"
     mysql_username: str = "test"
