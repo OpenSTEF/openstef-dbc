@@ -8,7 +8,6 @@ services:
     volumes:
       # Mount for influxdb data directory and configuration
       - influxdbv2:/var/lib/influxdb2:rw
-      - ./init_db.sh:/mnt/init/init_db.sh
     ports:
       - "8086:8086"
 
