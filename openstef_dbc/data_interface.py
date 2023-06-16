@@ -31,10 +31,10 @@ class _DataInterface(metaclass=Singleton):
                 api_admin_username (str): API admin username.
                 api_admin_password (str): API admin password.
                 api_url (str): API url.
-                docker_influxdb_init_admin_token (str): Token to authenticate to InfluxDB.
+                influxdb_token (str): Token to authenticate to InfluxDB.
                 influxdb_host (str): InfluxDB host.
                 influxdb_port (int): InfluxDB port.
-                docker_influxdb_init_org (str): InfluxDB organization.
+                influx_organization (str): InfluxDB organization.
                 mysql_username (str): MySQL username.
                 mysql_password (str): MySQL password.
                 mysql_host (str): MySQL host.
@@ -44,7 +44,7 @@ class _DataInterface(metaclass=Singleton):
         """
 
         self.logger = logging.get_logger(self.__class__.__name__)
-        self.docker_influxdb_init_org = config.docker_influxdb_init_org
+        self.influx_organization = config.influx_organization
 
         self.ktp_api = KtpApi(
             username=config.api_username,
@@ -56,10 +56,10 @@ class _DataInterface(metaclass=Singleton):
         )
 
         self.influx_client = self._create_influx_client(
-            token=config.docker_influxdb_init_admin_token,
+            token=config.influxdb_token,
             host=config.influxdb_host,
             port=config.influxdb_port,
-            organization=config.docker_influxdb_init_org,
+            organization=config.influx_organization,
         )
 
         self.influx_query_api = self.influx_client.query_api()
@@ -169,7 +169,7 @@ class _DataInterface(metaclass=Singleton):
         if type(tag_columns) is not list:
             raise ValueError("'tag_columns' should be a list")
         if organization is None:
-            organization = self.docker_influxdb_init_org
+            organization = self.influx_organization
 
         if len(tag_columns) == 0:
             raise ValueError("At least one tag column should be given in 'tag_columns'")
