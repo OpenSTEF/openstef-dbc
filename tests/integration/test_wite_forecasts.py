@@ -6,6 +6,8 @@ import pandas as pd
 
 from openstef_dbc.database import DataBase
 
+from tests.integration.mock_inlfux_db_admin import MockInfluxDBAdmin
+
 
 class Settings(BaseSettings):
     api_username: str = "test"
@@ -28,6 +30,10 @@ class Settings(BaseSettings):
 config = Settings()
 
 database = DataBase(config)
+
+mock_influxdb_admin = MockInfluxDBAdmin(config)
+# Reset to starting conditions
+mock_influxdb_admin.reset_mock_influx_db()
 
 
 mock_forecast = pd.DataFrame.from_dict(
