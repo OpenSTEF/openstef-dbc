@@ -154,7 +154,7 @@ class TestDataBase(unittest.TestCase):
         pd.testing.assert_frame_equal(result, expected_df)
 
     def test_write_read_with_repeatedly(self):
-        # 0) Test that verifies that it is possible to repeatedly read and write valid dataframes to the database (at least two repetitions) 
+        # 0) Test that verifies that it is possible to repeatedly read and write valid dataframes to the database (at least two repetitions)
         pass
 
     def test_write_read_with_nans(self):
@@ -178,7 +178,7 @@ class TestDataBase(unittest.TestCase):
 
     def test_write_read_after_database_restart(self):
         # Comment from Martijn: not sure if this test is essential
-        # 3) Test that after a restart of the database it is still possible to write data successfully 
+        # 3) Test that after a restart of the database it is still possible to write data successfully
         #    - write a valid dataframe to the database
         #    - restart database
         #    - write another valid dataframe to the database
