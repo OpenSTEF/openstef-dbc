@@ -33,8 +33,8 @@ class Predictions:
 
         Args:
             pj (dict): Prediction job
-            start_time (datetime): Start time  to retrieve the historic load prediction.
-            end_time (datetime): End timeto retrieve the historic load prediction.
+            start_time (datetime): Start time to retrieve the historic load prediction.
+            end_time (datetime): End time to retrieve the historic load prediction.
 
         Returns:
             pandas.Series: Forecast column with the predicted values

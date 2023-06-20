@@ -153,16 +153,51 @@ class TestDataBase(unittest.TestCase):
         )
         pd.testing.assert_frame_equal(result, expected_df)
 
+    def test_write_read_with_repeatedly(self):
+        # 0) Test that verifies that it is possible to repeatedly read and write valid dataframes to the database (at least two repetitions) 
+        pass
+
     def test_write_read_with_nans(self):
+        # 1) Test that verifies that NaN's will not corrupt the shard because of safeguards in write_forecast
+        #   - Try to write data twice in a row on the same shard: call write_forecast twice.
+        #       - The first time include nan's
+        #       - The second time do not include nan's
+        #   - assert that the first time no data was written to the database because the data included nan's
+        #   - assert that the second time data was successfully written to the database by showing that it can be retrieved
         pass
 
     def test_write_read_with_wrong_datatype(self):
+        # 2) Test that verifies that an accidental wrong datatypes will not corrupt the shard because of safeguards in write_forecast
+        #   - Try to write data twice in a row on the same shard: call write_forecast twice.
+        #       - The first time, replace some of the values in the dataframe with the wrong datatype
+        #       - The second time try to write a valid dataframe
+        #   - assert that the first time no data was written to the database because the data included unexpected datatypes
+        #   - assert that the second time data was successfully written to the database by showing that it can be retrieved
+        #   - As a sanity check: verify that you get a partial write error when you use openstef-dbc 3.7
+        pass
+
+    def test_write_read_after_database_restart(self):
+        # Comment from Martijn: not sure if this test is essential
+        # 3) Test that after a restart of the database it is still possible to write data successfully 
+        #    - write a valid dataframe to the database
+        #    - restart database
+        #    - write another valid dataframe to the database
+        #    - assert that all data that has been written before and after restart can be retrieved from the database
         pass
 
     def test_write_read_around_change_of_shard(self):
+        # Question from Martijn: When is the change of shard? Is this always the same moment in the week? Do we have a source that describes this?
+        # - write valid data just before the change of shard
+        # - write valid data just after the change of shard
+        # - verify that all data can be retrieved
         pass
 
-    def test_write_read_around_change_of_shar_wring_datatype(self):
+    def test_write_read_around_change_of_shard_wrong_datatype(self):
+        # - write valid data just before the change of shard
+        # - write data which containts some wrong data types just after the change of shard
+        # - try writing valid data on the new shard
+        # - Assert that all valid data was written to/can be retrieved from the database and that the data with wrong data types was not written to the database
+        # - As a sanity check: verify that you would get a partial write error when you use openstef-dbc 3.7
         pass
 
 
