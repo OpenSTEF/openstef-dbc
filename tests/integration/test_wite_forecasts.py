@@ -1,8 +1,10 @@
 from typing import Union
+from datetime import datetime, timedelta
 
 from pydantic import BaseSettings
 from pandas import Timestamp
 import pandas as pd
+import unittest
 
 from openstef_dbc.database import DataBase
 
@@ -29,91 +31,128 @@ class Settings(BaseSettings):
     proxies: Union[dict[str, str], None] = None
 
 
-config = Settings()
+class TestDataBase(unittest.TestCase):
+    def setUp(self) -> None:
+        config = Settings()
 
-database = DataBase(config)
+        self.database = DataBase(config)
 
-mock_influxdb_admin = MockInfluxDBAdmin(config)
-# Reset to starting conditions
-mock_influxdb_admin.reset_mock_influx_db()
+        mock_influxdb_admin = MockInfluxDBAdmin(config)
+        # Reset to starting conditions
+        mock_influxdb_admin.reset_mock_influx_db()
+
+        return super().setUp()
+
+    def test_write_forecast(self):
+        # Arange
+        mock_forecast = pd.DataFrame.from_dict(
+            {
+                "forecast": {
+                    Timestamp("2022-01-01 00:00:00"): 0.0,
+                    Timestamp("2022-01-01 00:15:00"): 0.1,
+                    Timestamp("2022-01-01 00:30:00"): 0.0,
+                    Timestamp("2022-01-01 00:45:00"): 0.1,
+                },
+                "stdev": {
+                    Timestamp("2022-01-01 00:00:00"): 0.0,
+                    Timestamp("2022-01-01 00:15:00"): 0.1,
+                    Timestamp("2022-01-01 00:30:00"): 0.0,
+                    Timestamp("2022-01-01 00:45:00"): 0.1,
+                },
+                "quality": {
+                    Timestamp("2022-01-01 00:00:00"): "actual",
+                    Timestamp("2022-01-01 00:15:00"): "actual",
+                    Timestamp("2022-01-01 00:30:00"): "actual",
+                    Timestamp("2022-01-01 00:45:00"): "actual",
+                },
+                "quantile_P50": {
+                    Timestamp("2022-01-01 00:00:00"): 0.0,
+                    Timestamp("2022-01-01 00:15:00"): 0.1,
+                    Timestamp("2022-01-01 00:30:00"): 0.0,
+                    Timestamp("2022-01-01 00:45:00"): 0.1,
+                },
+                "forecast_wind_on_shore": {
+                    Timestamp("2022-01-01 00:00:00"): 0.0,
+                    Timestamp("2022-01-01 00:15:00"): 0.1,
+                    Timestamp("2022-01-01 00:30:00"): 0.0,
+                    Timestamp("2022-01-01 00:45:00"): 0.1,
+                },
+                "forecast_solar": {
+                    Timestamp("2022-01-01 00:00:00"): 0.0,
+                    Timestamp("2022-01-01 00:15:00"): 0.1,
+                    Timestamp("2022-01-01 00:30:00"): 0.0,
+                    Timestamp("2022-01-01 00:45:00"): 0.1,
+                },
+                "forecast_other": {
+                    Timestamp("2022-01-01 00:00:00"): 0.0,
+                    Timestamp("2022-01-01 00:15:00"): 0.1,
+                    Timestamp("2022-01-01 00:30:00"): 0.0,
+                    Timestamp("2022-01-01 00:45:00"): 0.1,
+                },
+                "pid": {
+                    Timestamp("2022-01-01 00:00:00"): 308,
+                    Timestamp("2022-01-01 00:15:00"): 308,
+                    Timestamp("2022-01-01 00:30:00"): 308,
+                    Timestamp("2022-01-01 00:45:00"): 308,
+                },
+                "customer": {
+                    Timestamp("2022-01-01 00:00:00"): "name",
+                    Timestamp("2022-01-01 00:15:00"): "name",
+                    Timestamp("2022-01-01 00:30:00"): "name",
+                    Timestamp("2022-01-01 00:45:00"): "name",
+                },
+                "description": {
+                    Timestamp("2022-01-01 00:00:00"): "TEST",
+                    Timestamp("2022-01-01 00:15:00"): "TEST",
+                    Timestamp("2022-01-01 00:30:00"): "TEST",
+                    Timestamp("2022-01-01 00:45:00"): "TEST",
+                },
+                "type": {
+                    Timestamp("2022-01-01 00:00:00"): "demand",
+                    Timestamp("2022-01-01 00:15:00"): "demand",
+                    Timestamp("2022-01-01 00:30:00"): "demand",
+                    Timestamp("2022-01-01 00:45:00"): "demand",
+                },
+                "algtype": {
+                    Timestamp("2022-01-01 00:00:00"): "posted_by_api",
+                    Timestamp("2022-01-01 00:15:00"): "posted_by_api",
+                    Timestamp("2022-01-01 00:30:00"): "posted_by_api",
+                    Timestamp("2022-01-01 00:45:00"): "posted_by_api",
+                },
+            }
+        )
+        mock_forecast.index = mock_forecast.index.rename("datetimeFC")
+
+        expected_df = pd.DataFrame.from_dict(
+            {
+                "forecast": {
+                    Timestamp("2022-01-01 00:00:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-01 00:15:00+0000", tz="UTC"): 0.1,
+                    Timestamp("2022-01-01 00:30:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-01 00:45:00+0000", tz="UTC"): 0.1,
+                },
+                "stdev": {
+                    Timestamp("2022-01-01 00:00:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-01 00:15:00+0000", tz="UTC"): 0.1,
+                    Timestamp("2022-01-01 00:30:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-01 00:45:00+0000", tz="UTC"): 0.1,
+                },
+            }
+        )
+        expected_df.index = expected_df.index.rename("datetime")
+        expected_df.columns.name = ""
+
+        # Act
+        self.database.write_forecast(mock_forecast)
+
+        # Assert
+        result = self.database.get_predicted_load(
+            pj={"id": 308, "resolution_minutes": 15},
+            start_time=datetime(2022, 1, 1, 1, 0, 0),
+            end_time=datetime(2022, 1, 1, 2, 0, 0),
+        )
+        pd.testing.assert_frame_equal(result, expected_df)
 
 
-mock_forecast = pd.DataFrame.from_dict(
-    {
-        "forecast": {
-            Timestamp("2022-01-01 00:00:00"): 0.0,
-            Timestamp("2022-01-01 00:15:00"): 0.1,
-            Timestamp("2022-01-01 00:30:00"): 0.0,
-            Timestamp("2022-01-01 00:45:00"): 0.1,
-        },
-        "stdev": {
-            Timestamp("2022-01-01 00:00:00"): 0.0,
-            Timestamp("2022-01-01 00:15:00"): 0.1,
-            Timestamp("2022-01-01 00:30:00"): 0.0,
-            Timestamp("2022-01-01 00:45:00"): 0.1,
-        },
-        "quality": {
-            Timestamp("2022-01-01 00:00:00"): "actual",
-            Timestamp("2022-01-01 00:15:00"): "actual",
-            Timestamp("2022-01-01 00:30:00"): "actual",
-            Timestamp("2022-01-01 00:45:00"): "actual",
-        },
-        "quantile_P50": {
-            Timestamp("2022-01-01 00:00:00"): 0.0,
-            Timestamp("2022-01-01 00:15:00"): 0.1,
-            Timestamp("2022-01-01 00:30:00"): 0.0,
-            Timestamp("2022-01-01 00:45:00"): 0.1,
-        },
-        "forecast_wind_on_shore": {
-            Timestamp("2022-01-01 00:00:00"): 0.0,
-            Timestamp("2022-01-01 00:15:00"): 0.1,
-            Timestamp("2022-01-01 00:30:00"): 0.0,
-            Timestamp("2022-01-01 00:45:00"): 0.1,
-        },
-        "forecast_solar": {
-            Timestamp("2022-01-01 00:00:00"): 0.0,
-            Timestamp("2022-01-01 00:15:00"): 0.1,
-            Timestamp("2022-01-01 00:30:00"): 0.0,
-            Timestamp("2022-01-01 00:45:00"): 0.1,
-        },
-        "forecast_other": {
-            Timestamp("2022-01-01 00:00:00"): 0.0,
-            Timestamp("2022-01-01 00:15:00"): 0.1,
-            Timestamp("2022-01-01 00:30:00"): 0.0,
-            Timestamp("2022-01-01 00:45:00"): 0.1,
-        },
-        "pid": {
-            Timestamp("2022-01-01 00:00:00"): 308,
-            Timestamp("2022-01-01 00:15:00"): 308,
-            Timestamp("2022-01-01 00:30:00"): 308,
-            Timestamp("2022-01-01 00:45:00"): 308,
-        },
-        "customer": {
-            Timestamp("2022-01-01 00:00:00"): "name",
-            Timestamp("2022-01-01 00:15:00"): "name",
-            Timestamp("2022-01-01 00:30:00"): "name",
-            Timestamp("2022-01-01 00:45:00"): "name",
-        },
-        "description": {
-            Timestamp("2022-01-01 00:00:00"): "TEST",
-            Timestamp("2022-01-01 00:15:00"): "TEST",
-            Timestamp("2022-01-01 00:30:00"): "TEST",
-            Timestamp("2022-01-01 00:45:00"): "TEST",
-        },
-        "type": {
-            Timestamp("2022-01-01 00:00:00"): "demand",
-            Timestamp("2022-01-01 00:15:00"): "demand",
-            Timestamp("2022-01-01 00:30:00"): "demand",
-            Timestamp("2022-01-01 00:45:00"): "demand",
-        },
-        "algtype": {
-            Timestamp("2022-01-01 00:00:00"): "posted_by_api",
-            Timestamp("2022-01-01 00:15:00"): "posted_by_api",
-            Timestamp("2022-01-01 00:30:00"): "posted_by_api",
-            Timestamp("2022-01-01 00:45:00"): "posted_by_api",
-        },
-    }
-)
-mock_forecast.index = mock_forecast.index.rename("datetimeFC")
-
-database.write_forecast(mock_forecast)
+if __name__ == "__main__":
+    unittest.main()
