@@ -43,7 +43,7 @@ class TestDataBase(unittest.TestCase):
 
         return super().setUp()
 
-    def test_write_forecast(self):
+    def test_write_and_read_forecast(self):
         # Arange
         mock_forecast = pd.DataFrame.from_dict(
             {
@@ -152,6 +152,18 @@ class TestDataBase(unittest.TestCase):
             end_time=datetime(2022, 1, 1, 2, 0, 0),
         )
         pd.testing.assert_frame_equal(result, expected_df)
+
+    def test_write_read_with_nans(self):
+        pass
+
+    def test_write_read_with_wrong_datatype(self):
+        pass
+
+    def test_write_read_around_change_of_shard(self):
+        pass
+
+    def test_write_read_around_change_of_shar_wring_datatype(self):
+        pass
 
 
 if __name__ == "__main__":
