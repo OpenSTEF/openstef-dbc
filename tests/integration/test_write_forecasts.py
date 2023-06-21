@@ -208,7 +208,8 @@ class TestDataBase(unittest.TestCase):
               - The first time include nan's
               - The second time do not include nan's
           - assert that the first time no data was written to the database because the data included nan's
-          - assert that the second time data was successfully written to the database by showing that it can be retrieved"""
+          - assert that the second time data was successfully written to the database by showing that it can be retrieved
+        """
 
         # Arange
         first_mock_forecast = self.mock_forecast.copy(deep=True)
@@ -257,7 +258,8 @@ class TestDataBase(unittest.TestCase):
             - The second time try to write a valid dataframe
         - assert that the first time no data was written to the database because the data included unexpected datatypes
         - assert that the second time data was successfully written to the database by showing that it can be retrieved
-        - As a sanity check: verify that you get a partial write error when you use openstef-dbc 3.7"""
+        - As a sanity check: verify that you get a partial write error when you use openstef-dbc 3.7
+        """
 
         # Arange
         first_mock_forecast = self.mock_forecast.copy(deep=True)
@@ -356,7 +358,8 @@ class TestDataBase(unittest.TestCase):
         - write data which containts some wrong data types just after the change of shard
         - try writing valid data on the new shard
         - Assert that all valid data was written to/can be retrieved from the database and that the data with wrong data types was not written to the database
-        - As a sanity check: verify that you would get a partial write error when you use openstef-dbc 3.7"""
+        - As a sanity check: verify that you would get a partial write error when you use openstef-dbc 3.7
+        """
         # Arange
         first_mock_forecast = self.mock_forecast.copy(deep=True)
         second_mock_forecast = self.mock_forecast.copy(deep=True).shift(
