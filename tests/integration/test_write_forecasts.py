@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from pydantic import BaseSettings
 from pandas import Timestamp
 import pandas as pd
+import numpy as np
 import unittest
 
 from openstef_dbc.database import DataBase
@@ -33,19 +34,19 @@ class Settings(BaseSettings):
 
 class TestDataBase(unittest.TestCase):
     def setUp(self) -> None:
+        # Initialize settings
         config = Settings()
 
+        # Initialize database object
         self.database = DataBase(config)
 
+        # Inizitalize Influx admin controller
         mock_influxdb_admin = MockInfluxDBAdmin(config)
-        # Reset to starting conditions
+
+        # Reset influxDB to starting conditions
         mock_influxdb_admin.reset_mock_influx_db()
 
-        return super().setUp()
-
-    def test_write_and_read_forecast(self):
-        # Arange
-        mock_forecast = pd.DataFrame.from_dict(
+        self.mock_forecast = pd.DataFrame.from_dict(
             {
                 "forecast": {
                     Timestamp("2022-01-01 00:00:00"): 0.0,
@@ -121,8 +122,13 @@ class TestDataBase(unittest.TestCase):
                 },
             }
         )
-        mock_forecast.index = mock_forecast.index.rename("datetimeFC")
+        self.mock_forecast.index = self.mock_forecast.index.rename("datetimeFC")
 
+        return super().setUp()
+
+    def test_write_and_read_forecast(self):
+        # Arange
+        mock_forecast = self.mock_forecast.copy(deep=True)
         expected_df = pd.DataFrame.from_dict(
             {
                 "forecast": {
@@ -154,51 +160,255 @@ class TestDataBase(unittest.TestCase):
         pd.testing.assert_frame_equal(result, expected_df)
 
     def test_write_read_with_repeatedly(self):
-        # 0) Test that verifies that it is possible to repeatedly read and write valid dataframes to the database (at least two repetitions)
-        pass
+        """Test that verifies that it is possible to repeatedly read and write valid dataframes to the database (at least two repetitions)"""
+        # Arange
+        first_mock_forecast = self.mock_forecast.copy(deep=True)
+        second_mock_forecast = self.mock_forecast.copy(deep=True).shift(2, freq="15T")
+
+        expected_df = pd.DataFrame.from_dict(
+            {
+                "forecast": {
+                    Timestamp("2022-01-01 00:00:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-01 00:15:00+0000", tz="UTC"): 0.1,
+                    Timestamp("2022-01-01 00:30:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-01 00:45:00+0000", tz="UTC"): 0.1,
+                    Timestamp("2022-01-01 01:00:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-01 01:15:00+0000", tz="UTC"): 0.1,
+                },
+                "stdev": {
+                    Timestamp("2022-01-01 00:00:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-01 00:15:00+0000", tz="UTC"): 0.1,
+                    Timestamp("2022-01-01 00:30:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-01 00:45:00+0000", tz="UTC"): 0.1,
+                    Timestamp("2022-01-01 01:00:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-01 01:15:00+0000", tz="UTC"): 0.1,
+                },
+            }
+        )
+        expected_df.index = expected_df.index.rename("datetime")
+        expected_df.columns.name = ""
+
+        # Act
+        self.database.write_forecast(first_mock_forecast)
+        self.database.write_forecast(second_mock_forecast)
+
+        # Assert
+        result = self.database.get_predicted_load(
+            pj={"id": 308, "resolution_minutes": 15},
+            start_time=datetime(2022, 1, 1, 1, 0, 0),
+            end_time=datetime(2022, 1, 1, 3, 0, 0),
+        )
+
+        pd.testing.assert_frame_equal(result, expected_df)
 
     def test_write_read_with_nans(self):
-        # 1) Test that verifies that NaN's will not corrupt the shard because of safeguards in write_forecast
-        #   - Try to write data twice in a row on the same shard: call write_forecast twice.
-        #       - The first time include nan's
-        #       - The second time do not include nan's
-        #   - assert that the first time no data was written to the database because the data included nan's
-        #   - assert that the second time data was successfully written to the database by showing that it can be retrieved
-        pass
+        """
+        Test that verifies that NaN's will not corrupt the shard because of safeguards in write_forecast
+          - Try to write data twice in a row on the same shard: call write_forecast twice.
+              - The first time include nan's
+              - The second time do not include nan's
+          - assert that the first time no data was written to the database because the data included nan's
+          - assert that the second time data was successfully written to the database by showing that it can be retrieved"""
+
+        # Arange
+        first_mock_forecast = self.mock_forecast.copy(deep=True)
+        second_mock_forecast = self.mock_forecast.copy(deep=True).shift(2, freq="15T")
+
+        first_mock_forecast.loc["2022-01-01 00:15:00+0000"] = np.nan
+
+        expected_df = pd.DataFrame.from_dict(
+            {
+                "forecast": {
+                    Timestamp("2022-01-01 00:30:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-01 00:45:00+0000", tz="UTC"): 0.1,
+                    Timestamp("2022-01-01 01:00:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-01 01:15:00+0000", tz="UTC"): 0.1,
+                },
+                "stdev": {
+                    Timestamp("2022-01-01 00:30:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-01 00:45:00+0000", tz="UTC"): 0.1,
+                    Timestamp("2022-01-01 01:00:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-01 01:15:00+0000", tz="UTC"): 0.1,
+                },
+            }
+        )
+        expected_df.index = expected_df.index.rename("datetime")
+        expected_df.columns.name = ""
+
+        # Act and assert
+        with self.assertRaises(ValueError):
+            self.database.write_forecast(first_mock_forecast)
+
+        self.database.write_forecast(second_mock_forecast)
+
+        # Assert
+        result = self.database.get_predicted_load(
+            pj={"id": 308, "resolution_minutes": 15},
+            start_time=datetime(2022, 1, 1, 1, 0, 0),
+            end_time=datetime(2022, 1, 1, 3, 0, 0),
+        )
+
+        pd.testing.assert_frame_equal(result, expected_df)
 
     def test_write_read_with_wrong_datatype(self):
-        # 2) Test that verifies that an accidental wrong datatypes will not corrupt the shard because of safeguards in write_forecast
-        #   - Try to write data twice in a row on the same shard: call write_forecast twice.
-        #       - The first time, replace some of the values in the dataframe with the wrong datatype
-        #       - The second time try to write a valid dataframe
-        #   - assert that the first time no data was written to the database because the data included unexpected datatypes
-        #   - assert that the second time data was successfully written to the database by showing that it can be retrieved
-        #   - As a sanity check: verify that you get a partial write error when you use openstef-dbc 3.7
-        pass
+        """Test that verifies that an accidental wrong datatypes will not corrupt the shard because of safeguards in write_forecast
+        - Try to write data twice in a row on the same shard: call write_forecast twice.
+            - The first time, replace some of the values in the dataframe with the wrong datatype
+            - The second time try to write a valid dataframe
+        - assert that the first time no data was written to the database because the data included unexpected datatypes
+        - assert that the second time data was successfully written to the database by showing that it can be retrieved
+        - As a sanity check: verify that you get a partial write error when you use openstef-dbc 3.7"""
 
-    def test_write_read_after_database_restart(self):
-        # Comment from Martijn: not sure if this test is essential
-        # 3) Test that after a restart of the database it is still possible to write data successfully
-        #    - write a valid dataframe to the database
-        #    - restart database
-        #    - write another valid dataframe to the database
-        #    - assert that all data that has been written before and after restart can be retrieved from the database
-        pass
+        # Arange
+        first_mock_forecast = self.mock_forecast.copy(deep=True)
+        second_mock_forecast = self.mock_forecast.copy(deep=True).shift(2, freq="15T")
 
-    def test_write_read_around_change_of_shard(self):
-        # Question from Martijn: When is the change of shard? Is this always the same moment in the week? Do we have a source that describes this?
-        # - write valid data just before the change of shard
-        # - write valid data just after the change of shard
-        # - verify that all data can be retrieved
-        pass
+        first_mock_forecast.loc["2022-01-01 00:15:00+0000"] = "This is not a float"
+
+        expected_df = pd.DataFrame.from_dict(
+            {
+                "forecast": {
+                    Timestamp("2022-01-01 00:30:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-01 00:45:00+0000", tz="UTC"): 0.1,
+                    Timestamp("2022-01-01 01:00:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-01 01:15:00+0000", tz="UTC"): 0.1,
+                },
+                "stdev": {
+                    Timestamp("2022-01-01 00:30:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-01 00:45:00+0000", tz="UTC"): 0.1,
+                    Timestamp("2022-01-01 01:00:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-01 01:15:00+0000", tz="UTC"): 0.1,
+                },
+            }
+        )
+        expected_df.index = expected_df.index.rename("datetime")
+        expected_df.columns.name = ""
+
+        # Act and assert
+        with self.assertRaises(ValueError):
+            self.database.write_forecast(first_mock_forecast)
+        self.database.write_forecast(second_mock_forecast)
+
+        # Assert
+        result = self.database.get_predicted_load(
+            pj={"id": 308, "resolution_minutes": 15},
+            start_time=datetime(2022, 1, 1, 1, 0, 0),
+            end_time=datetime(2022, 1, 1, 3, 0, 0),
+        )
+        pd.testing.assert_frame_equal(result, expected_df)
+
+    def test_write_read_around_different_shards(self):
+        """
+        Question from Martijn: When is the change of shard? Is this always the same moment in the week? Do we have a source that describes this?
+        - write valid data just before the change of shard
+        - write valid data just after the change of shard
+        - verify that all data can be retrieved"""
+        # Arange
+        first_mock_forecast = self.mock_forecast.copy(deep=True)
+        second_mock_forecast = self.mock_forecast.copy(deep=True).shift(
+            2 * 96, freq="15T"
+        )
+
+        expected_df = pd.DataFrame.from_dict(
+            {
+                "forecast": {
+                    Timestamp("2022-01-01 00:00:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-01 00:15:00+0000", tz="UTC"): 0.1,
+                    Timestamp("2022-01-01 00:30:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-01 00:45:00+0000", tz="UTC"): 0.1,
+                    Timestamp("2022-01-03 00:00:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-03 00:15:00+0000", tz="UTC"): 0.1,
+                    Timestamp("2022-01-03 00:30:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-03 00:45:00+0000", tz="UTC"): 0.1,
+                },
+                "stdev": {
+                    Timestamp("2022-01-01 00:00:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-01 00:15:00+0000", tz="UTC"): 0.1,
+                    Timestamp("2022-01-01 00:30:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-01 00:45:00+0000", tz="UTC"): 0.1,
+                    Timestamp("2022-01-03 00:00:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-03 00:15:00+0000", tz="UTC"): 0.1,
+                    Timestamp("2022-01-03 00:30:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-03 00:45:00+0000", tz="UTC"): 0.1,
+                },
+            }
+        )
+        expected_df.index = expected_df.index.rename("datetime")
+        expected_df.columns.name = ""
+
+        # Act
+        self.database.write_forecast(first_mock_forecast)
+        self.database.write_forecast(second_mock_forecast)
+
+        # Assert
+        result = self.database.get_predicted_load(
+            pj={"id": 308, "resolution_minutes": 15},
+            start_time=first_mock_forecast.index.min().to_pydatetime()
+            - timedelta(days=1),
+            end_time=second_mock_forecast.index.max().to_pydatetime()
+            + timedelta(days=1),
+        )
+        pd.testing.assert_frame_equal(result, expected_df)
 
     def test_write_read_around_change_of_shard_wrong_datatype(self):
-        # - write valid data just before the change of shard
-        # - write data which containts some wrong data types just after the change of shard
-        # - try writing valid data on the new shard
-        # - Assert that all valid data was written to/can be retrieved from the database and that the data with wrong data types was not written to the database
-        # - As a sanity check: verify that you would get a partial write error when you use openstef-dbc 3.7
-        pass
+        """
+        - write valid data just before the change of shard
+        - write data which containts some wrong data types just after the change of shard
+        - try writing valid data on the new shard
+        - Assert that all valid data was written to/can be retrieved from the database and that the data with wrong data types was not written to the database
+        - As a sanity check: verify that you would get a partial write error when you use openstef-dbc 3.7"""
+        # Arange
+        first_mock_forecast = self.mock_forecast.copy(deep=True)
+        second_mock_forecast = self.mock_forecast.copy(deep=True).shift(
+            2 * 96, freq="15T"
+        )
+        second_mock_forecast.loc["2022-01-03 00:15:00+0000"] = "This is not a float"
+        third_mock_forecast = self.mock_forecast.copy(deep=True).shift(
+            3 * 96, freq="15T"
+        )
+
+        expected_df = pd.DataFrame.from_dict(
+            {
+                "forecast": {
+                    Timestamp("2022-01-01 00:00:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-01 00:15:00+0000", tz="UTC"): 0.1,
+                    Timestamp("2022-01-01 00:30:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-01 00:45:00+0000", tz="UTC"): 0.1,
+                    Timestamp("2022-01-04 00:00:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-04 00:15:00+0000", tz="UTC"): 0.1,
+                    Timestamp("2022-01-04 00:30:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-04 00:45:00+0000", tz="UTC"): 0.1,
+                },
+                "stdev": {
+                    Timestamp("2022-01-01 00:00:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-01 00:15:00+0000", tz="UTC"): 0.1,
+                    Timestamp("2022-01-01 00:30:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-01 00:45:00+0000", tz="UTC"): 0.1,
+                    Timestamp("2022-01-04 00:00:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-04 00:15:00+0000", tz="UTC"): 0.1,
+                    Timestamp("2022-01-04 00:30:00+0000", tz="UTC"): 0.0,
+                    Timestamp("2022-01-04 00:45:00+0000", tz="UTC"): 0.1,
+                },
+            }
+        )
+        expected_df.index = expected_df.index.rename("datetime")
+        expected_df.columns.name = ""
+
+        # Act
+        self.database.write_forecast(first_mock_forecast)
+        with self.assertRaises(ValueError):
+            self.database.write_forecast(second_mock_forecast)
+        self.database.write_forecast(third_mock_forecast)
+
+        # Assert
+        result = self.database.get_predicted_load(
+            pj={"id": 308, "resolution_minutes": 15},
+            start_time=first_mock_forecast.index.min().to_pydatetime()
+            - timedelta(days=1),
+            end_time=third_mock_forecast.index.max().to_pydatetime()
+            + timedelta(days=1),
+        )
+        pd.testing.assert_frame_equal(result, expected_df)
 
 
 if __name__ == "__main__":
