@@ -24,7 +24,7 @@ class MockInfluxDBAdmin:
                 headers={
                     "Authorization": f"Token {self._config.docker_influxdb_init_admin_token}",
                     "Content-type": "application/json",
-                }
+                },
             )
             return True
         except Exception:
