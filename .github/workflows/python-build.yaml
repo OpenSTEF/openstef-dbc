@@ -13,7 +13,23 @@ jobs:
     strategy:
       matrix:
         python-version: [3.9]
-
+    
+    # Service containers to run with `container-job`
+    services:
+      # Label used to access the service container
+      influx:
+        # Docker Hub image
+        image: influxdb:2.7.1-alpine
+        # Provide the password for influxdb
+        env:
+          DOCKER_INFLUXDB_INIT_MODE: setup
+          DOCKER_INFLUXDB_INIT_USERNAME: usernameonlyfortesting
+          DOCKER_INFLUXDB_INIT_PASSWORD: passwordpasswordonlyfortesting
+          DOCKER_INFLUXDB_INIT_OR: myorg
+          DOCKER_INFLUXDB_INIT_BUCKET: init_bucket
+          DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: tokenonlyfortesting
+        ports:
+        - "8086:8086"
     steps:
     # Checkout
     - name: Checkout code
@@ -54,7 +70,9 @@ jobs:
     - name: Test with pytest
       run: |
         pip install pytest pytest-cov
-        pytest --cov-report=xml --cov=openstef_dbc/ tests/unit/ --junitxml=pytest-report.xml
+        pytest --cov-report=xml --cov=openstef_dbc/ . --junitxml=pytest-report.xml
+      env:
+        INFLUXDB_HOST: "http://influx"
     # Fix relative paths in coverage file
     # Known bug: https://community.sonarsource.com/t/sonar-on-github-actions-with-python-coverage-source-issue/36057
     - name: fix code coverage paths
