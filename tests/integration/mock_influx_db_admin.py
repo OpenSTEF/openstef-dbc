@@ -27,7 +27,8 @@ class MockInfluxDBAdmin:
                 },
             )
             return True
-        except Exception:
+        except Exception as e:
+            print(e)
             return False
 
     def reset_mock_influx_db(self) -> None:
