@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         python-version: [3.9]
-    container: ubuntu
+    container: python-3.9-bullseye
     # Service containers to run with `container-job`
     services:
       # Label used to access the service container
@@ -32,7 +32,7 @@ jobs:
           - 8086:8086
 
 
-          
+
     steps:
     # Checkout
     - name: Checkout code
