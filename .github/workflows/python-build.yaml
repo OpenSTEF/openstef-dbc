@@ -29,7 +29,7 @@ jobs:
           DOCKER_INFLUXDB_INIT_BUCKET: init_bucket
           DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: tokenonlyfortesting
         ports:
-        - "8086:8086"
+          - 8086:8086
     steps:
     # Checkout
     - name: Checkout code
