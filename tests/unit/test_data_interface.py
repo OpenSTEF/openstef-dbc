@@ -9,6 +9,7 @@ import pandas as pd
 from openstef_dbc.data_interface import _DataInterface
 from tests.unit.settings import Settings
 
+
 @patch("openstef_dbc.data_interface.KtpApi", MagicMock())
 @patch("openstef_dbc.data_interface.logging", MagicMock())
 @patch("openstef_dbc.data_interface.InfluxDBClient", MagicMock())

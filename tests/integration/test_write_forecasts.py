@@ -18,6 +18,7 @@ from tests.integration.mock_influx_db_admin import MockInfluxDBAdmin
 
 from tests.integration.settings import Settings
 
+
 class TestDataBase(unittest.TestCase):
     def setUp(self) -> None:
         # Initialize settings
@@ -28,7 +29,9 @@ class TestDataBase(unittest.TestCase):
 
         if not mock_influxdb_admin.is_available():
             warnings.warn("InfluxDB instance not found, skipping integration tests.")
-            raise unittest.SkipTest("InfluxDB instance not found, skipping integration tests.")
+            raise unittest.SkipTest(
+                "InfluxDB instance not found, skipping integration tests."
+            )
 
         # Initialize database object
         self.database = DataBase(config)

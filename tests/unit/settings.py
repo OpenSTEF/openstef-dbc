@@ -5,6 +5,7 @@
 from typing import Union
 from pydantic import BaseSettings
 
+
 class Settings(BaseSettings):
     api_username: str = "test"
     api_password: str = "demo"
