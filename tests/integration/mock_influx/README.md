@@ -7,6 +7,6 @@ Make sure you have docker and docker compose installed locally
 
 1. Start the database by running `docker compose up` from the current directory
 
-2. Run `test_write_forecast.py`
+2. Run pytest using `pytest .`
 
 3. Check if measurements are writen by loggin in to the influx ui on `http://localhost:8086` using `usernameonlyfortesting` as username and `passwordpasswordonlyfortesting` as password

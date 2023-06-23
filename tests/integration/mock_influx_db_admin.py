@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2017-2022 Contributors to the OpenSTEF project <korte.termijn.prognoses@alliander.com>
+#
+# SPDX-License-Identifier: MPL-2.0
+
 import requests
 
 from pydantic import BaseSettings
@@ -12,6 +16,19 @@ class MockInfluxDBAdmin:
             "Authorization": f"Token {self._config.docker_influxdb_init_admin_token}",
             "Content-type": "application/json",
         }
+
+    def is_available(self) -> bool:
+        try:
+            requests.post(
+                f"{self._config.influxdb_host}:{self._config.influxdb_port}/api/ping",
+                headers={
+                    "Authorization": f"Token {self._config.docker_influxdb_init_admin_token}",
+                    "Content-type": "application/json",
+                }
+            )
+            return True
+        except Exception:
+            return False
 
     def reset_mock_influx_db(self) -> None:
         """Resets influxdb to initial conditions."""

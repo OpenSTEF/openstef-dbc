@@ -8,9 +8,9 @@ from unittest.mock import MagicMock, patch
 
 import pandas as pd
 from openstef_dbc.services.weather import Weather
-from tests.utils.base import BaseTestCase
+from tests.unit.utils.base import BaseTestCase
 
-DATA_FOLDER = Path(__file__).absolute().parent.parent.parent / "data"
+DATA_FOLDER = Path(__file__).absolute().parent.parent / "data"
 
 noncombined_weatherdata = pd.read_csv(
     DATA_FOLDER / "noncombined_weatherdata_test_data.csv",

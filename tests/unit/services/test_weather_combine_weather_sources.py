@@ -16,7 +16,7 @@ def __init__(self, *args):
     self.mysql_engine.execute = mock.MagicMock()
 
 
-DATA_FOLDER = Path(__file__).absolute().parent.parent.parent / "data"
+DATA_FOLDER = Path(__file__).absolute().parent.parent / "data"
 
 read_csv_kwargs = {"sep": ";", "index_col": 0, "parse_dates": ["datetime"]}
 

@@ -7,7 +7,7 @@ import warnings
 from unittest.mock import MagicMock, patch
 
 from openstef_dbc.database import DataBase
-from tests.data.config import config
+from tests.unit.settings import Settings
 
 
 @patch("openstef_dbc.database._DataInterface", MagicMock())
@@ -15,6 +15,7 @@ class TestDatabase(unittest.TestCase):
     def test_init(self):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
+            config = Settings()
             DataBase(config)
 
 

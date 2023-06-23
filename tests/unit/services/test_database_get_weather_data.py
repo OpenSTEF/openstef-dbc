@@ -11,7 +11,7 @@ from pandas.testing import assert_frame_equal
 
 time = datetime.utcnow()
 
-DATA_FOLDER = Path(__file__).absolute().parent.parent.parent / "data"
+DATA_FOLDER = Path(__file__).absolute().parent.parent / "data"
 
 noncombined_weatherdata = pd.read_csv(
     DATA_FOLDER / "noncombined_weatherdata_test_data.csv",

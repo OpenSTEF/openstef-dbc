@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2017-2022 Contributors to the OpenSTEF project <korte.termijn.prognoses@alliander.com>
+#
+# SPDX-License-Identifier: MPL-2.0
+
 from typing import Union
 from datetime import datetime, timedelta
 
@@ -6,42 +10,28 @@ from pandas import Timestamp
 import pandas as pd
 import numpy as np
 import unittest
+import warnings
 
 from openstef_dbc.database import DataBase
 
-from tests.integration.mock_inlfux_db_admin import MockInfluxDBAdmin
+from tests.integration.mock_influx_db_admin import MockInfluxDBAdmin
 
-
-class Settings(BaseSettings):
-    api_username: str = "test"
-    api_password: str = "demo"
-    api_admin_username: str = "test"
-    api_admin_password: str = "demo"
-    api_url: str = "localhost"
-    docker_influxdb_init_org: str = "myorg"
-    docker_influxdb_init_admin_token: str = "tokenonlyfortesting"
-    influx_organization: str = "myorg"
-    influxdb_token: str = "tokenonlyfortesting"
-    influxdb_host: str = "http://localhost"
-    influxdb_port: str = "8086"
-    mysql_username: str = "test"
-    mysql_password: str = "test"
-    mysql_host: str = "localhost"
-    mysql_port: int = 1234
-    mysql_database_name: str = "test"
-    proxies: Union[dict[str, str], None] = None
-
+from tests.integration.settings import Settings
 
 class TestDataBase(unittest.TestCase):
     def setUp(self) -> None:
         # Initialize settings
         config = Settings()
 
-        # Initialize database object
-        self.database = DataBase(config)
-
         # Inizitalize Influx admin controller
         mock_influxdb_admin = MockInfluxDBAdmin(config)
+
+        if not mock_influxdb_admin.is_available():
+            warnings.warn("InfluxDB instance not found, skipping integration tests.")
+            raise unittest.SkipTest("InfluxDB instance not found, skipping integration tests.")
+
+        # Initialize database object
+        self.database = DataBase(config)
 
         # Reset influxDB to starting conditions
         mock_influxdb_admin.reset_mock_influx_db()
@@ -123,8 +113,6 @@ class TestDataBase(unittest.TestCase):
             }
         )
         self.mock_forecast.index = self.mock_forecast.index.rename("datetimeFC")
-
-        return super().setUp()
 
     def test_write_and_read_forecast(self):
         # Arange

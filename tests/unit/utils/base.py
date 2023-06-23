@@ -7,7 +7,7 @@ import unittest
 import pandas as pd
 import numpy as np
 
-from tests.utils.data import TestData
+from tests.unit.utils.data import TestData
 
 
 class BaseTestCase(unittest.TestCase):
