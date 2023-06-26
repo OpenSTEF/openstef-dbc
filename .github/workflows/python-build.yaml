@@ -74,7 +74,7 @@ jobs:
         pip install pytest pytest-cov
         pytest --cov-report=xml --cov=openstef_dbc/ . --junitxml=pytest-report.xml
       env:
-        INFLUXDB_HOST: "http://influx"
+        INFLUXDB_HOST: http://influx
     # Fix relative paths in coverage file
     # Known bug: https://community.sonarsource.com/t/sonar-on-github-actions-with-python-coverage-source-issue/36057
     - name: fix code coverage paths
