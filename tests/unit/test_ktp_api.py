@@ -6,7 +6,7 @@ import unittest
 import warnings
 from datetime import datetime
 from unittest import TestCase, mock
-from unittest.mock import MagicMock, Mock
+from unittest.mock import Mock
 
 import pandas as pd
 import pytz

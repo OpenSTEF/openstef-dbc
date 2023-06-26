@@ -271,6 +271,48 @@ class Write:
             if x not in tag_columns + forbidden_fields
         ]
 
+        # Cast columns to correct type, as influx is extremely picky
+        casting_dict = {
+            "source_run": np.int64,
+            "input_city": str,
+            "temp": np.float64,
+            "windspeed_100m": np.float64,
+            "windspeed": np.float64,
+            "winddeg": np.float64,
+            "clouds": np.float64,
+            "mxlD": np.float64,
+            "snowDepth": np.float64,
+            "pressure": np.float64,
+            "humidity": np.float64,
+            "clearSky_ulf": np.float64,
+            "clearSky_dlf": np.float64,
+            "radiation": np.float64,
+            "windspeed_100m_ensemble": np.float64,
+            "windspeed_ensemble": np.float64,
+            "winddeg_ensemble": np.float64,
+            "clouds_ensemble": np.float64,
+            "radiation_ensemble": np.float64,
+            "ensemble_run": str,
+            "source": str,
+            "created": np.int64,
+        }
+
+        # Check if we have all columns and not some extra
+        casting_dict_columns = list(casting_dict.keys())
+        for k in casting_dict_columns:
+            # Remove any casting dict entries that are not in the dataframe
+            if k not in influx_df.columns:
+                casting_dict.pop(k, None)
+
+        if set(casting_dict.keys()) != set(
+            influx_df.columns.to_list()
+        ):  # Check if we have a type description for every column, if not raise an error
+            raise ValueError(
+                "Got unexpected columns, unable to cast these columns in the correct datatype."
+            )
+
+        influx_df = influx_df.astype(casting_dict)
+
         # Write DataFrame to influx database
         result = _DataInterface.get_instance().exec_influx_write(
             influx_df.copy(),

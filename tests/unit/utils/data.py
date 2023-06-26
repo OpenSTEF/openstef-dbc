@@ -8,7 +8,7 @@ import pandas as pd
 
 
 class TestData:
-    DATA_FILES_FOLDER = Path(__file__).parent.parent / "unit" / "data"
+    DATA_FILES_FOLDER = Path(__file__).parent / "data"
 
     LAG_FUNCTIONS_KEYS = [
         "T-1d",
