@@ -24,6 +24,7 @@ class TestDataBase(unittest.TestCase):
         # Initialize settings
         config = Settings()
 
+        print(config.dict())
         # Inizitalize Influx admin controller
         mock_influxdb_admin = MockInfluxDBAdmin(config)
 
