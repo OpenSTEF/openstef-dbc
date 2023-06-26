@@ -27,11 +27,11 @@ class TestDataBase(unittest.TestCase):
         # Inizitalize Influx admin controller
         mock_influxdb_admin = MockInfluxDBAdmin(config)
 
-        if not mock_influxdb_admin.is_available():
-            warnings.warn("InfluxDB instance not found, skipping integration tests.")
-            raise unittest.SkipTest(
-                "InfluxDB instance not found, skipping integration tests."
-            )
+        # if not mock_influxdb_admin.is_available():
+        #     warnings.warn("InfluxDB instance not found, skipping integration tests.")
+        #     raise unittest.SkipTest(
+        #         "InfluxDB instance not found, skipping integration tests."
+        #     )
 
         # Initialize database object
         self.database = DataBase(config)
