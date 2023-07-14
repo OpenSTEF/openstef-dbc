@@ -26,7 +26,7 @@ class MockInfluxDBAdmin:
             }
             requests.post(url, headers=headers)
             return True
-        except Exception as e:
+        except Exception:
             return False
 
     def reset_mock_influx_db(self) -> None:
