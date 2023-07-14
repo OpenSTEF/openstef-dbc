@@ -24,12 +24,9 @@ class MockInfluxDBAdmin:
                 "Authorization": f"Token {self._config.docker_influxdb_init_admin_token}",
                 "Content-type": "application/json",
             }
-            print(f"URL: {url}")
-            print(f"headers: {headers}")
             requests.post(url, headers=headers)
             return True
         except Exception as e:
-            print(e)
             return False
 
     def reset_mock_influx_db(self) -> None:
