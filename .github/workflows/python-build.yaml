@@ -9,10 +9,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.9]
-    
+        
+    container: 3.9-bookworm
     # Service containers to run with `container-job`
     services:
       # Label used to access the service container 
@@ -26,9 +24,6 @@ jobs:
           DOCKER_INFLUXDB_INIT_PASSWORD: passwordpasswordonlyfortesting
           DOCKER_INFLUXDB_INIT_OR: myorg
           DOCKER_INFLUXDB_INIT_BUCKET: init_bucket
-          DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: tokenonlyfortesting
-        ports:
-          - 8086:8086
 
     steps:
     # Checkout
@@ -73,7 +68,7 @@ jobs:
         pip install pytest pytest-cov
         pytest --cov-report=xml --cov=openstef_dbc/ . -s --junitxml=pytest-report.xml
       env:
-        INFLUXDB_HOST: http://localhost
+        INFLUXDB_HOST: http://influx
     # Fix relative paths in coverage file
     # Known bug: https://community.sonarsource.com/t/sonar-on-github-actions-with-python-coverage-source-issue/36057
     - name: fix code coverage paths
