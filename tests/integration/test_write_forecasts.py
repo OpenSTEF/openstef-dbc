@@ -148,6 +148,7 @@ class TestDataBase(unittest.TestCase):
             start_time=datetime(2022, 1, 1, 1, 0, 0),
             end_time=datetime(2022, 1, 1, 2, 0, 0),
         )
+        print(result)
         pd.testing.assert_frame_equal(result, expected_df)
 
     def test_write_read_with_repeatedly(self):
@@ -189,7 +190,7 @@ class TestDataBase(unittest.TestCase):
             start_time=datetime(2022, 1, 1, 1, 0, 0),
             end_time=datetime(2022, 1, 1, 3, 0, 0),
         )
-
+        print(result)
         pd.testing.assert_frame_equal(result, expected_df)
 
     def test_write_read_with_nans(self):
@@ -239,7 +240,7 @@ class TestDataBase(unittest.TestCase):
             start_time=datetime(2022, 1, 1, 1, 0, 0),
             end_time=datetime(2022, 1, 1, 3, 0, 0),
         )
-
+        print(result)
         pd.testing.assert_frame_equal(result, expected_df)
 
     def test_write_read_with_wrong_datatype(self):
@@ -288,6 +289,7 @@ class TestDataBase(unittest.TestCase):
             start_time=datetime(2022, 1, 1, 1, 0, 0),
             end_time=datetime(2022, 1, 1, 3, 0, 0),
         )
+        print(result)
         pd.testing.assert_frame_equal(result, expected_df)
 
     def test_write_read_around_different_shards(self):
@@ -341,6 +343,7 @@ class TestDataBase(unittest.TestCase):
             end_time=second_mock_forecast.index.max().to_pydatetime()
             + timedelta(days=1),
         )
+        print(result)
         pd.testing.assert_frame_equal(result, expected_df)
 
     def test_write_read_around_change_of_shard_wrong_datatype(self):
@@ -402,6 +405,7 @@ class TestDataBase(unittest.TestCase):
             end_time=third_mock_forecast.index.max().to_pydatetime()
             + timedelta(days=1),
         )
+        print(result)
         pd.testing.assert_frame_equal(result, expected_df)
 
 
