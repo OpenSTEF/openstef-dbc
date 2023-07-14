@@ -19,12 +19,16 @@ class MockInfluxDBAdmin:
 
     def is_available(self) -> bool:
         try:
-            requests.post(
-                f"{self._config.influxdb_host}:{self._config.influxdb_port}/api/ping",
-                headers={
+            url = f"{self._config.influxdb_host}:{self._config.influxdb_port}/api/ping"
+            headers = {
                     "Authorization": f"Token {self._config.docker_influxdb_init_admin_token}",
                     "Content-type": "application/json",
-                },
+                }
+            print(f"URL: {url}")
+            print(f"headers: {headers}")
+            requests.post(
+                url,
+                headers=headers
             )
             return True
         except Exception as e:

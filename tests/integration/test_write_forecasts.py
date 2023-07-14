@@ -25,6 +25,7 @@ class TestDataBase(unittest.TestCase):
         config = Settings()
 
         # Inizitalize Influx admin controller
+        print(config.dict())
         mock_influxdb_admin = MockInfluxDBAdmin(config)
 
         if not mock_influxdb_admin.is_available():
