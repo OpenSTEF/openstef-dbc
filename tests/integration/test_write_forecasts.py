@@ -10,7 +10,7 @@ from pandas import Timestamp
 import pandas as pd
 import numpy as np
 import unittest
-import warnings
+
 
 from openstef_dbc.database import DataBase
 
@@ -28,9 +28,8 @@ class TestDataBase(unittest.TestCase):
         mock_influxdb_admin = MockInfluxDBAdmin(config)
 
         if not mock_influxdb_admin.is_available():
-            warnings.warn("InfluxDB instance not found, skipping integration tests.")
-            raise unittest.SkipTest(
-                "InfluxDB instance not found, skipping integration tests."
+            raise RuntimeError(
+                "InfluxDB instance not found. If running locally start the Influx mock server."
             )
 
         # Initialize database object
@@ -148,7 +147,6 @@ class TestDataBase(unittest.TestCase):
             start_time=datetime(2022, 1, 1, 1, 0, 0) - timedelta(days=1),
             end_time=datetime(2022, 1, 1, 2, 0, 0) + timedelta(days=1),
         )
-        print(result)
         pd.testing.assert_frame_equal(result, expected_df)
 
     def test_write_read_with_repeatedly(self):
@@ -190,7 +188,6 @@ class TestDataBase(unittest.TestCase):
             start_time=datetime(2022, 1, 1, 1, 0, 0) - timedelta(days=1),
             end_time=datetime(2022, 1, 1, 3, 0, 0) + timedelta(days=1),
         )
-        print(result)
         pd.testing.assert_frame_equal(result, expected_df)
 
     def test_write_read_with_nans(self):
@@ -240,7 +237,6 @@ class TestDataBase(unittest.TestCase):
             start_time=datetime(2022, 1, 1, 1, 0, 0) - timedelta(days=1),
             end_time=datetime(2022, 1, 1, 3, 0, 0) + timedelta(days=1),
         )
-        print(result)
         pd.testing.assert_frame_equal(result, expected_df)
 
     def test_write_read_with_wrong_datatype(self):
@@ -289,7 +285,6 @@ class TestDataBase(unittest.TestCase):
             start_time=datetime(2022, 1, 1, 1, 0, 0) - timedelta(days=1),
             end_time=datetime(2022, 1, 1, 3, 0, 0) + timedelta(days=1),
         )
-        print(result)
         pd.testing.assert_frame_equal(result, expected_df)
 
     def test_write_read_around_different_shards(self):
@@ -343,7 +338,6 @@ class TestDataBase(unittest.TestCase):
             end_time=second_mock_forecast.index.max().to_pydatetime()
             + timedelta(days=1),
         )
-        print(result)
         pd.testing.assert_frame_equal(result, expected_df)
 
     def test_write_read_around_change_of_shard_wrong_datatype(self):
@@ -405,7 +399,6 @@ class TestDataBase(unittest.TestCase):
             end_time=third_mock_forecast.index.max().to_pydatetime()
             + timedelta(days=1),
         )
-        print(result)
         pd.testing.assert_frame_equal(result, expected_df)
 
 

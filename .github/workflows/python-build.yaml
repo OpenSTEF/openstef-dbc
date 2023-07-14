@@ -74,7 +74,7 @@ jobs:
     - name: Test with pytest
       run: |
         pip install pytest pytest-cov
-        pytest --cov-report=xml --cov=openstef_dbc/ . -s --junitxml=pytest-report.xml
+        pytest --cov-report=xml --cov=openstef_dbc/ . --junitxml=pytest-report.xml
       env:
         INFLUXDB_HOST: http://influx
     # Fix relative paths in coverage file
