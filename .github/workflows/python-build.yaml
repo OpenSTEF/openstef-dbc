@@ -10,7 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
         
-    container: python:3.9-bookworm
+    container: python:3.10-bookworm
     # Service containers to run with `container-job`
     services:
       # Label used to access the service container 
@@ -24,6 +24,8 @@ jobs:
           DOCKER_INFLUXDB_INIT_PASSWORD: passwordpasswordonlyfortesting
           DOCKER_INFLUXDB_INIT_OR: myorg
           DOCKER_INFLUXDB_INIT_BUCKET: init_bucket
+        ports:
+          - "8086:8086"
 
     steps:
     # Checkout
