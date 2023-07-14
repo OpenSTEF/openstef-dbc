@@ -145,8 +145,8 @@ class TestDataBase(unittest.TestCase):
         # Assert
         result = self.database.get_predicted_load(
             pj={"id": 308, "resolution_minutes": 15},
-            start_time=datetime(2022, 1, 1, 1, 0, 0),
-            end_time=datetime(2022, 1, 1, 2, 0, 0),
+            start_time=datetime(2022, 1, 1, 1, 0, 0) - timedelta(days=1),
+            end_time=datetime(2022, 1, 1, 2, 0, 0) + timedelta(days=1),
         )
         print(result)
         pd.testing.assert_frame_equal(result, expected_df)
@@ -187,8 +187,8 @@ class TestDataBase(unittest.TestCase):
         # Assert
         result = self.database.get_predicted_load(
             pj={"id": 308, "resolution_minutes": 15},
-            start_time=datetime(2022, 1, 1, 1, 0, 0),
-            end_time=datetime(2022, 1, 1, 3, 0, 0),
+            start_time=datetime(2022, 1, 1, 1, 0, 0) - timedelta(days=1),
+            end_time=datetime(2022, 1, 1, 3, 0, 0) + timedelta(days=1),
         )
         print(result)
         pd.testing.assert_frame_equal(result, expected_df)
@@ -237,8 +237,8 @@ class TestDataBase(unittest.TestCase):
         # Assert
         result = self.database.get_predicted_load(
             pj={"id": 308, "resolution_minutes": 15},
-            start_time=datetime(2022, 1, 1, 1, 0, 0),
-            end_time=datetime(2022, 1, 1, 3, 0, 0),
+            start_time=datetime(2022, 1, 1, 1, 0, 0) - timedelta(days=1),
+            end_time=datetime(2022, 1, 1, 3, 0, 0) + timedelta(days=1),
         )
         print(result)
         pd.testing.assert_frame_equal(result, expected_df)
@@ -286,8 +286,8 @@ class TestDataBase(unittest.TestCase):
         # Assert
         result = self.database.get_predicted_load(
             pj={"id": 308, "resolution_minutes": 15},
-            start_time=datetime(2022, 1, 1, 1, 0, 0),
-            end_time=datetime(2022, 1, 1, 3, 0, 0),
+            start_time=datetime(2022, 1, 1, 1, 0, 0) - timedelta(days=1),
+            end_time=datetime(2022, 1, 1, 3, 0, 0) + timedelta(days=1),
         )
         print(result)
         pd.testing.assert_frame_equal(result, expected_df)
