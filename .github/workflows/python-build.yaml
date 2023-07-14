@@ -24,6 +24,7 @@ jobs:
           DOCKER_INFLUXDB_INIT_PASSWORD: passwordpasswordonlyfortesting
           DOCKER_INFLUXDB_INIT_ORG: myorg
           DOCKER_INFLUXDB_INIT_BUCKET: init_bucket
+          DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: tokenonlyfortesting
         ports:
           - "8086:8086"
         options: >-
