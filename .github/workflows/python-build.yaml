@@ -26,6 +26,11 @@ jobs:
           DOCKER_INFLUXDB_INIT_BUCKET: init_bucket
         ports:
           - "8086:8086"
+        options: >-
+          --health-cmd "influx ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
     # Checkout
