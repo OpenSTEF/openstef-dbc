@@ -19,7 +19,9 @@ class MockInfluxDBAdmin:
 
     def is_available(self) -> bool:
         try:
-            url = f"{self._config.influxdb_host}:{self._config.influxdb_port}/api/ping",
+            url = (
+                f"{self._config.influxdb_host}:{self._config.influxdb_port}/api/ping",
+            )
             headers = {
                 "Authorization": f"Token {self._config.docker_influxdb_init_admin_token}",
                 "Content-type": "application/json",
