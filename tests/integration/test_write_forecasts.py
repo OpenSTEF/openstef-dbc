@@ -2,10 +2,9 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 
-from typing import Union
-from datetime import datetime, timedelta
+from datetime import datetime
+import pytz
 
-from pydantic import BaseSettings
 from pandas import Timestamp
 import pandas as pd
 import numpy as np
@@ -17,6 +16,8 @@ from openstef_dbc.database import DataBase
 from tests.integration.mock_influx_db_admin import MockInfluxDBAdmin
 
 from tests.integration.settings import Settings
+
+UTC = pytz.timezone("UTC")
 
 
 class TestDataBase(unittest.TestCase):
@@ -144,8 +145,8 @@ class TestDataBase(unittest.TestCase):
         # Assert
         result = self.database.get_predicted_load(
             pj={"id": 308, "resolution_minutes": 15},
-            start_time=datetime(2022, 1, 1, 1, 0, 0) - timedelta(days=1),
-            end_time=datetime(2022, 1, 1, 2, 0, 0) + timedelta(days=1),
+            start_time=datetime(2022, 1, 1, 1, 0, 0),
+            end_time=datetime(2022, 1, 1, 2, 0, 0),
         )
         pd.testing.assert_frame_equal(result, expected_df)
 
@@ -185,8 +186,8 @@ class TestDataBase(unittest.TestCase):
         # Assert
         result = self.database.get_predicted_load(
             pj={"id": 308, "resolution_minutes": 15},
-            start_time=datetime(2022, 1, 1, 1, 0, 0) - timedelta(days=1),
-            end_time=datetime(2022, 1, 1, 3, 0, 0) + timedelta(days=1),
+            start_time=datetime(2022, 1, 1, 1, 0, 0),
+            end_time=datetime(2022, 1, 1, 3, 0, 0),
         )
         pd.testing.assert_frame_equal(result, expected_df)
 
@@ -234,8 +235,8 @@ class TestDataBase(unittest.TestCase):
         # Assert
         result = self.database.get_predicted_load(
             pj={"id": 308, "resolution_minutes": 15},
-            start_time=datetime(2022, 1, 1, 1, 0, 0) - timedelta(days=1),
-            end_time=datetime(2022, 1, 1, 3, 0, 0) + timedelta(days=1),
+            start_time=datetime(2022, 1, 1, 1, 0, 0),
+            end_time=datetime(2022, 1, 1, 3, 0, 0),
         )
         pd.testing.assert_frame_equal(result, expected_df)
 
@@ -282,8 +283,8 @@ class TestDataBase(unittest.TestCase):
         # Assert
         result = self.database.get_predicted_load(
             pj={"id": 308, "resolution_minutes": 15},
-            start_time=datetime(2022, 1, 1, 1, 0, 0) - timedelta(days=1),
-            end_time=datetime(2022, 1, 1, 3, 0, 0) + timedelta(days=1),
+            start_time=datetime(2022, 1, 1, 1, 0, 0),
+            end_time=datetime(2022, 1, 1, 3, 0, 0),
         )
         pd.testing.assert_frame_equal(result, expected_df)
 
@@ -333,10 +334,8 @@ class TestDataBase(unittest.TestCase):
         # Assert
         result = self.database.get_predicted_load(
             pj={"id": 308, "resolution_minutes": 15},
-            start_time=first_mock_forecast.index.min().to_pydatetime()
-            - timedelta(days=1),
-            end_time=second_mock_forecast.index.max().to_pydatetime()
-            + timedelta(days=1),
+            start_time=UTC.localize(first_mock_forecast.index.min().to_pydatetime()),
+            end_time=UTC.localize(second_mock_forecast.index.max().to_pydatetime()),
         )
         pd.testing.assert_frame_equal(result, expected_df)
 
@@ -394,11 +393,12 @@ class TestDataBase(unittest.TestCase):
         # Assert
         result = self.database.get_predicted_load(
             pj={"id": 308, "resolution_minutes": 15},
-            start_time=first_mock_forecast.index.min().to_pydatetime()
-            - timedelta(days=1),
-            end_time=third_mock_forecast.index.max().to_pydatetime()
-            + timedelta(days=1),
+            start_time=UTC.localize(first_mock_forecast.index.min().to_pydatetime()),
+            end_time=UTC.localize(third_mock_forecast.index.max().to_pydatetime()),
         )
+        print(UTC.localize(first_mock_forecast.index.min().to_pydatetime()))
+        print(UTC.localize(third_mock_forecast.index.max().to_pydatetime()))
+        print(result)
         pd.testing.assert_frame_equal(result, expected_df)
 
 
