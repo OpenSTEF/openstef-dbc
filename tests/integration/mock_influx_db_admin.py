@@ -68,7 +68,6 @@ class MockInfluxDBAdmin:
             f"{self._config.influxdb_host}:{self._config.influxdb_port}/api/v2/buckets/{bucket_id}",
             headers=self._headers,
         )
-        print(response.text)
 
     def _get_bucket_id(self, bucket_name: str) -> str:
         """Retrieves bucket ID for specific bucket."""

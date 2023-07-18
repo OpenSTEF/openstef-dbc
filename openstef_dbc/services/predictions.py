@@ -68,7 +68,6 @@ class Predictions:
                 |> filter(fn: (r) => r.pid == "{bind_params["pid"]}")
                 |> aggregateWindow(every: {pj["resolution_minutes"]}m, fn: mean)
         """
-        print(bind_params)
         # Query the database
         result = _DataInterface.get_instance().exec_influx_query(query, bind_params)
 

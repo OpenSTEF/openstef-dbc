@@ -396,9 +396,6 @@ class TestDataBase(unittest.TestCase):
             start_time=UTC.localize(first_mock_forecast.index.min().to_pydatetime()),
             end_time=UTC.localize(third_mock_forecast.index.max().to_pydatetime()),
         )
-        print(UTC.localize(first_mock_forecast.index.min().to_pydatetime()))
-        print(UTC.localize(third_mock_forecast.index.max().to_pydatetime()))
-        print(result)
         pd.testing.assert_frame_equal(result, expected_df)
 
 
