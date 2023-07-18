@@ -45,6 +45,10 @@ class Predictions:
             start_time = datetime.utcnow()
         if end_time is None:
             end_time = datetime.utcnow() + timedelta(days=2)
+        else:
+            end_time = end_time + timedelta(
+                minutes=15
+            )  # To make the ouput the same as the original influx client.
 
         bind_params = {
             "pid": str(pj["id"]),
@@ -64,7 +68,6 @@ class Predictions:
                 |> filter(fn: (r) => r.pid == "{bind_params["pid"]}")
                 |> aggregateWindow(every: {pj["resolution_minutes"]}m, fn: mean)
         """
-
         # Query the database
         result = _DataInterface.get_instance().exec_influx_query(query, bind_params)
 
