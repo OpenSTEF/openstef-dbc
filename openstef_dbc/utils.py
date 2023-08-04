@@ -57,3 +57,28 @@ def parse_influx_result(
     result.index.name = "datetime"
     result.columns.name = ""
     return result
+
+def round_time_difference(time_diff, options):
+    """Rounds a time difference to the first bigger option.
+    
+    Used to calculate the tAhead for forecasts"""
+    next_bigger_option = next((opt for opt in options if opt > time_diff), None)
+    if next_bigger_option is None:
+        return time_diff
+    return next_bigger_option
+
+max_timediff=1000
+
+def round_single_time_diff(time_diff, options):
+    """Rounds a time difference to the first bigger option.
+    Used to calculate the tAhead for forecasts"""
+    
+    next_bigger_option = next((opt for opt in options if opt > time_diff), None)
+    if next_bigger_option is None:
+        return max_timediff
+    return next_bigger_option
+
+def round_time_differences(time_diffs, options):
+    """Round a number of time diffs to the first bigger option"""
+    rounded_times = [round_single_time_diff(time_diff, options) for time_diff in time_diffs]
+    return rounded_times
