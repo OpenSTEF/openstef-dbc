@@ -9,17 +9,17 @@ from openstef_dbc.utils import round_time_differences, max_timediff
 
 class TestRoundTimeDifferences(unittest.TestCase):
     def test_round_to_bigger_option(self):
-        time_diffs = [1500, 2500, 3000]
-        time_options = [600, 900, 1800, 3600]
-        expected_result = [1800, 3600, 3600]
+        time_diffs = [0.25, 23, 47.4]
+        time_options = [0, 1, 24, 48]
+        expected_result = [1, 24, 48]
         self.assertEqual(
             round_time_differences(time_diffs, time_options), expected_result
         )
 
     def test_no_bigger_option(self):
-        time_diffs = [4000, 5000, 6000]
-        time_options = [600, 900, 1800, 3600]
-        expected_result = [max_timediff, max_timediff, max_timediff]
+        time_diffs = [50, 100]
+        time_options = [0, 1, 24, 48]
+        expected_result = [max_timediff, max_timediff]
         self.assertEqual(
             round_time_differences(time_diffs, time_options), expected_result
         )
