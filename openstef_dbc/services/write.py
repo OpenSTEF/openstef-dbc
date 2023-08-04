@@ -186,10 +186,6 @@ class Write:
         # Round it to the first bigger desired_t_ahead
         t_adf["tAhead"] = round_time_differences(timediffs, desired_t_aheads)
 
-        t_adf["tAhead"] = np.floor(
-            (t_adf.index.tz_localize(None) - datetime.utcnow()).total_seconds() / 3600
-        )
-
         t_adf = t_adf.loc[
             [x in desired_t_aheads for x in t_adf.tAhead],
             [x for x in allowed_columns if x in t_adf.columns],
