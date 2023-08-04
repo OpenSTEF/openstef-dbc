@@ -182,7 +182,7 @@ class Write:
         # Calculate tAheads
         timediffs = t_adf.index.tz_localize(None) - datetime.utcnow().total_seconds() / 3600
         # Round it to the first bigger desired_t_ahead
-        t_adf["tAhead"] = round_time_differences(timediffs)
+        t_adf["tAhead"] = round_time_differences(timediffs, desired_t_aheads)
 
         t_adf["tAhead"] = np.floor(
             (t_adf.index.tz_localize(None) - datetime.utcnow()).total_seconds() / 3600
