@@ -12,6 +12,7 @@ import pandas as pd
 
 from openstef_dbc.data_interface import _DataInterface
 from openstef_dbc.log import logging
+from openstef_dbc.utils import round_time_differences
 
 
 class Write:
@@ -178,16 +179,13 @@ class Write:
 
         t_adf = forecast.copy()
 
-        t_adf["tAhead"] = np.floor(
-            (t_adf.index.tz_localize(None) - datetime.utcnow()).total_seconds() / 3600
+        # Calculate tAheads
+        timediffs = (
+            t_adf.index.tz_localize(None) - datetime.utcnow().total_seconds() / 3600
         )
-        # floor all tAheads to first tAhead lower than or equal to calculated tAhead
-        # 1000 as a fill value if all else fails
-        # !TODO check this!
-        t_adf["tAhead"] = [
-            min([1000.0] + [float(x) for x in desired_t_aheads if x >= t_ahead])
-            for t_ahead in t_adf["tAhead"]
-        ]
+        # Round it to the first bigger desired_t_ahead
+        t_adf["tAhead"] = round_time_differences(timediffs, desired_t_aheads)
+
         t_adf = t_adf.loc[
             [x in desired_t_aheads for x in t_adf.tAhead],
             [x for x in allowed_columns if x in t_adf.columns],
