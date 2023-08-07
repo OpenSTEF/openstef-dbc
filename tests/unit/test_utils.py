@@ -23,7 +23,7 @@ class TestRoundDownTimeDifferences(unittest.TestCase):
         self.assertEqual(
             round_down_time_differences(time_diffs, time_options), expected_result
         )
-    
+
     def test_no_smaller_option(self):
         time_diffs = [50, 100]
         time_options = [60]
@@ -39,7 +39,7 @@ class TestRoundDownTimeDifferences(unittest.TestCase):
         self.assertEqual(
             round_down_time_differences(time_diffs, time_options), expected_result
         )
-        
+
     def test_options_unsorted(self):
         time_diffs = [0.25, 23, 47.4]
         time_options = [48, 0, 24, 1]
