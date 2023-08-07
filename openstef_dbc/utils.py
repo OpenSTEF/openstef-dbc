@@ -60,17 +60,20 @@ def parse_influx_result(
     return result
 
 
-def round_down_single_time_diff(time_diff, options):
+def _round_down_single_time_diff(time_diff, options):
     """Rounds a time difference to the first smaller option.
-    Used to calculate the tAhead for forecasts"""
+    Used to calculate the tAhead for forecasts.
+    
+    Options should be sorted"""
         
-    next_smaller_option = next((opt for opt in np.sort(options)[::-1] if opt < time_diff), None)
+    next_smaller_option = next((opt for opt in options if opt < time_diff), None)
     return next_smaller_option
 
 
 def round_down_time_differences(time_diffs, options):
     """Round a number of time diffs to the first smaller option"""
+    sorted_options = np.sort(options)[::-1]
     rounded_times = [
-        round_down_single_time_diff(time_diff, options) for time_diff in time_diffs
+        _round_down_single_time_diff(time_diff, sorted_options) for time_diff in time_diffs
     ]
     return rounded_times
