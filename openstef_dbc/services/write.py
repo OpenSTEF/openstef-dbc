@@ -12,7 +12,7 @@ import pandas as pd
 
 from openstef_dbc.data_interface import _DataInterface
 from openstef_dbc.log import logging
-from openstef_dbc.utils import round_time_differences
+from openstef_dbc.utils import round_down_time_differences
 
 
 class Write:
