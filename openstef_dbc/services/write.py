@@ -179,7 +179,7 @@ class Write:
         t_adf = forecast.copy()
 
         t_adf["tAhead"] = np.floor(
-            (t_adf.index.tz_localize(None) - datetime.utcnow()).total_seconds() / 3600
+            t_adf.index.tz_localize(None) - datetime.utcnow().total_seconds() / 3600
         )
         # floor all tAheads to first tAhead lower than or equal to calculated tAhead
         # 1000 as a fill value if all else fails
