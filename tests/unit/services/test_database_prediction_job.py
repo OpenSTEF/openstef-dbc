@@ -97,15 +97,19 @@ class TestPredictionJob(unittest.TestCase):
         assert isinstance(pj, PredictionJobDataClass)
         assert pj.id == pj_dict["id"]
 
+    @patch("openstef_dbc.services.prediction_job._DataInterface")
     @patch(
         "openstef_dbc.services.prediction_job.PredictionJobRetriever._add_description_to_prediction_jobs"
     )
-    @patch("openstef_dbc.services.prediction_job._DataInterface.exec_sql_query")
     def test__get_prediction_jobs_query_results(
-        self, sql_query_mock, add_description_mock
+        self,
+        add_description_mock,
+        data_interface_mock,
     ):
         # Arrange
-        sql_query_mock.return_value = pd.DataFrame([self.prediction_job])
+        data_interface_mock.get_instance.return_value.exec_sql_query.return_value = (
+            pd.DataFrame([self.prediction_job])
+        )
         add_description_mock.return_value = pd.DataFrame([self.prediction_job]).to_dict(
             "records"
         )
