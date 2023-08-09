@@ -181,8 +181,8 @@ class Write:
 
         # Calculate tAheads
         timediffs = (
-            (t_adf.index.tz_localize(None) - datetime.utcnow()).total_seconds() / 3600
-        )
+            t_adf.index.tz_localize(None) - datetime.utcnow()
+        ).total_seconds() / 3600
         # Round it to the first bigger desired_t_ahead
         t_adf["tAhead"] = round_down_time_differences(timediffs, desired_t_aheads)
 
