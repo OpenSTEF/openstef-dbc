@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 from typing import Union
-from pydantic import BaseSettings
+from pydantic.v1 import BaseSettings
 
 
 class Settings(BaseSettings):
