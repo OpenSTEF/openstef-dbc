@@ -329,8 +329,7 @@ class Weather:
         """Returns datetime of latest KNMI run in influx Database. If no run is found return first unix time."""
         query = """
             from(bucket: "forecast_latest/autogen" )   
-                |> range(start: - 2d) 
-                |> limit(n:10)
+                |> range(start: - 2d)
                 |> filter(fn: (r) => r._measurement == "weather" and r.source == "harm_arome" and r._field == "source_run")
                 |> max()
         """
