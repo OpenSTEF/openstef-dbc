@@ -6,6 +6,7 @@ import unittest
 from unittest.mock import patch
 import pandas as pd
 from openstef.data_classes.prediction_job import PredictionJobDataClass
+from pydantic.v1.error_wrappers import ValidationError
 from openstef_dbc.services.prediction_job import PredictionJobRetriever
 
 
@@ -82,7 +83,7 @@ class TestPredictionJob(unittest.TestCase):
     def test_create_prediction_job_object_missing_attribute(self):
         pj_dict = self.prediction_job.copy()
         pj_dict.pop("forecast_type")
-        with self.assertRaises(AttributeError):
+        with self.assertRaises(ValidationError):
             self.service._create_prediction_job_object(pj_dict)
 
     def test_create_prediction_job_object_without_train_components(self):
