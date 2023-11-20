@@ -5,6 +5,7 @@
 # NEVER check in our secrets file
 secrets.yaml
 # Ignore these folders
+.ignore/
 trained_models/
 docs/build/
 certificates/
@@ -15,6 +16,7 @@ ktprognoses.egg-info/
 # Ignore these files
 .DS_Store
 git-template
+debug.ipynb
 
 # default Python .gitignore template: https://raw.githubusercontent.com/github/gitignore/master/Python.gitignore
 
