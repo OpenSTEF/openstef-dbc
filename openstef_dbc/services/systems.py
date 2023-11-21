@@ -42,7 +42,7 @@ class Systems:
         query = """
                     SELECT `sid`, `lat`, `lon`,`region`, ( 6371 * acos( cos( radians(%(lat)s) ) \
                 * cos( radians( lat ) ) * cos( radians( lon ) - radians(%(lon)s) ) + sin( radians(%(lat)s) ) \
-                * sin( radians( lat ) ) ) ) AS 'distance' \
+                * sin( radians( lat ) ) ) ) AS `distance` \
                 FROM `systems`
                 WHERE `qual` > '%(quality)s'
                 """
