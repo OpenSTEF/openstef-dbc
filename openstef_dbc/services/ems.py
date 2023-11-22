@@ -128,7 +128,7 @@ class Ems:
 
         if aggregated:
             # `result_raw`, contains the outcome of a flux query that returns a list of two dataframes.
-            # The order of the two dataframes within the list can differ from one run to the next. 
+            # The order of the two dataframes within the list can differ from one run to the next.
             # Therefore the renaming of the `_value` column is done dynamically.
             result = pd.concat(
                 [
