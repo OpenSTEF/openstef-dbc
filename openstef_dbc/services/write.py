@@ -418,13 +418,7 @@ class Write:
         query = "INSERT IGNORE INTO `systems` (sid, region) VALUES " + values
 
         # Execute query
-        response = _DataInterface.get_instance().mysql_engine.execute(query)
-
-        self.logger.info(
-            "Added {} new systems to the systems table in the MySQL database".format(
-                response.rowcount
-            )
-        )
+        _DataInterface.get_instance().exec_sql_write(query)
 
     def write_kpi(self, pj: dict, kpis: dict) -> None:
         """Method that writes the key performance indicators of a pid to an influx DB.

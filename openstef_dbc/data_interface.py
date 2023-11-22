@@ -243,7 +243,13 @@ class _DataInterface(metaclass=Singleton):
             params = {}
         try:
             with self.mysql_engine.connect() as connection:
-                connection.execute(statement, params=params)
+                response = connection.execute(statement, params=params)
+
+                self.logger.info(
+                    "Added {} new systems to the systems table in the MySQL database".format(
+                        response.rowcount
+                    )
+                )
         except Exception as e:
             self.logger.error(
                 "Error occured during executing query", query=statement, exc_info=e
