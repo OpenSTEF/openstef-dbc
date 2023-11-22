@@ -127,12 +127,17 @@ class Ems:
             return pd.DataFrame()
 
         if aggregated:
+            # `result_raw`, contains the outcome of a flux query that returns a list of two dataframes.
+            # The order of the two dataframes within the list can differ from one run to the next.
+            # Therefore the renaming of the `_value` column is done dynamically.
             result = pd.concat(
                 [
                     result_raw[0][["_time", "_value"]].rename(
-                        columns={"_value": "load"}
+                        columns={"_value": result_raw[0]["result"][0]}
                     ),
-                    result_raw[1][["_value"]].rename(columns={"_value": "nEntries"}),
+                    result_raw[1][["_value"]].rename(
+                        columns={"_value": result_raw[1]["result"][0]}
+                    ),
                 ],
                 axis=1,
             ).set_index("_time")

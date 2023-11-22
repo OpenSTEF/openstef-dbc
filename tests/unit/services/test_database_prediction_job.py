@@ -83,7 +83,7 @@ class TestPredictionJob(unittest.TestCase):
     def test_create_prediction_job_object_missing_attribute(self):
         pj_dict = self.prediction_job.copy()
         pj_dict.pop("forecast_type")
-        with self.assertRaises(ValidationError):
+        with self.assertRaises(AttributeError):
             self.service._create_prediction_job_object(pj_dict)
 
     def test_create_prediction_job_object_without_train_components(self):
