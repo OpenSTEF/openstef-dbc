@@ -4,8 +4,8 @@
 
 from typing import Union
 
-from pydantic_settings import BaseSettings
 
+from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     api_username: str = "test"
