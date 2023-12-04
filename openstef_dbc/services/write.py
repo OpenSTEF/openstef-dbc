@@ -175,7 +175,7 @@ class Write:
         influxtable = "prediction_tAheads"
 
         # specify desired t_aheads
-        desired_t_aheads = [0.0, 1.0, 4.0, 8.0, 24.0, 47.0, 50.0, 144.0]
+        desired_t_aheads = [0.0, 1.0, 4.0, 8.0, 15.0, 24.0, 39.0, 47.0, 50.0, 144.0]
 
         t_adf = forecast.copy()
 
