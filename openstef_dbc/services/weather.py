@@ -159,8 +159,8 @@ class Weather:
         Args:
             result (pd.DataFrame): return value from the function 'get_weatherdata'
             source_order (list): which weather models should be used (first).
-                Options: "OWM", "DSN", "WUN", "harmonie", "harm_arome", "optimum"
-                Default: '"harm_arome", "harmonie", "DSN"'. This combines harmonie, harm_arome and DSN,
+                Options: "OWM", "DSN", "WUN", "harmonie", "harm_arome", "optimum", "icon"
+                Default: '"harm_arome", "harmonie", "icon", "DSN"'. This combines harmonie, harm_arome, ICON and DSN,
                 taking the (heuristicly) best available source for each moment in time
 
         Returns:
@@ -177,7 +177,7 @@ class Weather:
         # step 1: Create list of multiple dataframes,
         # check which of the 'optimum' sources are actually in the list
         if source_order is None:
-            source_order = ["harm_arome", "GFS_50", "harmonie", "DSN"]
+            source_order = ["harm_arome", "GFS_50", "harmonie", "icon", "DSN"]
 
         active_sources = [s for s in source_order if s in set(result.source)]
         # for each source a seperate dataframe
@@ -215,8 +215,8 @@ class Weather:
             datetime_start (datetime) : start date time. Default: 14 days ago
             datetime_end (datetime): end date time. Default: now + 2 days.
             source (str or list of str): which weather models should be used.
-                Options: "OWM", "DSN", "WUN", "harmonie", "harm_arome", "optimum"
-                Default: 'optimum'. This combines harmonie, harm_arome and DSN,
+                Options: "OWM", "DSN", "WUN", "harmonie", "harm_arome", "icon", "optimum",
+                Default: 'optimum'. This combines harmonie, harm_arome, icon and DSN,
                 taking the (heuristicly) best available source for each moment in time
             resolution (str): Time resolution of the returned data, default: "15T"
         Returns:
@@ -263,7 +263,7 @@ class Weather:
         # Try to get the data from influx.
         if "optimum" in source:
             # so the query return all
-            source = ["harm_arome", "GFS_50", "harmonie", "DSN"]
+            source = ["harm_arome", "GFS_50", "harmonie", "icon", "DSN"]
             combine_sources = True
         else:
             combine_sources = False
