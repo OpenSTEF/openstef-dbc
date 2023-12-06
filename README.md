@@ -8,18 +8,25 @@ SPDX-License-Identifier: MPL-2.0
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=OpenSTEF_openstef-dbc&metric=alert_status)](https://sonarcloud.io/dashboard?id=OpenSTEF_openstef-dbc)
 
 
+
 # Openstef-dbc - Database connector for openstef (reference)
 
-This repository houses the python package [openstef-dbc](https://pypi.org/project/openstef-dbc/), which provides an interface to openstef (reference) databases.
+This repository houses the python package [openstef-dbc](https://pypi.org/project/openstef-dbc/), which provides a database interface to OpenSTEF (reference). It can be usefull to explorte [openstef](https://github.com/openstef/short-term-forecasting) and [openstef-reference](https://github.com/openstef/openstef-reference). 
 
-Related projects:
-- [openstef-reference](https://github.com/openstef/openstef-reference)
-- [openstef](https://github.com/openstef/short-term-forecasting)
+## Table of contents 
+- [Install](#install)
+- [Usage](#usage)
+- [License](#license)
+- [Licenses third-party libraries](#licenses-third-party-libraries)
+- [Contributing](#contributing)
 
 ## Install
 
-1. Install by running `pip install openstef-dbc`
-2. Enjoy!
+1. Install by running
+   ```shell
+   pip install openstef-dbc
+   ``` 
+3. Enjoy!
 
 ## Usage
 
