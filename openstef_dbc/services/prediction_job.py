@@ -174,6 +174,8 @@ class PredictionJobRetriever:
             # Change the typ column to forecast_type
             if "typ" in pj:
                 pj["forecast_type"] = pj.pop("typ")
+            if pj["train_horizons_minutes"]:
+                pj["train_horizons_minutes"] = json.loads(pj["train_horizons_minutes"])
             prediction_job_object = PredictionJobDataClass(**pj)
         except ValidationError as e:
             errors = e.errors()
@@ -361,7 +363,8 @@ class PredictionJobRetriever:
                 p.name,
                 p.forecast_type, 
                 p.model, 
-                p.horizon_minutes, 
+                p.horizon_minutes,
+                p.train_horizons_minutes,
                 p.resolution_minutes,
                 p.train_components,
                 min(s.lat) as lat,
