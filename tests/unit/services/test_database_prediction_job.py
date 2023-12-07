@@ -36,7 +36,7 @@ class TestPredictionJob(unittest.TestCase):
             "model": "xgb",
             "model_type_group": "default",
             "horizon_minutes": 2880,
-            "train_horizons_minutes": "[15, 2880]",
+            "train_horizons_minutes": "[15, 2880, 15000]",
             "resolution_minutes": 15,
             "train_components": 1,
             "lat": 51.8336647,
@@ -103,7 +103,7 @@ class TestPredictionJob(unittest.TestCase):
         self.assertEqual(
             pj.__getitem__("id"), self.prediction_job_with_train_horizons["id"]
         )
-        self.assertEqual(pj.__getitem__("train_horizons_minutes"), [15, 2880])
+        self.assertEqual(pj.__getitem__("train_horizons_minutes"), [15, 2880, 15000])
 
     def test_create_prediction_job_object_missing_attribute(self):
         pj_dict = self.prediction_job.copy()
