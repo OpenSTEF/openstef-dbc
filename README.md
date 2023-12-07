@@ -19,6 +19,7 @@ This repository houses the python package [openstef-dbc](https://pypi.org/projec
 - [License](#license)
 - [Licenses third-party libraries](#licenses-third-party-libraries)
 - [Contributing](#contributing)
+- [Contact](##contact)
 
 ## Install
 
