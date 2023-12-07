@@ -21,6 +21,22 @@ class TestPredictionJob(unittest.TestCase):
             "model": "xgb",
             "model_type_group": "default",
             "horizon_minutes": 2880,
+            "train_horizons_minutes": None,
+            "resolution_minutes": 15,
+            "train_components": 1,
+            "lat": 51.8336647,
+            "lon": 5.2137814,
+            "sid": "LC_Neerijnen",
+            "created": pd.Timestamp("2019-04-05 12:08:23"),
+        }
+        self.prediction_job_with_train_horizons = {
+            "id": 307,
+            "name": "Neerijnen",
+            "forecast_type": "demand",
+            "model": "xgb",
+            "model_type_group": "default",
+            "horizon_minutes": 2880,
+            "train_horizons_minutes": "[15, 2880]",
             "resolution_minutes": 15,
             "train_components": 1,
             "lat": 51.8336647,
@@ -80,6 +96,11 @@ class TestPredictionJob(unittest.TestCase):
         with self.assertRaises(AttributeError):
             pj.__setitem__("non_existing", "can't")
 
+    def test_create_prediction_job_object_with_train_horizons(self):
+        pj = self.service._create_prediction_job_object(self.prediction_job_with_train_horizons)
+        self.assertEqual(pj.__getitem__("id"), self.prediction_job_with_train_horizons["id"])
+        self.assertEqual(pj.__getitem__("train_horizons_minutes"), [15, 2880])
+    
     def test_create_prediction_job_object_missing_attribute(self):
         pj_dict = self.prediction_job.copy()
         pj_dict.pop("forecast_type")
