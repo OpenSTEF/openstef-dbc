@@ -97,10 +97,14 @@ class TestPredictionJob(unittest.TestCase):
             pj.__setitem__("non_existing", "can't")
 
     def test_create_prediction_job_object_with_train_horizons(self):
-        pj = self.service._create_prediction_job_object(self.prediction_job_with_train_horizons)
-        self.assertEqual(pj.__getitem__("id"), self.prediction_job_with_train_horizons["id"])
+        pj = self.service._create_prediction_job_object(
+            self.prediction_job_with_train_horizons
+        )
+        self.assertEqual(
+            pj.__getitem__("id"), self.prediction_job_with_train_horizons["id"]
+        )
         self.assertEqual(pj.__getitem__("train_horizons_minutes"), [15, 2880])
-    
+
     def test_create_prediction_job_object_missing_attribute(self):
         pj_dict = self.prediction_job.copy()
         pj_dict.pop("forecast_type")
