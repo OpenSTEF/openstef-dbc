@@ -21,6 +21,7 @@ class TestPredictionJob(unittest.TestCase):
             "model": "xgb",
             "model_type_group": "default",
             "horizon_minutes": 2880,
+            "train_horizons_minutes": None,
             "resolution_minutes": 15,
             "train_components": 1,
             "lat": 51.8336647,
@@ -72,13 +73,51 @@ class TestPredictionJob(unittest.TestCase):
         self.assertIsInstance(pj_dataclass, PredictionJobDataClass)
 
     def test_create_prediction_job_object(self):
-        pj = self.service._create_prediction_job_object(self.prediction_job)
-        self.assertEqual(pj.__getitem__("id"), self.prediction_job["id"])
-        pj.__setitem__("id", 50)
-        self.assertEqual(pj.__getitem__("id"), 50)
+        # Arrange
+        pj_dict = self.prediction_job
 
+        # Act
+        pj_object = self.service._create_prediction_job_object(pj_dict)
+
+        # Assert
+        self.assertEqual(pj_object.__getitem__("id"), pj_dict["id"])
+
+    def test_create_prediction_job_object_set_item_afterwards(self):
+        # Arrange
+        pj_dict = self.prediction_job
+
+        # Act
+        pj_object = self.service._create_prediction_job_object(pj_dict)
+        pj_object.__setitem__("id", 50)
+
+        # Assert
+        self.assertEqual(pj_object.__getitem__("id"), 50)
+
+    def test_create_prediction_job_object_cannot_set_nonexistent_attribute(self):
+        # Arrange
+        pj_dict = self.prediction_job
+
+        # Act
+        pj_object = self.service._create_prediction_job_object(pj_dict)
+
+        # Assert
         with self.assertRaises(AttributeError):
-            pj.__setitem__("non_existing", "can't")
+            pj_object.__setitem__("non_existing", "can't")
+
+    def test_create_prediction_job_object_with_train_horizons(self):
+        # Arrange
+        pj_dict = self.prediction_job
+        train_horizons_minutes_list = [15, 2880, 15000]
+        train_horizons_minutes_str = "[15, 2880, 15000]"
+        pj_dict["train_horizons_minutes"] = train_horizons_minutes_str
+
+        # Act
+        pj_object = self.service._create_prediction_job_object(pj_dict)
+
+        # Assert
+        self.assertEqual(
+            pj_object.__getitem__("train_horizons_minutes"), train_horizons_minutes_list
+        )
 
     def test_create_prediction_job_object_missing_attribute(self):
         pj_dict = self.prediction_job.copy()
