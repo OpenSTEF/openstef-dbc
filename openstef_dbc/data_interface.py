@@ -237,8 +237,6 @@ class _DataInterface(metaclass=Singleton):
             raise
 
     def exec_sql_write(self, statement: str, params: dict = None) -> None:
-        if params is None:
-            params = {}
         try:
             with self.mysql_engine.connect() as connection:
                 response = connection.execute(statement, params=params)
