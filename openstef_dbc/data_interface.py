@@ -222,8 +222,6 @@ class _DataInterface(metaclass=Singleton):
         return available
 
     def exec_sql_query(self, query: str, params: dict = None, **kwargs):
-        if params is None:
-            params = {}
         try:
             return pd.read_sql(query, self.mysql_engine, params=params, **kwargs)
         except sqlalchemy.exc.OperationalError as e:
@@ -239,8 +237,6 @@ class _DataInterface(metaclass=Singleton):
             raise
 
     def exec_sql_write(self, statement: str, params: dict = None) -> None:
-        if params is None:
-            params = {}
         try:
             with self.mysql_engine.connect() as connection:
                 response = connection.execute(statement, params=params)
