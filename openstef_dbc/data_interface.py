@@ -221,9 +221,15 @@ class _DataInterface(metaclass=Singleton):
 
         return available
 
-    def exec_sql_query(self, query: str, params: dict = None, **kwargs):
+    def exec_sql_query(self, query: str, params: dict = None):
         try:
-            return pd.read_sql(query, self.mysql_engine, params=params, **kwargs)
+            connection = self.mysql_engine.connect()
+            if params is None:
+                params = {}
+            cursor = connection.execute(query, **params)
+            connection.close()
+            if cursor.cursor is not None:
+                return pd.DataFrame(cursor.fetchall())
         except sqlalchemy.exc.OperationalError as e:
             self.logger.error("Lost connection to MySQL database", exc_info=e)
             raise
