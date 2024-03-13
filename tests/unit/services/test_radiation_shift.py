@@ -35,7 +35,7 @@ class TestRadiationShift(unittest.TestCase):
 
         # Mock other functions
         weather = Weather()
-        weather._get_nearest_weather_location = lambda x: x
+        weather._get_nearest_weather_location = lambda x, y: x
         weather._combine_weather_sources = lambda x: x
 
         # Run function
