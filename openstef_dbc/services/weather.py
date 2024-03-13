@@ -51,7 +51,10 @@ class Weather:
         return locations
 
     def _get_nearest_weather_location(
-        self, location: Union[Tuple[float, float], str], country: str = "NL", threshold: float = 150.0,
+        self,
+        location: Union[Tuple[float, float], str],
+        country: str = "NL",
+        threshold: float = 150.0,
     ) -> str:
         """Find the nearest weather forecast location.
 
@@ -65,12 +68,14 @@ class Weather:
             location (str, tuple): Name of the location/city or coordinates (lat, lon).
             country (str): Country code (2-letter: ISO 3166-1).
             threshold (int): Maximum distance [km] before a warning is generated.
-            
+
         Returns:
             str: The name of the weather forecast location.
         """
         # Get all available cities
-        weather_locations = self.get_weather_forecast_locations(country=country, active=1)
+        weather_locations = self.get_weather_forecast_locations(
+            country=country, active=1
+        )
 
         # If location is string, convert to (lat, lon)
         if type(location) is str:
