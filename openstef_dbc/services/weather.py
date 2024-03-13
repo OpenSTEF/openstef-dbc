@@ -51,7 +51,10 @@ class Weather:
         return locations
 
     def _get_nearest_weather_location(
-        self, location: Union[Tuple[float, float], str], threshold: float = 150.0
+        self,
+        location: Union[Tuple[float, float], str],
+        country: str = "NL",
+        threshold: float = 150.0,
     ) -> str:
         """Find the nearest weather forecast location.
 
@@ -63,13 +66,16 @@ class Weather:
 
         Args:
             location (str, tuple): Name of the location/city or coordinates (lat, lon).
+            country (str): Country code (2-letter: ISO 3166-1).
             threshold (int): Maximum distance [km] before a warning is generated.
 
         Returns:
             str: The name of the weather forecast location.
         """
         # Get all available cities
-        weather_locations = self.get_weather_forecast_locations(country="NL", active=1)
+        weather_locations = self.get_weather_forecast_locations(
+            country=country, active=1
+        )
 
         # If location is string, convert to (lat, lon)
         if type(location) is str:
@@ -200,6 +206,7 @@ class Weather:
         datetime_end: datetime = None,
         source: Union[List[str], str] = "optimum",
         resolution: str = "15min",
+        country: str = "NL",
     ) -> pd.DataFrame:
         """Get weather data from database.
 
@@ -219,6 +226,7 @@ class Weather:
                 Default: 'optimum'. This combines harmonie, harm_arome, icon and DSN,
                 taking the (heuristicly) best available source for each moment in time
             resolution (str): Time resolution of the returned data, default: "15T"
+            country (str): Country code (2-letter: ISO 3166-1). e.g. NL
         Returns:
             pd.DataFrame: The most recent weather prediction
 
@@ -251,7 +259,7 @@ class Weather:
 
         datetime_start -= timedelta(hours=1)
 
-        location_name = self._get_nearest_weather_location(location)
+        location_name = self._get_nearest_weather_location(location, country)
 
         # Make a list of the source and weatherparams.
         # Like this, it also works if source is a string instead of multiple values
