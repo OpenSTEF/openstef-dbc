@@ -25,6 +25,7 @@ class ModelInput:
         self,
         pid: int = 295,
         location: Union[Tuple[int, int], str] = "Arnhem",
+        country: str="NL",
         datetime_start: str = None,
         datetime_end: str = None,
         forecast_resolution: str = "15min",
@@ -38,6 +39,7 @@ class ModelInput:
         Args:
             pid (int, optional): Prediction job id. Defaults to 295.
             location (str, optional): Location name or tuple with lat, lon. Defaults to "Arnhem".
+            country (str, optional): Country of were the location is located. Defaults to "NL", The Netherlands.
             datetime_start (datetime, optional): Start datetime. Defaults to None.
             datetime_end (datetime, optional): End datetime. Defaults to None.
             forecast_resolution (str, optional): Time resolution of model input
@@ -104,6 +106,7 @@ class ModelInput:
         history: int = 14,
         datetime_start: datetime = None,
         sid: str = None,
+        country: str="NL",
     ) -> pd.DataFrame:
         """This function retrieves the radiation and cloud forecast for the nearest weather location
         and the relevant pvdata from a specific system or region.
@@ -117,6 +120,7 @@ class ModelInput:
             - forecastResolution: time resolution of forecast in minutes [int]
             - datetime_start: datetime of forecast
             - source: preferred weather source as a string, default for wind is DSN
+            - country (str, optional): Country of were the location is located. Defaults to "NL", The Netherlands.
         """
         if datetime_start is None:
             datetime_start = datetime.utcnow()
@@ -145,7 +149,7 @@ class ModelInput:
         end = datetime_start + timedelta(minutes=forecast_horizon)
 
         weather_data = Weather().get_weather_data(
-            location, weather_params, start, end, source="optimum"
+            location, weather_params, start, end, source="optimum", resolution= "15min", country= country
         )
 
         # Interpolate weather data to 15 minute values
@@ -193,6 +197,7 @@ class ModelInput:
         forecast_resolution: int,
         datetime_start: datetime = None,
         source: str = "optimum",
+        country: str="NL",
     ) -> pd.DataFrame:
         """This function retrieves the wind speed forecast for the nearest weather location
         and calculates the wind speed based on the turbine's hub height.
@@ -204,6 +209,7 @@ class ModelInput:
             forecast_resolution: time resolution of forecast in minutes [int]
             datetime_start: datetime of forecast
             source: preferred weather source as a string, default for wind is DSN
+            country (str, optional): Country of were the location is located. Defaults to "NL", The Netherlands.
         """
 
         if datetime_start is None:
@@ -216,6 +222,8 @@ class ModelInput:
             datetime_start=datetime_start,
             datetime_end=datetime_end,
             source=source,
+            resolution= "15min", 
+            country= country
         )
 
         # interpolate results to 15 minute values
