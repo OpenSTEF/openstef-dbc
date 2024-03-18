@@ -41,6 +41,8 @@ class Predictor:
             datetime_end (datetime): Date time start.
             location (Union[str, Tuple[float, float]], optional): Location (for weather data).
                 Defaults to None.
+            country (str, optional): Country code (for weather data).
+                Defaults to "NL".
             predictor_groups (Optional[List[str]], optional): The groups of predictors
                 to include (see the PredictorGroups enum for allowed values). When set to
                 None or not given all predictor groups will be returned. Defaults to None.
@@ -72,6 +74,7 @@ class Predictor:
                 datetime_start,
                 datetime_end,
                 location=location,
+                country=country,
                 forecast_resolution=forecast_resolution,
             )
             predictors.append(weather_data_predictors)
@@ -264,7 +267,7 @@ class Predictor:
             datetime_start,
             datetime_end,
             source="optimum",
-            country= "NL",
+            country=country,
         )
 
         # Post process weather data
