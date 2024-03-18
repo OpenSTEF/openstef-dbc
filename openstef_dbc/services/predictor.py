@@ -241,8 +241,8 @@ class Predictor:
         datetime_start: datetime.datetime,
         datetime_end: datetime.datetime,
         location: Union[Tuple[float, float], str],
-        country: str = "NL",
         forecast_resolution: str = None,
+        country: str = "NL",
     ) -> pd.DataFrame:
         # Get weather data
         weather_params = [
