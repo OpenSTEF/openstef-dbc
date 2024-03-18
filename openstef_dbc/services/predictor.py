@@ -29,6 +29,7 @@ class Predictor:
         forecast_resolution: Optional[str] = None,
         location: Union[str, Tuple[float, float]] = None,
         predictor_groups: Union[List[PredictorGroups], List[str], None] = None,
+        country: str = "NL",
     ) -> pd.DataFrame:
         """Get predictors.
 
@@ -238,6 +239,7 @@ class Predictor:
         datetime_end: datetime.datetime,
         location: Union[Tuple[float, float], str],
         forecast_resolution: str = None,
+        country: str = "NL",
     ) -> pd.DataFrame:
         # Get weather data
         weather_params = [
@@ -262,6 +264,7 @@ class Predictor:
             datetime_start,
             datetime_end,
             source="optimum",
+            country= "NL",
         )
 
         # Post process weather data
