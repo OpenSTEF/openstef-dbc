@@ -29,6 +29,7 @@ class Predictor:
         forecast_resolution: Optional[str] = None,
         location: Union[str, Tuple[float, float]] = None,
         predictor_groups: Union[List[PredictorGroups], List[str], None] = None,
+        country: str = "NL",
     ) -> pd.DataFrame:
         """Get predictors.
 
@@ -40,6 +41,8 @@ class Predictor:
             datetime_end (datetime): Date time start.
             location (Union[str, Tuple[float, float]], optional): Location (for weather data).
                 Defaults to None.
+            country (str, optional): Country code (for weather data).
+                Defaults to "NL".
             predictor_groups (Optional[List[str]], optional): The groups of predictors
                 to include (see the PredictorGroups enum for allowed values). When set to
                 None or not given all predictor groups will be returned. Defaults to None.
@@ -71,6 +74,7 @@ class Predictor:
                 datetime_start,
                 datetime_end,
                 location=location,
+                country=country,
                 forecast_resolution=forecast_resolution,
             )
             predictors.append(weather_data_predictors)
@@ -237,6 +241,7 @@ class Predictor:
         datetime_start: datetime.datetime,
         datetime_end: datetime.datetime,
         location: Union[Tuple[float, float], str],
+        country: str = "NL",
         forecast_resolution: str = None,
     ) -> pd.DataFrame:
         # Get weather data
@@ -262,6 +267,7 @@ class Predictor:
             datetime_start,
             datetime_end,
             source="optimum",
+            country=country,
         )
 
         # Post process weather data
