@@ -25,7 +25,7 @@ class ModelInput:
         self,
         pid: int = 295,
         location: Union[Tuple[int, int], str] = "Arnhem",
-        country: str="NL",
+        country: str = "NL",
         datetime_start: str = None,
         datetime_end: str = None,
         forecast_resolution: str = "15min",
@@ -106,7 +106,7 @@ class ModelInput:
         history: int = 14,
         datetime_start: datetime = None,
         sid: str = None,
-        country: str="NL",
+        country: str = "NL",
     ) -> pd.DataFrame:
         """This function retrieves the radiation and cloud forecast for the nearest weather location
         and the relevant pvdata from a specific system or region.
@@ -149,7 +149,13 @@ class ModelInput:
         end = datetime_start + timedelta(minutes=forecast_horizon)
 
         weather_data = Weather().get_weather_data(
-            location, weather_params, start, end, source="optimum", resolution= "15min", country= country
+            location,
+            weather_params,
+            start,
+            end,
+            source="optimum",
+            resolution="15min",
+            country=country,
         )
 
         # Interpolate weather data to 15 minute values
@@ -197,7 +203,7 @@ class ModelInput:
         forecast_resolution: int,
         datetime_start: datetime = None,
         source: str = "optimum",
-        country: str="NL",
+        country: str = "NL",
     ) -> pd.DataFrame:
         """This function retrieves the wind speed forecast for the nearest weather location
         and calculates the wind speed based on the turbine's hub height.
@@ -222,8 +228,8 @@ class ModelInput:
             datetime_start=datetime_start,
             datetime_end=datetime_end,
             source=source,
-            resolution= "15min", 
-            country= country
+            resolution="15min",
+            country=country,
         )
 
         # interpolate results to 15 minute values
