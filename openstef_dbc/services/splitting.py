@@ -66,6 +66,7 @@ class Splitting:
         location: Union[Tuple[float, float], str],
         datetime_start: datetime,
         datetime_end: datetime,
+        country: str = "NL",
     ) -> pd.DataFrame:
         """Function that gets windspeed data from the influx database and converts it to windref data suitable
         for splitting energy.
@@ -73,6 +74,7 @@ class Splitting:
             location: str, country or location
             datetime_start: datetime, start time of required windref
             datetime_end: datetime, end time of required windref
+            country: str, default is "NL"
         Output:
             windref: pandas dataframe containing the windref data"""
 
@@ -83,6 +85,7 @@ class Splitting:
             datetime_start=datetime_start,
             datetime_end=datetime_end,
             source="optimum",
+            country=country,
         )
 
         wind_ref = self._calculate_windspeed_at_hubheight(
