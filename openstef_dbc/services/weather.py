@@ -55,6 +55,7 @@ class Weather:
         location: Union[Tuple[float, float], str],
         country: str = "NL",
         threshold: float = 150.0,
+        k: int = 1,
     ) -> str:
         """Find the nearest weather forecast location.
 
@@ -68,6 +69,7 @@ class Weather:
             location (str, tuple): Name of the location/city or coordinates (lat, lon).
             country (str): Country code (2-letter: ISO 3166-1).
             threshold (int): Maximum distance [km] before a warning is generated.
+            k (int): number of weather locations desired
 
         Returns:
             str: The name of the weather forecast location.
@@ -103,12 +105,12 @@ class Weather:
 
         distances = distances.set_index("distance")
 
-        nearest_location = distances["input_city"][distances.index.min()]
+        nearest_location = distances["input_city"].sort_index()[0:k]
 
         # Find closest weather location
         if distances.index.min() < threshold:
             if isinstance(nearest_location, pd.Series):
-                return nearest_location.reset_index(drop=True)[0]
+                return nearest_location.reset_index(drop=True)
             else:
                 return nearest_location
 
