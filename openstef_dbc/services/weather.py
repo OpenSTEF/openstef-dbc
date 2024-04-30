@@ -105,7 +105,7 @@ class Weather:
 
         distances = distances.set_index("distance")
 
-        nearest_location = distances["input_city"].sort_index()[0:k]
+        nearest_location = distances["input_city"].sort_index()[0:k].tolist()
 
         # Find closest weather location
         if distances.index.min() < threshold:
@@ -217,6 +217,7 @@ class Weather:
         source: Union[List[str], str] = "optimum",
         resolution: str = "15min",
         country: str = "NL",
+        k: int = 1,
     ) -> pd.DataFrame:
         """Get weather data from database.
 
@@ -237,6 +238,7 @@ class Weather:
                 taking the (heuristicly) best available source for each moment in time
             resolution (str): Time resolution of the returned data, default: "15T"
             country (str): Country code (2-letter: ISO 3166-1). e.g. NL
+            k (int): number of weather locations desired
         Returns:
             pd.DataFrame: The most recent weather prediction
 
@@ -269,7 +271,7 @@ class Weather:
 
         datetime_start -= timedelta(hours=1)
 
-        location_name = self._get_nearest_weather_location(location, country)
+        location_name = self._get_nearest_weather_location(location=location, country=country, k=k)
 
         # Make a list of the source and weatherparams.
         # Like this, it also works if source is a string instead of multiple values
@@ -277,6 +279,8 @@ class Weather:
             source = [source]
         if isinstance(weatherparams, str):
             weatherparams = [weatherparams]
+        if isinstance(location_name, str):
+            location_name = [location_name]
 
         # Try to get the data from influx.
         if "optimum" in source:
@@ -295,7 +299,6 @@ class Weather:
 
         # Initialize binding params
         bind_params = {
-            "_input_city": location_name,
             "_start": datetime_start,
             "_stop": datetime_end,
         }
@@ -303,12 +306,13 @@ class Weather:
         # Initialise strings for the querying influx, it is not possible to parameterize this string
         weather_params_str = '" or r._field == "'.join(weatherparams)
         weather_models_str = '" or r.source == "'.join(source)
+        weather_location_name_str = '" or r.input_city == "'.join(location_name)
 
         # Create the query
         query = f"""
             from(bucket: "forecast_latest/autogen") 
                 |> range(start: {bind_params["_start"].strftime('%Y-%m-%dT%H:%M:%SZ')}, stop: {bind_params["_stop"].strftime('%Y-%m-%dT%H:%M:%SZ')}) 
-                |> filter(fn: (r) => r._measurement == "weather" and (r._field == "{weather_params_str}") and (r.source == "{weather_models_str}") and r.input_city == "{bind_params["_input_city"]}")
+                |> filter(fn: (r) => r._measurement == "weather" and (r._field == "{weather_params_str}") and (r.source == "{weather_models_str}") and (r.input_city == "{weather_location_name_str}"))
         """
 
         # Execute Query
@@ -320,7 +324,7 @@ class Weather:
 
         # Check if response is empty
         if not result.empty:
-            result = parse_influx_result(result, ["source"])
+            result = parse_influx_result(result, ["source", "input_city"])
         else:
             self.logger.warning("No weatherdata found. Returning empty dataframe")
             return pd.DataFrame(
@@ -336,18 +340,27 @@ class Weather:
             self.logger.info("Combining sources into single dataframe")
             result = self._combine_weather_sources(result)
 
-        # Interpolate if nescesarry
-        result = result.resample(resolution).interpolate(limit=11)
+        # Interpolate if nescesarry by input_city and source
+        result = result.groupby(['input_city'])\
+                .resample(resolution)\
+                    .interpolate(limit=11)\
+                        .drop(columns = ['input_city'])\
+                            .reset_index(['input_city'])
+        
+        #result = result.resample(resolution).interpolate(limit=11)
 
         # Shift radiation by 30 minutes if resolution allows it
         if "radiation" in result.columns:
             shift_delta = -timedelta(minutes=30)
             if shift_delta % pd.Timedelta(resolution) == timedelta(0):
-                result["radiation"] = result["radiation"].shift(1, shift_delta)
+                result["radiation"] = result.groupby(['input_city'])["radiation"].shift(1, shift_delta)
 
         # Drop extra rows not neccesary
-        result = result.loc[datetime_start_original:]
+        result = result[result.index >= datetime_start_original]
 
+        if k==1:
+            result=result.drop(columns="input_city")
+        
         return result
 
     def get_datetime_last_stored_knmi_weatherdata(self) -> datetime:
