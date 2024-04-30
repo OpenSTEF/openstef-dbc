@@ -271,7 +271,9 @@ class Weather:
 
         datetime_start -= timedelta(hours=1)
 
-        location_name = self._get_nearest_weather_location(location=location, country=country, k=k)
+        location_name = self._get_nearest_weather_location(
+            location=location, country=country, k=k
+        )
 
         # Make a list of the source and weatherparams.
         # Like this, it also works if source is a string instead of multiple values
@@ -341,26 +343,30 @@ class Weather:
             result = self._combine_weather_sources(result)
 
         # Interpolate if nescesarry by input_city and source
-        result = result.groupby(['input_city'])\
-                .resample(resolution)\
-                    .interpolate(limit=11)\
-                        .drop(columns = ['input_city'])\
-                            .reset_index(['input_city'])
-        
-        #result = result.resample(resolution).interpolate(limit=11)
+        result = (
+            result.groupby(["input_city"])
+            .resample(resolution)
+            .interpolate(limit=11)
+            .drop(columns=["input_city"])
+            .reset_index(["input_city"])
+        )
+
+        # result = result.resample(resolution).interpolate(limit=11)
 
         # Shift radiation by 30 minutes if resolution allows it
         if "radiation" in result.columns:
             shift_delta = -timedelta(minutes=30)
             if shift_delta % pd.Timedelta(resolution) == timedelta(0):
-                result["radiation"] = result.groupby(['input_city'])["radiation"].shift(1, shift_delta)
+                result["radiation"] = result.groupby(["input_city"])["radiation"].shift(
+                    1, shift_delta
+                )
 
         # Drop extra rows not neccesary
         result = result[result.index >= datetime_start_original]
 
-        if k==1:
-            result=result.drop(columns="input_city")
-        
+        if k == 1:
+            result = result.drop(columns="input_city")
+
         return result
 
     def get_datetime_last_stored_knmi_weatherdata(self) -> datetime:
