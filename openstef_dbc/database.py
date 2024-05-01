@@ -36,7 +36,7 @@ class DataBase(metaclass=Singleton):
     _systems = Systems()
 
     # write methods
-    write_weather_data = _write.write_weather_data
+    write_weather_data = _write.write_weather_forecast_data
     write_realised = _write.write_realised
     write_realised_pvdata = _write.write_realised_pvdata
     write_kpi = _write.write_kpi
