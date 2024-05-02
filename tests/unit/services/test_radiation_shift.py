@@ -41,7 +41,9 @@ class TestRadiationShift(unittest.TestCase):
 
         # Run function
         start += pd.Timedelta(hours=1)
-        df_check = weather.get_weather_data(["CityA"], ["temp", "radiation"], start, end)
+        df_check = weather.get_weather_data(
+            ["CityA"], ["temp", "radiation"], start, end
+        )
 
         # Check for correct results
         self.assertEqual(df_check.index[0], start)
