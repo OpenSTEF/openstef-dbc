@@ -67,6 +67,8 @@ class Splitting:
         datetime_start: datetime,
         datetime_end: datetime,
         country: str = "NL",
+        forecast_resolution: str = "15T",
+        source: str = "optimum",
     ) -> pd.DataFrame:
         """Function that gets windspeed data from the influx database and converts it to windref data suitable
         for splitting energy.
@@ -84,7 +86,7 @@ class Splitting:
             ["windspeed_100m"],
             datetime_start=datetime_start,
             datetime_end=datetime_end,
-            source="optimum",
+            source=source,
             country=country,
         )
 
@@ -104,6 +106,7 @@ class Splitting:
         location: Union[Tuple[float, float], str],
         datetime_start: datetime = None,
         datetime_end: datetime = None,
+        forecast_resolution: str = "15T",
     ) -> pd.DataFrame:
         """Function that gets PV data from the influx database and converts it to solar_ref data suitable
         for splitting energy.
@@ -132,7 +135,7 @@ class Splitting:
             sid=systems["sid"],
             datetime_start=datetime_start,
             datetime_end=datetime_end,
-            forecast_resolution="15T",
+            forecast_resolution=forecast_resolution,
             aggregated=True,
             average_output=True,
         )
@@ -149,7 +152,10 @@ class Splitting:
         pj: dict,
         datetime_start: datetime = None,
         datetime_end: datetime = None,
+        forecast_resolution: str = "15T",
         ignore_factor: bool = False,
+        country: str = "NL",
+        source: str = "optimum",
     ) -> pd.DataFrame:
         if datetime_start is None:
             datetime_start = datetime.utcnow() - timedelta(days=90)
@@ -157,11 +163,11 @@ class Splitting:
             datetime_end = datetime.utcnow()
 
         # Get standard load profiles (StandaardJaarVerbruik in Dutch)
-        sjv = Predictor().get_load_profiles(datetime_start, datetime_end)
+        sjv = Predictor().get_load_profiles(datetime_start, datetime_end, forecast_resolution)
 
         # Get windpower reference
         wind_ref = self.get_wind_ref(
-            (pj["lat"], pj["lon"]), datetime_start, datetime_end
+            (pj["lat"], pj["lon"]), datetime_start, datetime_end, country, forecast_resolution, source
         )
 
         # Get load data
@@ -169,6 +175,7 @@ class Splitting:
             pj["id"],
             datetime_start,
             datetime_end,
+            forecast_resolution,
             ignore_factor=ignore_factor,
         )
 
@@ -177,10 +184,11 @@ class Splitting:
             location=(pj["lat"], pj["lon"]),
             datetime_start=datetime_start,
             datetime_end=datetime_end,
+            forecast_resolution
         )
 
-        # Resample to 15min
-        solar_ref = solar_ref.resample("15T").mean()
+        # Resample to forecast_resolution
+        solar_ref = solar_ref.resample(forecast_resolution).mean()
 
         # Invert solar_ref and windref as electricity is produced and not consumed
         solar_ref *= -1
