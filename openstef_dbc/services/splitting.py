@@ -87,6 +87,7 @@ class Splitting:
             datetime_start=datetime_start,
             datetime_end=datetime_end,
             source=source,
+            resolution=forecast_resolution,
             country=country,
         )
 
