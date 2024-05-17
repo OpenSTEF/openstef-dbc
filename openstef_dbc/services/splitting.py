@@ -168,7 +168,12 @@ class Splitting:
 
         # Get windpower reference
         wind_ref = self.get_wind_ref(
-            (pj["lat"], pj["lon"]), datetime_start, datetime_end, country, forecast_resolution, source
+            (pj["lat"], pj["lon"]), 
+            datetime_start, 
+            datetime_end, 
+            country, 
+            forecast_resolution, 
+            source
         )
 
         # Get load data
@@ -185,7 +190,7 @@ class Splitting:
             location=(pj["lat"], pj["lon"]),
             datetime_start=datetime_start,
             datetime_end=datetime_end,
-            forecast_resolution
+            forecast_resolution=forecast_resolution
         )
 
         # Resample to forecast_resolution

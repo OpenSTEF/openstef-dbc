@@ -209,7 +209,11 @@ class Ems:
 
         # Use optimized load retrieval if possible
         if aggregated and not ignore_factor:
-            return self._get_load_pid_optimized(pid, datetime_start, datetime_end, forecast_resolution)
+            return self._get_load_pid_optimized(pid, 
+                                                datetime_start, 
+                                                datetime_end, 
+                                                forecast_resolution
+                                                )
 
         # Get systems that belong to this prediction
         systems = Systems().get_systems_by_pid(pid)
