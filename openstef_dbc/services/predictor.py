@@ -51,7 +51,7 @@ class Predictor:
             predictor_groups (Optional[List[str]], optional): The groups of predictors
                 to include (see the PredictorGroups enum for allowed values). When set to
                 None or not given all predictor groups will be returned. Defaults to None.
-        
+
         Returns:
             pd.DataFrame: Requested predictors with timezone aware datetime index.
         """
@@ -81,7 +81,7 @@ class Predictor:
                 location=location,
                 country=country,
                 forecast_resolution=forecast_resolution,
-                source=source
+                source=source,
             )
             predictors.append(weather_data_predictors)
 
