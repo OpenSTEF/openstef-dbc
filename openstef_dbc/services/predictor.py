@@ -31,6 +31,7 @@ class Predictor:
         country: str = "NL",
         source: Union[List[str], str] = "optimum",
         predictor_groups: Union[List[PredictorGroups], List[str], None] = None,
+        market_price: str = "APX",
     ) -> pd.DataFrame:
         """Get predictors.
 
@@ -51,6 +52,8 @@ class Predictor:
             predictor_groups (Optional[List[str]], optional): The groups of predictors
                 to include (see the PredictorGroups enum for allowed values). When set to
                 None or not given all predictor groups will be returned. Defaults to None.
+            market_price (str, optional): Name of the market place if market data is requested.
+                Default to "APX".
 
         Returns:
             pd.DataFrame: Requested predictors with timezone aware datetime index.
@@ -87,7 +90,7 @@ class Predictor:
 
         if PredictorGroups.MARKET_DATA in predictor_groups:
             market_data_predictors = self.get_market_data(
-                datetime_start, datetime_end, forecast_resolution
+                datetime_start, datetime_end, forecast_resolution, market_price
             )
             predictors.append(market_data_predictors)
 
@@ -104,9 +107,10 @@ class Predictor:
         datetime_start: datetime.datetime,
         datetime_end: datetime.datetime,
         forecast_resolution: str = None,
+        market_price: str = "APX",
     ) -> pd.DataFrame:
         electricity_price = self.get_electricity_price(
-            datetime_start, datetime_end, forecast_resolution
+            datetime_start, datetime_end, forecast_resolution, market_price
         )
 
         return electricity_price
@@ -116,16 +120,18 @@ class Predictor:
         datetime_start: datetime.datetime,
         datetime_end: datetime.datetime,
         forecast_resolution: str = None,
+        market_price: str = "APX",
     ) -> pd.DataFrame:
         bind_params = {
             "_start": datetime_start,
             "_stop": datetime_end,
+            "market_price": market_price,
         }
 
         query = f"""
             from(bucket: "forecast_latest/autogen")
                 |> range(start: {bind_params["_start"].strftime('%Y-%m-%dT%H:%M:%SZ')}, stop: {bind_params["_stop"].strftime('%Y-%m-%dT%H:%M:%SZ')}) 
-                |> filter(fn: (r) => r._measurement == "marketprices" and r._field == "Price" and r.Name=="APX")
+                |> filter(fn: (r) => r._measurement == "marketprices" and r._field == "Price" and r.Name=="{bind_params["market_price"]}")
         """
 
         result = _DataInterface.get_instance().exec_influx_query(query, bind_params)
@@ -143,7 +149,7 @@ class Predictor:
                     start=datetime_start, end=datetime_end, freq=forecast_resolution
                 )
             )
-        electricity_price.rename(columns=dict(Price="APX"), inplace=True)
+        electricity_price.rename(columns=dict(Price=market_price), inplace=True)
 
         if forecast_resolution and electricity_price.empty is False:
             electricity_price = electricity_price.resample(forecast_resolution).ffill()

@@ -29,6 +29,7 @@ class ModelInput:
         datetime_start: str = None,
         datetime_end: str = None,
         forecast_resolution: str = "15min",
+        market_price: str = "APX",
     ) -> pd.DataFrame:
         """Get model input.
 
@@ -44,7 +45,8 @@ class ModelInput:
             datetime_end (datetime, optional): End datetime. Defaults to None.
             forecast_resolution (str, optional): Time resolution of model input
                 (see pandas Date Offset frequency strings). Defaults to "15min".
-
+            market_price (str, optional): Name of the market place if market data is requested.
+                Default to "APX".
         Returns:
             pd.DataFrame: Model input.
         """
@@ -80,6 +82,7 @@ class ModelInput:
             forecast_resolution=forecast_resolution,
             location=location,
             country=country,
+            market_price=market_price,
         )
 
         # Create model input with datetime index
