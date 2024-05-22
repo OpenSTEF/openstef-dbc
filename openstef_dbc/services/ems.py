@@ -39,7 +39,8 @@ class Ems:
             datetime_end (datetime): End datetime.
             forecast_resolution (str): The forecast resolution, for example '15T'
             aggregated (boolean): Should the results be aggregated per sid or not.
-            average_output:
+            average_output (boolean):  Should the agregation be an average or not.
+            include_n_entries_column (boolean): Should the number of systems agregated be returned or not.
 
         Returns:
             - pd.DataFrame(index=datetimeIndex, columns)
@@ -208,7 +209,9 @@ class Ems:
 
         # Use optimized load retrieval if possible
         if aggregated and not ignore_factor:
-            return self._get_load_pid_optimized(pid, datetime_start, datetime_end)
+            return self._get_load_pid_optimized(
+                pid, datetime_start, datetime_end, forecast_resolution
+            )
 
         # Get systems that belong to this prediction
         systems = Systems().get_systems_by_pid(pid)
