@@ -25,6 +25,7 @@ class TestRadiationShift(unittest.TestCase):
                 "_value": np.concatenate((values, values)),
                 "_field": ["radiation"] * index.size + ["temp"] * index.size,
                 "_time": np.concatenate((index, index)),
+                "input_city": ["CityA"] * index.size * 2,
                 "source": ["harm_arome"] * index.size * 2,
             },
         )
@@ -35,12 +36,15 @@ class TestRadiationShift(unittest.TestCase):
 
         # Mock other functions
         weather = Weather()
-        weather._get_nearest_weather_locations = lambda x, y: x
+
+        weather._get_nearest_weather_locations = lambda location, country, number_locations: pd.Series(location,index=[8])
         weather._combine_weather_sources = lambda x: x
 
         # Run function
         start += pd.Timedelta(hours=1)
-        df_check = weather.get_weather_data(None, ["temp", "radiation"], start, end)
+        df_check = weather.get_weather_data(
+            ["CityA"], ["temp", "radiation"], start, end
+        )
 
         # Check for correct results
         self.assertEqual(df_check.index[0], start)
