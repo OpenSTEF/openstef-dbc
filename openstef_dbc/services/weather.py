@@ -270,7 +270,7 @@ class Weather:
 
         location_name = self._get_nearest_weather_locations(
             location=location, country=country, number_locations=number_locations
-        ).to_list()
+        )
 
         # Make a list of the source and weatherparams.
         # Like this, it also works if source is a string instead of multiple values
@@ -303,7 +303,7 @@ class Weather:
         # Initialise strings for the querying influx, it is not possible to parameterize this string
         weather_params_str = '" or r._field == "'.join(weatherparams)
         weather_models_str = '" or r.source == "'.join(source)
-        weather_location_name_str = '" or r.input_city == "'.join(location_name)
+        weather_location_name_str = '" or r.input_city == "'.join(location_name.to_list())
 
         # Create the query
         query = f"""
@@ -359,6 +359,13 @@ class Weather:
 
         if number_locations == 1:
             result = result.drop(columns="input_city")
+        else :
+            # Adding distance information en km
+            result = (
+                result.reset_index().
+                merge(location_name.reset_index(), how = "left", on="input_city")
+                .set_index("datetime")
+                )
 
         return result
 
