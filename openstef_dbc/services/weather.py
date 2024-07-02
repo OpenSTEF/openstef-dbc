@@ -110,7 +110,7 @@ class Weather:
         # Find closest weather location
         if distances.index.min() < threshold:
             return nearest_location
-        
+
         raise Warning(
             "Closest weather location is farther than threshold: {dist} > {threshold}".format(
                 dist=str(min(distances)), threshold=str(threshold)
