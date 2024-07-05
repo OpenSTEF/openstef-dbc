@@ -13,7 +13,6 @@ from openstef_dbc.services.weather import Weather
 @patch("openstef_dbc.data_interface._DataInterface.get_instance")
 class TestGetNearestWeatherLocations(unittest.TestCase):
     def test(self, data_interface_get_instance_mock):
-
         # Mock other functions
         weather = Weather()
         cities = [
