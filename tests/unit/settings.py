@@ -18,9 +18,10 @@ class Settings(BaseSettings):
     influxdb_token: str = "token"
     influxdb_host: str = "host"
     influxdb_port: str = "123"
-    mysql_username: str = "test"
-    mysql_password: str = "test"
-    mysql_host: str = "host"
-    mysql_port: int = 123
-    mysql_database_name: str = "database_name"
+    sql_db_type: str = "mysql"
+    sql_db_username: str = "test"
+    sql_db_password: str = "test"
+    sql_db_host: str = "host"
+    sql_db_port: int = 123
+    sql_db_database_name: str = "database_name"
     proxies: Union[dict[str, str], None] = None

@@ -548,8 +548,21 @@ class Write:
         # Get rid of last comma
         values = values[0:-1]
 
+        db_type = _DataInterface.get_instance().get_sql_db_type()
+
         # Compose query for writing new systems
-        query = "INSERT IGNORE INTO `systems` (sid, region) VALUES " + values
+        if db_type == "mysql":
+            # Compose query for writing new systems in MySQL
+            query = "INSERT IGNORE INTO `systems` (sid, region) VALUES " + values
+        elif db_type == "postgresql":
+            # Compose query for writing new systems in PostgreSQL
+            query = (
+                    "INSERT INTO systems (sid, region) VALUES " + values +
+                    " ON CONFLICT (sid) DO NOTHING"
+            )
+        else:
+            self.logger.error("Unsupported database type: {}".format(db_type))
+            return
 
         # Execute query
         _DataInterface.get_instance().exec_sql_write(query)

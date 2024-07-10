@@ -46,6 +46,11 @@ class TestDataInterface(unittest.TestCase):
         # should be the same instance
         self.assertIs(data_interface_1, data_interface_2)
 
+    def test_get_sql_db_type(self):
+        config = Settings()
+
+        self.assertEqual("mysql", _DataInterface(config).get_sql_db_type())
+
     @patch("openstef_dbc.Singleton.get_instance", side_effect=KeyError)
     def test_get_instance_error(self, get_instance_mock):
         with self.assertRaises(RuntimeError):
