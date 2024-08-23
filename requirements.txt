@@ -12,3 +12,4 @@ PyMySQL~=1.0.2
 PyYAML~=6.0
 requests~=2.28.1
 SQLAlchemy
+mysqlclient==2.2.4

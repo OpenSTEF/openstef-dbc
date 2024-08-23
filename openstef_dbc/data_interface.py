@@ -120,7 +120,7 @@ class _DataInterface(metaclass=Singleton):
         *can* write pandas dataframe directly.
 
         """
-        connector = "mysql+mysqlconnector"
+        connector = "mysql+mysqldb"
         database_url = (
             f"{connector}://{username}:{password}@{host}:{port}/{db}?use_pure=True"
         )
