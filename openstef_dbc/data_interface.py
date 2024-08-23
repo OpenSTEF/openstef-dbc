@@ -121,9 +121,7 @@ class _DataInterface(metaclass=Singleton):
 
         """
         connector = "mysql+pymysql"
-        database_url = (
-            f"{connector}://{username}:{password}@{host}:{port}/{db}"
-        )
+        database_url = f"{connector}://{username}:{password}@{host}:{port}/{db}"
         try:
             return sqlalchemy.create_engine(database_url)
         except Exception as exc:
