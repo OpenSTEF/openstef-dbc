@@ -29,6 +29,7 @@ class ModelInput:
         datetime_start: str = None,
         datetime_end: str = None,
         forecast_resolution: str = "15min",
+        market_price: str = "APX",
     ) -> pd.DataFrame:
         """Get model input.
 
@@ -44,7 +45,8 @@ class ModelInput:
             datetime_end (datetime, optional): End datetime. Defaults to None.
             forecast_resolution (str, optional): Time resolution of model input
                 (see pandas Date Offset frequency strings). Defaults to "15min".
-
+            market_price (str, optional): Name of the market place if market data is requested.
+                Default to "APX".
         Returns:
             pd.DataFrame: Model input.
         """
@@ -79,6 +81,8 @@ class ModelInput:
             datetime_end=datetime_end,
             forecast_resolution=forecast_resolution,
             location=location,
+            country=country,
+            market_price=market_price,
         )
 
         # Create model input with datetime index
@@ -92,6 +96,7 @@ class ModelInput:
         else:
             self.logger.warning("No load data returned, fill with NaN.")
             model_input["load"] = np.nan
+
         # Add predictors
         model_input = pd.concat([model_input, predictors], axis=1)
 
@@ -107,6 +112,7 @@ class ModelInput:
         datetime_start: datetime = None,
         sid: str = None,
         country: str = "NL",
+        source: str = "optimum",
     ) -> pd.DataFrame:
         """This function retrieves the radiation and cloud forecast for the nearest weather location
         and the relevant pvdata from a specific system or region.
@@ -121,6 +127,10 @@ class ModelInput:
             - datetime_start: datetime of forecast
             - source: preferred weather source as a string, default for wind is DSN
             - country (str, optional): Country of were the location is located. Defaults to "NL", The Netherlands.
+            - source (str or list of str): which weather models should be used.
+                Options: "OWM", "DSN", "WUN", "harmonie", "harm_arome", "harm_arome_fallback", "icon", "optimum",
+                Default: 'optimum'. This combines harmonie, harm_arome, icon and DSN,
+                taking the (heuristicly) best available source for each moment in time
         """
         if datetime_start is None:
             datetime_start = datetime.utcnow()
@@ -149,13 +159,7 @@ class ModelInput:
         end = datetime_start + timedelta(minutes=forecast_horizon)
 
         weather_data = Weather().get_weather_data(
-            location,
-            weather_params,
-            start,
-            end,
-            source="optimum",
-            resolution="15min",
-            country=country,
+            location, weather_params, start, end, source, forecast_resolution, country
         )
 
         # Interpolate weather data to 15 minute values
@@ -169,7 +173,12 @@ class ModelInput:
         # Get PV_load from influx (end time at start of forecast)
         end = datetime_start
         pvdata = Ems().get_load_sid(
-            sid, start, end, "15T", aggregated=True, average_output=radius == 0
+            sid,
+            start,
+            end,
+            forecast_resolution,
+            aggregated=True,
+            average_output=radius == 0,
         )
 
         # If no load was found return None
@@ -228,7 +237,7 @@ class ModelInput:
             datetime_start=datetime_start,
             datetime_end=datetime_end,
             source=source,
-            resolution="15min",
+            resolution=forecast_resolution,
             country=country,
         )
 
