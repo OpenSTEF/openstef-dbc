@@ -50,15 +50,16 @@ class Weather:
 
         return locations
 
-    def _get_nearest_weather_location(
+    def _get_nearest_weather_locations(
         self,
         location: Union[Tuple[float, float], str],
         country: str = "NL",
         threshold: float = 150.0,
-    ) -> str:
-        """Find the nearest weather forecast location.
+        number_locations: int = 1,
+    ) -> pd.Series:
+        """Find the nearest weather forecast locations.
 
-        Function that, given an location, finds the nearest location for which a
+        Function that, given an location, finds the nearest locations for which a
         weatherforecast is available. A warning is generated when the distance is
         greater than a certain distance (threshold).
 
@@ -68,9 +69,10 @@ class Weather:
             location (str, tuple): Name of the location/city or coordinates (lat, lon).
             country (str): Country code (2-letter: ISO 3166-1).
             threshold (int): Maximum distance [km] before a warning is generated.
+            number_locations (int): number of weather locations desired
 
         Returns:
-            str: The name of the weather forecast location.
+            Pd.Series: Name of the weather location(s) (distance as index)
         """
         # Get all available cities
         weather_locations = self.get_weather_forecast_locations(
@@ -95,7 +97,7 @@ class Weather:
                 )
 
             distance = round(
-                geopy.distance.geodesic(coordinates, location_coordinates).km
+                geopy.distance.geodesic(coordinates, location_coordinates).km, 1
             )
             city = weather_location["city"]
             distance_df = pd.DataFrame([{"distance": distance, "input_city": city}])
@@ -103,14 +105,11 @@ class Weather:
 
         distances = distances.set_index("distance")
 
-        nearest_location = distances["input_city"][distances.index.min()]
+        nearest_location = distances["input_city"].sort_index().iloc[0:number_locations]
 
         # Find closest weather location
         if distances.index.min() < threshold:
-            if isinstance(nearest_location, pd.Series):
-                return nearest_location.reset_index(drop=True)[0]
-            else:
-                return nearest_location
+            return nearest_location
 
         raise Warning(
             "Closest weather location is farther than threshold: {dist} > {threshold}".format(
@@ -215,6 +214,7 @@ class Weather:
         source: Union[List[str], str] = "optimum",
         resolution: str = "15min",
         country: str = "NL",
+        number_locations: int = 1,
     ) -> pd.DataFrame:
         """Get weather data from database.
 
@@ -235,6 +235,7 @@ class Weather:
                 taking the (heuristicly) best available source for each moment in time
             resolution (str): Time resolution of the returned data, default: "15T"
             country (str): Country code (2-letter: ISO 3166-1). e.g. NL
+            number_locations (int): number of weather locations desired
         Returns:
             pd.DataFrame: The most recent weather prediction
 
@@ -267,7 +268,9 @@ class Weather:
 
         datetime_start -= timedelta(hours=1)
 
-        location_name = self._get_nearest_weather_location(location, country)
+        location_name = self._get_nearest_weather_locations(
+            location=location, country=country, number_locations=number_locations
+        )
 
         # Make a list of the source and weatherparams.
         # Like this, it also works if source is a string instead of multiple values
@@ -293,7 +296,6 @@ class Weather:
 
         # Initialize binding params
         bind_params = {
-            "_input_city": location_name,
             "_start": datetime_start,
             "_stop": datetime_end,
         }
@@ -301,12 +303,15 @@ class Weather:
         # Initialise strings for the querying influx, it is not possible to parameterize this string
         weather_params_str = '" or r._field == "'.join(weatherparams)
         weather_models_str = '" or r.source == "'.join(source)
+        weather_location_name_str = '" or r.input_city == "'.join(
+            location_name.to_list()
+        )
 
         # Create the query
         query = f"""
             from(bucket: "forecast_latest/autogen") 
                 |> range(start: {bind_params["_start"].strftime('%Y-%m-%dT%H:%M:%SZ')}, stop: {bind_params["_stop"].strftime('%Y-%m-%dT%H:%M:%SZ')}) 
-                |> filter(fn: (r) => r._measurement == "weather" and (r._field == "{weather_params_str}") and (r.source == "{weather_models_str}") and r.input_city == "{bind_params["_input_city"]}")
+                |> filter(fn: (r) => r._measurement == "weather" and (r._field == "{weather_params_str}") and (r.source == "{weather_models_str}") and (r.input_city == "{weather_location_name_str}"))
         """
 
         # Execute Query
@@ -318,7 +323,7 @@ class Weather:
 
         # Check if response is empty
         if not result.empty:
-            result = parse_influx_result(result, ["source"])
+            result = parse_influx_result(result, ["source", "input_city"])
         else:
             self.logger.warning("No weatherdata found. Returning empty dataframe")
             return pd.DataFrame(
@@ -334,17 +339,35 @@ class Weather:
             self.logger.info("Combining sources into single dataframe")
             result = self._combine_weather_sources(result)
 
-        # Interpolate if nescesarry
-        result = result.resample(resolution).interpolate(limit=11)
+        # Interpolate if nescesarry by input_city and source
+        result = (
+            result.groupby(["input_city"])
+            .resample(resolution)
+            .interpolate(limit=11)
+            .drop(columns=["input_city"])
+            .reset_index(["input_city"])
+        )
 
         # Shift radiation by 30 minutes if resolution allows it
         if "radiation" in result.columns:
             shift_delta = -timedelta(minutes=30)
             if shift_delta % pd.Timedelta(resolution) == timedelta(0):
-                result["radiation"] = result["radiation"].shift(1, shift_delta)
+                result["radiation"] = result.groupby(["input_city"])["radiation"].shift(
+                    1, shift_delta
+                )
 
         # Drop extra rows not neccesary
-        result = result.loc[datetime_start_original:]
+        result = result[result.index >= datetime_start_original]
+
+        if number_locations == 1:
+            result = result.drop(columns="input_city")
+        else:
+            # Adding distance information en km
+            result = (
+                result.reset_index()
+                .merge(location_name.reset_index(), how="left", on="input_city")
+                .set_index("datetime")
+            )
 
         return result
 
