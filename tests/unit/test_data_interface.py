@@ -3,11 +3,12 @@
 # SPDX-License-Identifier: MPL-2.0
 
 import unittest
+from copy import deepcopy
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
 from openstef_dbc.data_interface import _DataInterface
-from tests.unit.settings import Settings
+from tests.unit.settings import Settings, SettingsWithoutOptional
 
 
 @patch("openstef_dbc.data_interface.KtpApi", MagicMock())
@@ -46,10 +47,29 @@ class TestDataInterface(unittest.TestCase):
         # should be the same instance
         self.assertIs(data_interface_1, data_interface_2)
 
-    def test_get_sql_db_type(self):
+    def test_get_sql_db_type_for_mysql(self):
+        _DataInterface.clear()
         config = Settings()
+        config.sql_db_type = "MYSQL"
+        self.assertEqual("MYSQL", _DataInterface(config).get_sql_db_type())
 
-        self.assertEqual("mysql", _DataInterface(config).get_sql_db_type())
+    def test_get_sql_db_type_for_postgresql(self):
+        _DataInterface.clear()
+        config = Settings()
+        config.sql_db_type = "POSTGRESQL"
+        self.assertEqual("POSTGRESQL", _DataInterface(config).get_sql_db_type())
+
+    def test_get_sql_db_type_when_not_defined_in_settings(self):
+        _DataInterface.clear()
+        config = SettingsWithoutOptional()
+        self.assertEqual("MYSQL", _DataInterface(config).get_sql_db_type())
+
+    def test_get_sql_db_type_for_not_implemented_type(self):
+        _DataInterface.clear()
+        config = Settings()
+        config.sql_db_type = "oracle"
+        with self.assertRaises(ValueError):
+            _DataInterface(config)
 
     @patch("openstef_dbc.Singleton.get_instance", side_effect=KeyError)
     def test_get_instance_error(self, get_instance_mock):

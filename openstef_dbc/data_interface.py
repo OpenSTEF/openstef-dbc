@@ -13,6 +13,7 @@ import sqlalchemy
 from openstef_dbc import Singleton
 from openstef_dbc.ktp_api import KtpApi
 from openstef_dbc.log import logging
+from enum import Enum
 
 # Define abstract interface
 
@@ -26,7 +27,6 @@ class _DataInterface(metaclass=Singleton):
 
         Args:
             config: Configuration object. with the following attributes:
-                sql_db_type (str): SQL Database type ('mysql' or 'postgresql').
                 api_username (str): API username.
                 api_password (str): API password.
                 api_admin_username (str): API admin username.
@@ -42,13 +42,35 @@ class _DataInterface(metaclass=Singleton):
                 sql_db_port (int): SQL database port.
                 sql_db_database_name (str): SQL database name.
                 proxies Union[dict[str, str], None]: Proxies.
+                sql_db_type (str, optional): SQL Database type engine to use('mysql' or 'postgresql'), if not defined mysql is used by default.
         """
 
         self.logger = logging.get_logger(self.__class__.__name__)
         self.influx_organization = config.influx_organization
 
         # Get db type from config, set 'mysql' if the variable does not exist
-        self.sql_db_type = getattr(config, 'sql_db_type', 'mysql').lower()
+        self.sql_db_type = getattr(config, 'sql_db_type', 'MYSQL')
+
+        if self.sql_db_type not in SupportedSqlTypes.__members__.keys():
+            raise ValueError(f"Unsupported database sql type '{self.sql_db_type}'. Please use one of the following {SupportedSqlTypes.__members__.keys()}.")
+
+        # Set SQL engine according to given sql_db_type
+        if self.sql_db_type == SupportedSqlTypes.POSTGRESQL.name:
+            self.sql_engine = self._create_postgresql_engine(
+                username=config.sql_db_username,
+                password=config.sql_db_password,
+                host=config.sql_db_host,
+                port=config.sql_db_port,
+                db=config.sql_db_database_name,
+            )
+        else:
+            self.sql_engine = self._create_mysql_engine(
+                username=config.sql_db_username,
+                password=config.sql_db_password,
+                host=config.sql_db_host,
+                port=config.sql_db_port,
+                db=config.sql_db_database_name,
+            )
 
         self.ktp_api = KtpApi(
             username=config.api_username,
@@ -68,25 +90,6 @@ class _DataInterface(metaclass=Singleton):
 
         self.influx_query_api = self.influx_client.query_api()
         self.influx_write_api = self.influx_client.write_api(write_options=SYNCHRONOUS)
-
-        if self.sql_db_type == 'mysql':
-            self.sql_engine = self._create_mysql_engine(
-                username=config.sql_db_username,
-                password=config.sql_db_password,
-                host=config.sql_db_host,
-                port=config.sql_db_port,
-                db=config.sql_db_database_name,
-            )
-        elif self.sql_db_type == 'postgresql':
-            self.sql_engine = self._create_postgresql_engine(
-                username=config.sql_db_username,
-                password=config.sql_db_password,
-                host=config.sql_db_host,
-                port=config.sql_db_port,
-                db=config.sql_db_database_name,
-            )
-        else:
-            raise ValueError("Unsupported database type. Please use 'mysql' or 'postgresql'.")
 
         # Set geopy proxies
         # https://geopy.readthedocs.io/en/stable/#geopy.geocoders.options
@@ -267,7 +270,7 @@ class _DataInterface(metaclass=Singleton):
                 if cursor.cursor is not None:
                     return pd.DataFrame(cursor.fetchall())
         except sqlalchemy.exc.OperationalError as e:
-            self.logger.error("Lost connection to {} database".format(self.sql_db_type.upper()), exc_info=e)
+            self.logger.error("Lost connection to {} database".format(self.sql_db_type), exc_info=e)
             raise
         except sqlalchemy.exc.ProgrammingError as e:
             self.logger.error(
@@ -275,7 +278,7 @@ class _DataInterface(metaclass=Singleton):
             )
             raise
         except sqlalchemy.exc.DatabaseError as e:
-            self.logger.error("Can't connect to {} database".format(self.sql_db_type.upper()), exc_info=e)
+            self.logger.error("Can't connect to {} database".format(self.sql_db_type), exc_info=e)
             raise
 
     def exec_sql_write(self, statement: str, params: dict = None) -> None:
@@ -284,10 +287,7 @@ class _DataInterface(metaclass=Singleton):
                 response = connection.execute(statement, params=params)
 
                 self.logger.info(
-                    "Added {} new systems to the systems table in the {} database".format(
-                        response.rowcount,
-                        self.sql_db_type.upper()
-                    )
+                    f"Added {response.rowcount} new systems to the systems table in the {self.sql_db_type} database"
                 )
         except Exception as e:
             self.logger.error(
@@ -315,7 +315,10 @@ class _DataInterface(metaclass=Singleton):
                 return False
 
         except Exception as e:
-            print(f"Error while checking {self.sql_db_type.upper()} availability: {e}")
+            print(f"Error while checking {self.sql_db_type} availability: {e}")
             return False
 
 
+class SupportedSqlTypes(Enum):
+    MYSQL = 'mysql'
+    POSTGRESQL = 'postgresql'

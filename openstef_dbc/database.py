@@ -105,7 +105,6 @@ class DataBase(metaclass=Singleton):
 
         Args:
             config: Configuration object. with the following attributes:
-                sql_db_type (str): SQL Database type ('mysql' or 'postgresql').
                 api_username (str): API username.
                 api_password (str): API password.
                 api_admin_username (str): API admin username.
@@ -121,6 +120,7 @@ class DataBase(metaclass=Singleton):
                 sql_db_port (int): SQL database port.
                 sql_db_database_name (str): SQL database name.
                 proxies Union[dict[str, str], None]: Proxies.
+                sql_db_type (str, optional): SQL Database type ('mysql' or 'postgresql').
         """
 
         self._datainterface = _DataInterface(config)
