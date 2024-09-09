@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 from datetime import datetime, timedelta
-from typing import Tuple, Union
+from typing import List, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -29,6 +29,7 @@ class ModelInput:
         datetime_start: str = None,
         datetime_end: str = None,
         forecast_resolution: str = "15min",
+        market_sources: List[str] = ["APX"]
     ) -> pd.DataFrame:
         """Get model input.
 
@@ -79,6 +80,7 @@ class ModelInput:
             datetime_end=datetime_end,
             forecast_resolution=forecast_resolution,
             location=location,
+            market_sources=market_sources,
         )
 
         # Create model input with datetime index

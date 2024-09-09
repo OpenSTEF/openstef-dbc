@@ -30,6 +30,7 @@ class Predictor:
         location: Union[str, Tuple[float, float]] = None,
         predictor_groups: Union[List[PredictorGroups], List[str], None] = None,
         country: str = "NL",
+        market_sources: List[str] = ["APX"],
     ) -> pd.DataFrame:
         """Get predictors.
 
@@ -81,7 +82,7 @@ class Predictor:
 
         if PredictorGroups.MARKET_DATA in predictor_groups:
             market_data_predictors = self.get_market_data(
-                datetime_start, datetime_end, forecast_resolution=forecast_resolution
+                datetime_start, datetime_end, market_sources, forecast_resolution=forecast_resolution
             )
             predictors.append(market_data_predictors)
 
@@ -97,19 +98,24 @@ class Predictor:
         self,
         datetime_start: datetime.datetime,
         datetime_end: datetime.datetime,
+        market_sources: List[str],
         forecast_resolution: str = None,
     ) -> pd.DataFrame:
-        electricity_price = self.get_electricity_price(
-            datetime_start, datetime_end, forecast_resolution
-        )
+        electricity_prices = []
+        for market_source in market_sources:
+            electricity_price = self.get_electricity_price(
+                datetime_start, datetime_end, forecast_resolution, market_source
+            )
+            electricity_prices.append(electricity_price)
 
-        return electricity_price
+        return pd.concat(electricity_prices)
 
     def get_electricity_price(
         self,
         datetime_start: datetime.datetime,
         datetime_end: datetime.datetime,
         forecast_resolution: str = None,
+        market_source: str = "APX"
     ) -> pd.DataFrame:
         bind_params = {
             "_start": datetime_start,
@@ -119,7 +125,7 @@ class Predictor:
         query = f"""
             from(bucket: "forecast_latest/autogen")
                 |> range(start: {bind_params["_start"].strftime('%Y-%m-%dT%H:%M:%SZ')}, stop: {bind_params["_stop"].strftime('%Y-%m-%dT%H:%M:%SZ')}) 
-                |> filter(fn: (r) => r._measurement == "marketprices" and r._field == "Price" and r.Name=="APX")
+                |> filter(fn: (r) => r._measurement == "marketprices" and r._field == "Price" and r.Name=="{market_source}")
         """
 
         result = _DataInterface.get_instance().exec_influx_query(query, bind_params)
@@ -137,7 +143,7 @@ class Predictor:
                     start=datetime_start, end=datetime_end, freq=forecast_resolution
                 )
             )
-        electricity_price.rename(columns=dict(Price="APX"), inplace=True)
+        electricity_price.rename(columns=dict(Price=f"Market_price_{market_source}"), inplace=True)
 
         if forecast_resolution and electricity_price.empty is False:
             electricity_price = electricity_price.resample(forecast_resolution).ffill()

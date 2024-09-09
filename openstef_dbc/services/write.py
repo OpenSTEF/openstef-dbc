@@ -601,15 +601,18 @@ class Write:
         # Let user know everything went well
         self.logger.info("Succesfully wrote KPIs for pid: {}".format(str(pj["id"])))
 
-    def write_apx_market_data(self, apx_data: pd.DataFrame) -> bool:
-        success = _DataInterface.get_instance().exec_influx_write(
-            apx_data,
-            database="forecast_latest",
-            measurement="marketprices",
-            tag_columns=["Name"],
-            field_columns=["Price"],
-            time_precision="s",
-        )
+    def write_market_price_data(self, market_price_data: pd.DataFrame) -> bool:
+        acc_succes = True
+        for market_data_column_name, market_data_series in market_price_data.columns:
+            success = _DataInterface.get_instance().exec_influx_write(
+                market_data_series,
+                database="forecast_latest",
+                measurement="marketprices",
+                tag_columns=[market_data_column_name],
+                field_columns=["Price"],
+                time_precision="s",
+            )
+            acc_succes + success
         return success
 
     def write_sjv_load_profiles(
