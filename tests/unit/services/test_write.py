@@ -42,6 +42,56 @@ class TestWriteService(unittest.TestCase):
         )
         data_interface_mock()
 
+        # Act
         writer.write_forecast(data=example_data, t_ahead_series=True)
 
-        assert writer
+        # Assert
+        assert writer == ""
+
+    def test_write_weather_forecast_data(self):
+        """Test happy flow of writing weather forecasts."""
+
+        # Arange
+        writer = Write()
+        example_data = pd.DataFrame(
+            index=pd.to_datetime(
+                ["2023-01-01 10:00:00+00:00", "2023-01-01 10:15:00+00:00"]
+            ),
+            data=dict(
+                input_city=["city1", "city1"],
+                temp=[23.1, 23.0],
+                windspeed=[1000, 1100],
+            ),
+        )
+        table_name = "weather_forecast"
+
+        # Act
+        writer.write_weather_forecast_data(
+            data=example_data,
+            source="test_source",
+            table_name=table_name,
+            dbname="test_db",
+            )
+
+
+        # Assert
+        #  TODO: make sure the called_with is correct + mock the influx writing part
+        assert writer._write_weather_forecast_data_latest.called_with(
+            data=example_data,
+            source="test_source",
+            table_name=table_name,
+            dbname="test_db",
+        )
+
+        #  TODO: make sure the called_with is correct + mock the influx writing part
+        assert writer._write_weather_forecast_data_t_ahead.called_with(
+            data=example_data,
+            source="test_source",
+            table_name=table_name + "_t_ahead",
+            dbname="test_db",
+        )
+
+    def test_write_weather_forecast_data_latest(self):
+
+
+

@@ -291,8 +291,9 @@ class Write:
         self,
         data: pd.DataFrame,
         source: str,
-        table: str = "weather",
-        dbname: str = "forecast_latest",
+        forecast_created_time: datetime,
+        table: str,
+        dbname: str,
         tag_columns: List[str] = None,
         casting_dict: Dict[str, type] = {},
     ):
@@ -301,6 +302,7 @@ class Write:
         Args:
             data: pd.DataFrame(index = "datetimeFC", columns = ['input_city','temp','windspeed'])
             source: (str) source of the weatherdata
+            forecast_created_time: (datetime) the time at which the forecast was created
             table: (str) table name
             dbname: (str) database name
             tag_columns: (list) the column names used as tags in influx
@@ -313,7 +315,7 @@ class Write:
         influx_df = data.copy()
         influx_df["source"] = source
         # Add created to data
-        influx_df["created"] = int(datetime.utcnow().timestamp())
+        influx_df["created"] = int(forecast_created_time.timestamp())
 
         if tag_columns is None:
             tag_columns = ["input_city", "source"]
@@ -333,32 +335,24 @@ class Write:
         self,
         data: pd.DataFrame,
         source: str,
-        table: str = "weather",
-        dbname: str = "forecast_latest",
+        forecast_created_time: datetime,
+        table: str,
+        dbname: str,
+        desired_t_aheads: List[float],
         tag_columns: List[str] = None,
         casting_dict: Dict[str, type] = {},
-        desired_t_aheads: List[float] = [
-            1.0,
-            12.0,
-            15.0,
-            24.0,
-            36.0,
-            39.0,
-            48.0,
-            4 * 24.0,
-            6 * 24.0,
-        ],
     ):
         """Write weather data to the database. This function writes the data to a table containing with the forecasts for different t_ahead values.
 
         Args:
             data: pd.DataFrame(index = "datetimeFC", columns = ['input_city','temp','windspeed'])
             source: (str) source of the weatherdata
+            forecast_created_time: (datetime) the time at which the forecast was created
             table: (str) table name
             dbname: (str) database name
+            desired_t_aheads: (list) the t_ahead values for which the data should be written
             tag_columns: (list) the column names used as tags in influx
             casting_dict: (dict) dictionary with column names as keys and the desired datatype as values
-            desired_t_aheads: (list) the t_ahead values for which the data should be written
 
         Returns:
             None
@@ -367,7 +361,7 @@ class Write:
         influx_df = data.copy()
         influx_df["source"] = source
         # Add created to data
-        influx_df["created"] = int(datetime.utcnow().timestamp())
+        influx_df["created"] = int(forecast_created_time.timestamp())
 
         if tag_columns is None:
             tag_columns = ["input_city", "source"]
@@ -375,7 +369,7 @@ class Write:
 
         # Calculate tAheads
         timediffs = (
-            influx_df.index.tz_localize(None) - datetime.utcnow()
+            influx_df.index.tz_localize(None) - forecast_created_time
         ).total_seconds() / 3600
         # Round it to the first bigger desired_t_ahead
         influx_df["tAhead"] = round_down_time_differences(timediffs, desired_t_aheads)
@@ -407,6 +401,18 @@ class Write:
         table: str = "weather",
         dbname: str = "forecast_latest",
         tag_columns: List[str] = None,
+        forecast_created_time: datetime = datetime.utcnow(),
+        desired_t_aheads: List[float] = [
+            1.0,
+            12.0,
+            15.0,
+            24.0,
+            36.0,
+            39.0,
+            48.0,
+            4 * 24.0,
+            6 * 24.0,
+        ],
     ):
         """Write weather forecast data to the database.
         This function writes the data both to a table containing the latest forecasts,
@@ -418,7 +424,9 @@ class Write:
             table: (str) table name
             dbname: (str) database name
             tag_columns: (list) the column names used as tags in influx
-
+            forecast_created_time: (datetime) the time at which the forecast was created
+            desired_t_aheads: (list) the t_ahead values for which the data should be written
+            
         Returns:
             None
         """
@@ -455,6 +463,7 @@ class Write:
         self._write_weather_forecast_data_latest(
             data=data,
             source=source,
+            forecast_created_time=forecast_created_time,
             table=table,
             dbname=dbname,
             tag_columns=tag_columns,
@@ -463,8 +472,10 @@ class Write:
         self._write_weather_forecast_data_t_ahead(
             data=data,
             source=source,
+            forecast_created_time=forecast_created_time,
             table=table + "_tAheads",
             dbname=dbname,
+            desired_t_aheads=desired_t_aheads,
             casting_dict=casting_dict,
             tag_columns=tag_columns,
         )
