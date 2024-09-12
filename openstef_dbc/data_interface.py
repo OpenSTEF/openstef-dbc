@@ -49,10 +49,12 @@ class _DataInterface(metaclass=Singleton):
         self.influx_organization = config.influx_organization
 
         # Get db type from config, set 'mysql' if the variable does not exist
-        self.sql_db_type = getattr(config, 'sql_db_type', 'MYSQL')
+        self.sql_db_type = getattr(config, "sql_db_type", "MYSQL")
 
         if self.sql_db_type not in SupportedSqlTypes.__members__.keys():
-            raise ValueError(f"Unsupported database sql type '{self.sql_db_type}'. Please use one of the following {SupportedSqlTypes.__members__.keys()}.")
+            raise ValueError(
+                f"Unsupported database sql type '{self.sql_db_type}'. Please use one of the following {SupportedSqlTypes.__members__.keys()}."
+            )
 
         # Set SQL engine according to given sql_db_type
         if self.sql_db_type == SupportedSqlTypes.POSTGRESQL.name:
@@ -152,7 +154,7 @@ class _DataInterface(metaclass=Singleton):
             raise
 
     def _create_postgresql_engine(
-            self, username: str, password: str, host: str, port: int, db: str
+        self, username: str, password: str, host: str, port: int, db: str
     ):
         """Create PostgreSQL engine.
 
@@ -161,9 +163,7 @@ class _DataInterface(metaclass=Singleton):
 
         """
         connector = "postgresql+psycopg2"
-        database_url = (
-            f"{connector}://{username}:{password}@{host}:{port}/{db}"
-        )
+        database_url = f"{connector}://{username}:{password}@{host}:{port}/{db}"
         try:
             return sqlalchemy.create_engine(database_url)
         except Exception as exc:
@@ -270,7 +270,9 @@ class _DataInterface(metaclass=Singleton):
                 if cursor.cursor is not None:
                     return pd.DataFrame(cursor.fetchall())
         except sqlalchemy.exc.OperationalError as e:
-            self.logger.error("Lost connection to {} database".format(self.sql_db_type), exc_info=e)
+            self.logger.error(
+                "Lost connection to {} database".format(self.sql_db_type), exc_info=e
+            )
             raise
         except sqlalchemy.exc.ProgrammingError as e:
             self.logger.error(
@@ -278,7 +280,9 @@ class _DataInterface(metaclass=Singleton):
             )
             raise
         except sqlalchemy.exc.DatabaseError as e:
-            self.logger.error("Can't connect to {} database".format(self.sql_db_type), exc_info=e)
+            self.logger.error(
+                "Can't connect to {} database".format(self.sql_db_type), exc_info=e
+            )
             raise
 
     def exec_sql_write(self, statement: str, params: dict = None) -> None:
@@ -320,5 +324,5 @@ class _DataInterface(metaclass=Singleton):
 
 
 class SupportedSqlTypes(Enum):
-    MYSQL = 'mysql'
-    POSTGRESQL = 'postgresql'
+    MYSQL = "mysql"
+    POSTGRESQL = "postgresql"

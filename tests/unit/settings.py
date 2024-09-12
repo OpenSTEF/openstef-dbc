@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     sql_db_port: int = 123
     sql_db_database_name: str = "database_name"
     proxies: Union[dict[str, str], None] = None
-    sql_db_type: str = 'MYSQL'
+    sql_db_type: str = "MYSQL"
 
 
 class SettingsWithoutOptional(BaseSettings):

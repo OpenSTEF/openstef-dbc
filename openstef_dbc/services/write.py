@@ -557,8 +557,9 @@ class Write:
         elif db_type == "postgresql":
             # Compose query for writing new systems in PostgreSQL
             query = (
-                    "INSERT INTO systems (sid, region) VALUES " + values +
-                    " ON CONFLICT (sid) DO NOTHING"
+                "INSERT INTO systems (sid, region) VALUES "
+                + values
+                + " ON CONFLICT (sid) DO NOTHING"
             )
         else:
             self.logger.error("Unsupported database type: {}".format(db_type))
