@@ -19,9 +19,9 @@ class Settings(BaseSettings):
     influxdb_token: str = "tokenonlyfortesting"
     influxdb_host: str = "http://localhost"
     influxdb_port: str = "8086"
-    mysql_username: str = "test"
-    mysql_password: str = "test"
-    mysql_host: str = "localhost"
-    mysql_port: int = 1234
-    mysql_database_name: str = "test"
+    sql_db_username: str = "test"
+    sql_db_password: str = "test"
+    sql_db_host: str = "localhost"
+    sql_db_port: int = 1234
+    sql_db_database_name: str = "test"
     proxies: Union[dict[str, str], None] = None

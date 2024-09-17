@@ -113,13 +113,14 @@ class DataBase(metaclass=Singleton):
                 influxdb_token (str): Token to authenticate to InfluxDB.
                 influxdb_host (str): InfluxDB host.
                 influxdb_port (int): InfluxDB port.
-                mysql_username (str): MySQL username.
-                mysql_password (str): MySQL password.
-                mysql_host (str): MySQL host.
-                mysql_port (int): MYSQL port.
-                mysql_database_name (str): MySQL database name.
+                influx_organization (str): InfluxDB organization.
+                sql_db_username (str): SQL database username.
+                sql_db_password (str): SQL database password.
+                sql_db_host (str): SQL database host.
+                sql_db_port (int): SQL database port.
+                sql_db_database_name (str): SQL database name.
                 proxies Union[dict[str, str], None]: Proxies.
-
+                sql_db_type (str, optional): SQL Database type ('mysql' or 'postgresql').
         """
 
         self._datainterface = _DataInterface(config)
