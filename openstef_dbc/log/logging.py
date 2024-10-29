@@ -73,7 +73,6 @@ import logging.config
 import sys
 
 import structlog
-import structlog.threadlocal
 import warnings
 
 import openstef_dbc.log.processors as custom_processors
@@ -138,7 +137,7 @@ def _disable_third_party_loggers():
 def _configure_logging_development(loglevel):
     shared_processors = [
         # threadlocal processors
-        structlog.threadlocal.merge_threadlocal_context,
+        structlog.contextvars.merge_contextvars,
         structlog.stdlib.add_log_level,
         structlog.stdlib.add_logger_name,  # ConsoleRendered has a fixed positions
         structlog.processors.StackInfoRenderer(),
@@ -182,7 +181,7 @@ def _configure_logging_development(loglevel):
 def _configure_logging_deployed(loglevel):
     shared_processors = [
         # threadlocal processors
-        structlog.threadlocal.merge_threadlocal_context,
+        structlog.contextvars.merge_contextvars,
         # stdlib processors
         structlog.stdlib.add_log_level,  # add log level to event_dict
         structlog.stdlib.add_logger_name,  # add name to event_dict
