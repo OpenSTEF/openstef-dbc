@@ -91,20 +91,26 @@ class Ems:
             bind_params["dend"] = (
                 datetime_end + 2 * forecast_resolution_timedelta
             ).isoformat()
+
+            forecast_resolution_influx_format = (
+                forecast_resolution
+                .replace("T", "m")
+                .replace("min", "m")
+            )
             query = f"""
                 data = from(bucket: "realised/autogen") 
                     |> range(start: {bind_params['dstart']}, stop: {bind_params['dend']}) 
                     |> filter(fn: (r) => r._measurement == "power")
                     |> filter(fn: (r) => r._field == "output")
                     |> filter(fn: (r) => {sidsection})
-                    |> aggregateWindow(every: {forecast_resolution.replace("T", "m")}, fn: mean)
+                    |> aggregateWindow(every: {forecast_resolution_influx_format}, fn: mean)
 
                 data
-                    |> group() |> aggregateWindow(every: {forecast_resolution.replace("T", "m")}, fn: sum)
+                    |> group() |> aggregateWindow(every: {forecast_resolution_influx_format}, fn: sum)
                     |> yield(name: "load")
 
                 data
-                    |> group() |> aggregateWindow(every: {forecast_resolution.replace("T", "m")}, fn: count)
+                    |> group() |> aggregateWindow(every: {forecast_resolution_influx_format}, fn: count)
                     |> yield(name: "nEntries")
             """
         else:
