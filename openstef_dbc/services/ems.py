@@ -92,11 +92,9 @@ class Ems:
                 datetime_end + 2 * forecast_resolution_timedelta
             ).isoformat()
 
-            forecast_resolution_influx_format = (
-                forecast_resolution
-                .replace("T", "m")
-                .replace("min", "m")
-            )
+            forecast_resolution_influx_format = forecast_resolution.replace(
+                "T", "m"
+            ).replace("min", "m")
             query = f"""
                 data = from(bucket: "realised/autogen") 
                     |> range(start: {bind_params['dstart']}, stop: {bind_params['dend']}) 
