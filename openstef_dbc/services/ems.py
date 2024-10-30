@@ -84,7 +84,7 @@ class Ems:
         # Prepare query
         if aggregated:
             forecast_resolution_timedelta = timedelta(
-                minutes=int(forecast_resolution[:-1])
+                minutes=int(pd.Timedelta(forecast_resolution).total_seconds() / 60)
             )
             # Extending the range is necessary to make sure the final timestamps are also in
             # the reponse after aggregations.
