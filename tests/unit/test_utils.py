@@ -74,10 +74,10 @@ class TestFloorToClosestTimeResolution(unittest.TestCase):
         # Assert
         self.assertEqual(result, expected_result)
 
-    def test_time_with_residual_seconds(self):
+    def test_time_with_residual_seconds_and_microseconds(self):
         # Arrange
         resolution = 15
-        time = datetime(2024, 11, 21, 6, 20, 16)
+        time = datetime(2024, 11, 21, 6, 20, 16, 30)
         expected_result = datetime(2024, 11, 21, 6, 15)
         # Act
         result = floor_to_closest_time_resolution(time, resolution)
