@@ -86,7 +86,7 @@ class Weather:
             location_coordinates = location
 
         # Now we have the coordinates of the input_city. Next, find nearest weather location
-        distances = pd.DataFrame(columns=["distance", "input_city"])
+        distance_dfs = []
         for weather_location in weather_locations:
             coordinates = (weather_location["lat"], weather_location["lon"])
 
@@ -101,9 +101,9 @@ class Weather:
             )
             city = weather_location["city"]
             distance_df = pd.DataFrame([{"distance": distance, "input_city": city}])
-            distances = pd.concat([distances, distance_df])
+            distance_dfs.append(distance_df)
 
-        distances = distances.set_index("distance")
+        distances = pd.concat(distance_dfs).set_index("distance")
 
         nearest_location = distances["input_city"].sort_index().iloc[0:number_locations]
 
