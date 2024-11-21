@@ -9,7 +9,7 @@ import pandas as pd
 import re
 
 from openstef_dbc.data_interface import _DataInterface
-from openstef_dbc.utils import parse_influx_result
+from openstef_dbc.utils import floor_to_closest_time_resolution, parse_influx_result
 
 FIELDS_OF_INTEREST = [
     "forecast",
@@ -49,6 +49,9 @@ class Predictions:
             end_time = end_time + timedelta(
                 minutes=15
             )  # To make the ouput the same as the original influx client.
+
+        # Round end_time to last resolution_minutes interval
+        end_time = floor_to_closest_time_resolution(end_time, pj["resolution_minutes"])
 
         bind_params = {
             "pid": str(pj["id"]),

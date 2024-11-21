@@ -1,13 +1,13 @@
 # SPDX-FileCopyrightText: 2017-2022 Contributors to the OpenSTEF project <korte.termijn.prognoses@alliander.com>
 #
 # SPDX-License-Identifier: MPL-2.0
-import datetime
+from datetime import datetime, timezone
 
 import numpy as np
 import pandas as pd
 
 DEFAULT_FREQ = "15min"
-DEFAULT_TZ = datetime.timezone.utc
+DEFAULT_TZ = timezone.utc
 
 
 def genereate_datetime_index(start, end, freq=None):
@@ -78,3 +78,9 @@ def round_down_time_differences(time_diffs, options):
         for time_diff in time_diffs
     ]
     return rounded_times
+
+
+def floor_to_closest_time_resolution(time: datetime, resolution_minutes: int):
+    return time.replace(
+        minute=time.minute - time.minute % resolution_minutes, second=0, microsecond=0
+    )
