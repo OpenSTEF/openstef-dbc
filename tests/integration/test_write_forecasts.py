@@ -252,7 +252,7 @@ class TestDataBase(unittest.TestCase):
 
         # Arange
         first_mock_forecast = self.mock_forecast.copy(deep=True)
-        second_mock_forecast = self.mock_forecast.copy(deep=True).shift(2, freq="min")
+        second_mock_forecast = self.mock_forecast.copy(deep=True).shift(2, freq="15min")
 
         first_mock_forecast.loc["2022-01-01 00:15:00+0000"] = "This is not a float"
 
