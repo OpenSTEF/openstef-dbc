@@ -86,7 +86,7 @@ class Weather:
             location_coordinates = location
 
         # Now we have the coordinates of the input_city. Next, find nearest weather location
-        distances = pd.DataFrame(columns=["distance", "input_city"])
+        distance_dfs = []
         for weather_location in weather_locations:
             coordinates = (weather_location["lat"], weather_location["lon"])
 
@@ -101,9 +101,9 @@ class Weather:
             )
             city = weather_location["city"]
             distance_df = pd.DataFrame([{"distance": distance, "input_city": city}])
-            distances = pd.concat([distances, distance_df])
+            distance_dfs.append(distance_df)
 
-        distances = distances.set_index("distance")
+        distances = pd.concat(distance_dfs).set_index("distance")
 
         nearest_location = distances["input_city"].sort_index().iloc[0:number_locations]
 
@@ -233,7 +233,7 @@ class Weather:
                 Options: "OWM", "DSN", "WUN", "harmonie", "harm_arome", "harm_arome_fallback", "icon", "optimum",
                 Default: 'optimum'. This combines harmonie, harm_arome, icon and DSN,
                 taking the (heuristicly) best available source for each moment in time
-            resolution (str): Time resolution of the returned data, default: "15T"
+            resolution (str): Time resolution of the returned data, default: "15min"
             country (str): Country code (2-letter: ISO 3166-1). e.g. NL
             number_locations (int): number of weather locations desired
         Returns:
@@ -339,14 +339,17 @@ class Weather:
             self.logger.info("Combining sources into single dataframe")
             result = self._combine_weather_sources(result)
 
-        # Interpolate if nescesarry by input_city and source
-        result = (
-            result.groupby(["input_city"])
-            .resample(resolution)
-            .interpolate(limit=11)
-            .drop(columns=["input_city"])
-            .reset_index(["input_city"])
-        )
+        # Interpolate if necesarry by input_city and source
+        with pd.option_context("future.no_silent_downcasting", True):
+            result = (
+                result.groupby(["input_city"])
+                .resample(resolution, include_groups=False)
+                .asfreq()
+            )
+            result.loc[:, result.columns != "source"] = result.loc[
+                :, result.columns != "source"
+            ].interpolate(limit=11)
+            result = result.reset_index("input_city")
 
         # Shift radiation by 30 minutes if resolution allows it
         if "radiation" in result.columns:

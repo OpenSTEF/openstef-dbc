@@ -163,7 +163,7 @@ class ModelInput:
         )
 
         # Interpolate weather data to 15 minute values
-        weather_data = weather_data.resample(str(forecast_resolution) + "T").asfreq()
+        weather_data = weather_data.resample(str(forecast_resolution) + "min").asfreq()
         for col in weather_params:
             if col in weather_data:
                 weather_data.loc[:, col] = weather_data.loc[:, col].interpolate(
@@ -242,7 +242,7 @@ class ModelInput:
         )
 
         # interpolate results to 15 minute values
-        windspeed = windspeed.resample(str(forecast_resolution) + "T").asfreq()
+        windspeed = windspeed.resample(str(forecast_resolution) + "min").asfreq()
         windspeed = windspeed.interpolate("cubic")
 
         return pd.DataFrame(windspeed.windspeed_100m)

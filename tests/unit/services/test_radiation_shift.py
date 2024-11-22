@@ -17,7 +17,7 @@ class TestRadiationShift(unittest.TestCase):
         start = pd.to_datetime("2077-01-01 02:00:00+0000")
         end = pd.to_datetime("2077-01-01 04:00:00+0000")
 
-        index = pd.date_range(start, end, freq="15T")
+        index = pd.date_range(start, end, freq="15min")
         values = np.arange(index.size)
 
         df_test = pd.DataFrame(

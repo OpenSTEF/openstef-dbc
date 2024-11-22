@@ -67,7 +67,7 @@ class Splitting:
         datetime_start: datetime,
         datetime_end: datetime,
         country: str = "NL",
-        forecast_resolution: str = "15T",
+        forecast_resolution: str = "15min",
         source: str = "optimum",
     ) -> pd.DataFrame:
         """Function that gets windspeed data from the influx database and converts it to windref data suitable
@@ -107,7 +107,7 @@ class Splitting:
         location: Union[Tuple[float, float], str],
         datetime_start: datetime = None,
         datetime_end: datetime = None,
-        forecast_resolution: str = "15T",
+        forecast_resolution: str = "15min",
     ) -> pd.DataFrame:
         """Function that gets PV data from the influx database and converts it to solar_ref data suitable
         for splitting energy.
@@ -153,7 +153,7 @@ class Splitting:
         pj: dict,
         datetime_start: datetime = None,
         datetime_end: datetime = None,
-        forecast_resolution: str = "15T",
+        forecast_resolution: str = "15min",
         ignore_factor: bool = False,
         country: str = "NL",
         source: str = "optimum",

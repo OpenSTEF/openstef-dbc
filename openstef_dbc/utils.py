@@ -50,7 +50,7 @@ def parse_influx_result(
     if aditional_indices is not None:
         indices.extend(aditional_indices)
 
-    result["_time"] = pd.to_datetime(result["_time"])
+    result.loc[:, "_time"] = pd.to_datetime(result["_time"])
     result = result.pivot_table(
         columns="_field", values="_value", index=indices, aggfunc=aggfunc
     )
