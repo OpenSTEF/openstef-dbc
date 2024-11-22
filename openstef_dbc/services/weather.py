@@ -339,14 +339,11 @@ class Weather:
             self.logger.info("Combining sources into single dataframe")
             result = self._combine_weather_sources(result)
 
-        # Interpolate if nescesarry by input_city and source
-        result = (
-            result.groupby(["input_city"])
-            .resample(resolution)
-            .interpolate(limit=11)
-            .drop(columns=["input_city"])
-            .reset_index(["input_city"])
-        )
+        # Interpolate if necesarry by input_city and source
+        with pd.option_context("future.no_silent_downcasting", True):
+            result  = result.groupby(["input_city"]).resample(resolution, include_groups=False).asfreq()
+            result.loc[:, result.columns != "source"] = result.loc[:, result.columns != "source"].interpolate(limit=11)
+            result = result.reset_index("input_city")
 
         # Shift radiation by 30 minutes if resolution allows it
         if "radiation" in result.columns:
