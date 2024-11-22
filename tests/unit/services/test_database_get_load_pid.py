@@ -20,9 +20,9 @@ class TestEmsService(unittest.TestCase):
     def setUp(self) -> None:
         self.systems = pd.DataFrame(
             [
-                {"system_id": "NrynRS_10-G_V12_P", "polarity": 1, "factor": 1},
-                {"system_id": "NrynRS_10-G_V13_P", "polarity": 1, "factor": 1},
-                {"system_id": "NrynRS_10-G_V14_P", "polarity": 1, "factor": 1},
+                {"system_id": "NrynRS_10-G_V12_P", "polarity": 1, "factor": 1.0},
+                {"system_id": "NrynRS_10-G_V13_P", "polarity": 1, "factor": 1.0},
+                {"system_id": "NrynRS_10-G_V14_P", "polarity": 1, "factor": 1.0},
             ]
         )
         self.systems_load = pd.DataFrame(
