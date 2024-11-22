@@ -37,7 +37,7 @@ class Ems:
             sid(Union[str, List[str]]): System id's
             datetime_start (datetime): Start datetime.
             datetime_end (datetime): End datetime.
-            forecast_resolution (str): The forecast resolution, for example '15T'
+            forecast_resolution (str): The forecast resolution, for example '15min'
             aggregated (boolean): Should the results be aggregated per sid or not.
             average_output (boolean):  Should the agregation be an average or not.
             include_n_entries_column (boolean): Should the number of systems agregated be returned or not.
@@ -174,7 +174,7 @@ class Ems:
         pid: int,
         datetime_start: datetime.datetime,
         datetime_end: datetime.datetime,
-        forecast_resolution: str = "15T",
+        forecast_resolution: str = "15min",
         aggregated: bool = True,
         ignore_factor: bool = False,
     ) -> pd.DataFrame:
@@ -289,7 +289,7 @@ class Ems:
         pid: int,
         datetime_start: datetime.datetime,
         datetime_end: datetime.datetime,
-        forecast_resolution: str = "15T",
+        forecast_resolution: str = "15min",
     ) -> pd.DataFrame:
         """Gets load data for a pid.
         This method optimizes the way it retrieves data and is therefore less flexible as get_load_pid.

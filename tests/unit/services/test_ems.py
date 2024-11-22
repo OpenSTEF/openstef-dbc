@@ -16,10 +16,10 @@ class TestEMS(unittest.TestCase):
         end = datetime.utcnow()
 
         load = Ems().get_load_pid(
-            pid=pid, datetime_start=start, datetime_end=end, forecast_resolution="15T"
+            pid=pid, datetime_start=start, datetime_end=end, forecast_resolution="15min"
         )
         load_optimized = Ems()._get_load_pid_optimized(
-            pid=pid, datetime_start=start, datetime_end=end, forecast_resolution="15T"
+            pid=pid, datetime_start=start, datetime_end=end, forecast_resolution="15min"
         )
 
         print(f"get_load_pid :{load}")

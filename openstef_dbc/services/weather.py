@@ -233,7 +233,7 @@ class Weather:
                 Options: "OWM", "DSN", "WUN", "harmonie", "harm_arome", "harm_arome_fallback", "icon", "optimum",
                 Default: 'optimum'. This combines harmonie, harm_arome, icon and DSN,
                 taking the (heuristicly) best available source for each moment in time
-            resolution (str): Time resolution of the returned data, default: "15T"
+            resolution (str): Time resolution of the returned data, default: "15min"
             country (str): Country code (2-letter: ISO 3166-1). e.g. NL
             number_locations (int): number of weather locations desired
         Returns:
