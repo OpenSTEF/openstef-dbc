@@ -81,7 +81,7 @@ class Predictions:
         # Return result
         if not result.empty:
             # Shifting is needed to output the same as with the old influx client
-            return parse_influx_result(result).shift(-15, freq="T")
+            return parse_influx_result(result).shift(-15, freq="min")
         else:
             return pd.Series()
 
@@ -209,7 +209,7 @@ class Predictions:
         # Return result
         if not result.empty:
             # Shifting is needed to output the same as with the old influx client
-            return parse_influx_result(result).shift(-15, freq="T")
+            return parse_influx_result(result).shift(-15, freq="min")
         else:
             return pd.Series()
 
@@ -339,7 +339,7 @@ class Predictions:
         if not result.empty:
             # Shifting is needed to output the same as with the old influx client
             result = parse_influx_result(result, aditional_indices=["tAhead"]).shift(
-                -15, freq="T"
+                -15, freq="min"
             )
         else:
             return pd.Series()
