@@ -32,6 +32,7 @@ class Predictor:
         source: Union[List[str], str] = "optimum",
         predictor_groups: Union[List[PredictorGroups], List[str], None] = None,
         market_price: str = "APX",
+        add_weather_params: Optional[List[str]] = None,
     ) -> pd.DataFrame:
         """Get predictors.
 
@@ -54,6 +55,8 @@ class Predictor:
                 None or not given all predictor groups will be returned. Defaults to None.
             market_price (str, optional): Name of the market place if market data is requested.
                 Default to "APX".
+            add_weather_params (Optional[List[str]], optional): Additional weather parameters
+                / features to include. Defaults to None.
 
         Returns:
             pd.DataFrame: Requested predictors with timezone aware datetime index.
@@ -85,6 +88,7 @@ class Predictor:
                 country=country,
                 forecast_resolution=forecast_resolution,
                 source=source,
+                add_weather_params=add_weather_params,
             )
             predictors.append(weather_data_predictors)
 
@@ -256,6 +260,7 @@ class Predictor:
         forecast_resolution: str = None,
         country: str = "NL",
         source: Union[List[str], str] = "optimum",
+        add_weather_params: Optional[List[str]] = None,
     ) -> pd.DataFrame:
         # Get weather data
         weather_params = [
@@ -273,6 +278,7 @@ class Predictor:
             "clearSky_ulf",
             "clearSky_dlf",
             "ssrunoff",
+            *(add_weather_params or []),
         ]
         weather_data = Weather().get_weather_data(
             location,
