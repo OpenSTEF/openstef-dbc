@@ -190,6 +190,8 @@ class Weather:
                 "harmonie",
                 "icon",
                 "DSN",
+                "ECMWF_HRES",
+                "METEO_FRANCE_ARPEGE",
             ]
 
         active_sources = [s for s in source_order if s in set(result.source)]
@@ -289,6 +291,8 @@ class Weather:
                 "harmonie",
                 "icon",
                 "DSN",
+                "ECMWF_HRES",
+                "METEO_FRANCE_ARPEGE",
             ]
             combine_sources = True
         else:
