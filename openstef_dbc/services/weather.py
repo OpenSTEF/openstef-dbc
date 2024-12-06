@@ -15,6 +15,7 @@ from influxdb_client.client.warnings import MissingPivotFunction
 
 from openstef_dbc.data_interface import _DataInterface
 from openstef_dbc.services.write import Write
+from openstef_dbc.settings import Settings
 from openstef_dbc.utils import genereate_datetime_index, parse_influx_result
 
 warnings.simplefilter("ignore", MissingPivotFunction)
@@ -282,14 +283,7 @@ class Weather:
         # Try to get the data from influx.
         if "optimum" in source:
             # so the query return all
-            source = [
-                "harm_arome",
-                "harm_arome_fallback",
-                "GFS_50",
-                "harmonie",
-                "icon",
-                "DSN",
-            ]
+            source = Settings.optimum_weather_sources
             combine_sources = True
         else:
             combine_sources = False
