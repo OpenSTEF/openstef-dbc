@@ -16,3 +16,25 @@ class TestModelInput(unittest.TestCase):
         ems_service_mock.return_value.get_load_pid.return_value = pd.DataFrame()
         predictor_service_mock.return_value.get_predictors.return_value = pd.DataFrame()
         ModelInput().get_model_input()
+
+
+    @patch("openstef_dbc.services.model_input.Predictor")
+    @patch("openstef_dbc.services.model_input.Ems")
+    def test_model_input_with_weather_sources(self, ems_service_mock, predictor_service_mock):
+        # Arrange
+        weather_sources = ["weather_source_1", "weather_source_2"]
+        ems_service_mock.return_value.get_load_pid.return_value = pd.DataFrame()
+        predictor_service_mock.return_value.get_predictors.return_value = pd.DataFrame()
+
+        # Act
+        ModelInput().get_model_input(
+            weather_source=weather_sources
+        )
+
+        # Assert
+        self.assertEqual(
+            predictor_service_mock.return_value.get_predictors.call_args[1]["source"],
+            weather_sources,
+        )
+
+
