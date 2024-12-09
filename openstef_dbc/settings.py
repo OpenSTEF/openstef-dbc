@@ -23,6 +23,8 @@ class AppSettings(BaseSettings):
             "harmonie",
             "icon",
             "DSN",
+            "ECMWF_HRES",
+            "METEO_FRANCE_ARPEGE",
         ],
         description="List of weather sources to use for fetching weather data from influx using openstef DBC.",
     )

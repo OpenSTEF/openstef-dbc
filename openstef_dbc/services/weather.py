@@ -184,14 +184,7 @@ class Weather:
         # step 1: Create list of multiple dataframes,
         # check which of the 'optimum' sources are actually in the list
         if source_order is None:
-            source_order = [
-                "harm_arome",
-                "harm_arome_fallback",
-                "GFS_50",
-                "harmonie",
-                "icon",
-                "DSN",
-            ]
+            source_order = Settings.optimum_weather_sources
 
         active_sources = [s for s in source_order if s in set(result.source)]
         # for each source a seperate dataframe
