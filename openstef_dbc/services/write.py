@@ -368,9 +368,7 @@ class Write:
         tag_columns.append("tAhead")
 
         # Calculate tAheads
-        timediffs = (
-            influx_df.index - forecast_created_time
-        ).total_seconds() / 3600
+        timediffs = (influx_df.index - forecast_created_time).total_seconds() / 3600
         # Round it to the first bigger desired_t_ahead
         influx_df["tAhead"] = round_down_time_differences(timediffs, desired_t_aheads)
 
@@ -426,7 +424,7 @@ class Write:
             tag_columns: (list) the column names used as tags in influx
             forecast_created_time: (datetime) the time at which the forecast was created
             desired_t_aheads: (list) the t_ahead values for which the data should be written
-            
+
         Returns:
             None
         """

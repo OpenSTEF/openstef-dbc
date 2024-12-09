@@ -506,12 +506,14 @@ class Weather:
             result = self._combine_weather_sources(result)
 
         # Changing interpolation strategy if indexes ares duplicated due to tAhead
-        interpolation_grouping = ['input_city']
+        interpolation_grouping = ["input_city"]
         index_duplicates = result.index.duplicated().any()
         if index_duplicates:
             # Compute creation_datetime
-            result['creation_datetime'] = result.index - pd.to_timedelta(result['tAhead'], unit="hour")
-            interpolation_grouping +=['creation_datetime']
+            result["creation_datetime"] = result.index - pd.to_timedelta(
+                result["tAhead"], unit="hour"
+            )
+            interpolation_grouping += ["creation_datetime"]
 
         # Interpolate if nescesarry by input_city and additionnal groups
         result = (
@@ -526,10 +528,9 @@ class Weather:
         if "radiation" in result.columns:
             shift_delta = -timedelta(minutes=30)
             if shift_delta % pd.Timedelta(resolution) == timedelta(0):
-                result["radiation"] = (
-                    result.groupby(interpolation_grouping)["radiation"]
-                    .shift(1, shift_delta)
-                )
+                result["radiation"] = result.groupby(interpolation_grouping)[
+                    "radiation"
+                ].shift(1, shift_delta)
 
         # Drop extra rows not neccesary
         result = result[result.index >= datetime_start_original]
@@ -545,7 +546,6 @@ class Weather:
             )
 
         return result
-
 
     def get_datetime_last_stored_knmi_weatherdata(self) -> datetime:
         """Returns datetime of latest KNMI run in influx Database. If no run is found return first unix time."""

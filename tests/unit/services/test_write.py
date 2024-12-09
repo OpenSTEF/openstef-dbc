@@ -21,7 +21,7 @@ class TestWriteService(unittest.TestCase):
     @patch("openstef_dbc.services.write._DataInterface")
     def test_write_forecast_tahead_happy_flow(self, data_interface_mock):
         """Test happy flow of writing forecasts. The actual writing is mocked"""
-        
+
         data_interface_mock.get_instance.return_value.exec_influx_write.return_value = (
             True
         )
@@ -80,25 +80,25 @@ class TestWriteService(unittest.TestCase):
             table=table_name,
             dbname="test_db",
             forecast_created_time=example_forecast_created_time,
-            )
+        )
 
         # Assert
         # write_weather_forecast_data should write in two buckets
         self.assertEqual(MockDataInterface.get_instance.call_count, 2)
-        
-       # Verifying call arguments (table name and number of rows of inserted dataframe)
+
+        # Verifying call arguments (table name and number of rows of inserted dataframe)
         calls = mock_instance.exec_influx_write.call_args_list
 
         # First call
         first_call = calls[0]
-        first_call_args = first_call[0][0]  
-        first_call_kwargs = first_call[1] 
-        assert first_call_kwargs['measurement'] == table_name
-        assert first_call_args.shape[0] == 2 # whatever default desired_t_ahead
+        first_call_args = first_call[0][0]
+        first_call_kwargs = first_call[1]
+        assert first_call_kwargs["measurement"] == table_name
+        assert first_call_args.shape[0] == 2  # whatever default desired_t_ahead
 
         # Second call
         second_call = calls[1]
-        second_call_args = second_call[0][0] 
-        second_call_kwargs = second_call[1]  
-        assert second_call_kwargs['measurement'] == (table_name + "_tAhead")
-        assert second_call_args.shape[0] == 1 # only default desired_t_ahead
+        second_call_args = second_call[0][0]
+        second_call_kwargs = second_call[1]
+        assert second_call_kwargs["measurement"] == (table_name + "_tAhead")
+        assert second_call_args.shape[0] == 1  # only default desired_t_ahead

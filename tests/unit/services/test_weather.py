@@ -241,8 +241,7 @@ class TestWeather(BaseTestCase):
         expected_response.index.name = "datetime"
 
         self.assertTrue(response.equals(expected_response))
-        
-        
+
     @patch("openstef_dbc.services.weather._DataInterface")
     def test_get_single_location_weather_data_with_tAhead(self, MockDataInterface):
         """Data: dataframe contains weather data of multiple
@@ -256,8 +255,10 @@ class TestWeather(BaseTestCase):
 
         mock_Datainterface = MagicMock()
         MockDataInterface.get_instance.return_value = mock_Datainterface
-        mock_Datainterface.exec_influx_query.return_value = combined_weatherdata_with_tAhead
-        
+        mock_Datainterface.exec_influx_query.return_value = (
+            combined_weatherdata_with_tAhead
+        )
+
         weather = Weather()
         # Mocking influx query and get_weather_forecast_locations
         weather.get_weather_forecast_locations = lambda country, active: locations
@@ -275,27 +276,43 @@ class TestWeather(BaseTestCase):
             resolution="30min",
         )
         response.windspeed = np.round(response.windspeed, 1)
-        
+
         expected_response = pd.DataFrame(
-            {'creation_datetime': [pd.Timestamp('2022-01-01 00:00:00+0000', tz='UTC'), 
-                                   pd.Timestamp('2022-01-01 00:00:00+0000', tz='UTC'), 
-                                   pd.Timestamp('2022-01-01 00:00:00+0000', tz='UTC'), 
-                                   pd.Timestamp('2022-01-01 00:00:00+0000', tz='UTC'), 
-                                   pd.Timestamp('2022-01-01 00:00:00+0000', tz='UTC'), 
-                                   pd.Timestamp('2022-01-01 01:00:00+0000', tz='UTC'), 
-                                   pd.Timestamp('2022-01-01 01:00:00+0000', tz='UTC'), 
-                                   pd.Timestamp('2022-01-01 01:00:00+0000', tz='UTC')],
-             'source': ['harm_arome', np.nan, 'harm_arome', np.nan, 'harm_arome', 'harm_arome', np.nan, 'harm_arome'], 
-             'tAhead': [0.0, 0.5, 1.0, 1.5, 2.0, 0.0, 0.5, 1.0], 
-            'windspeed': [3.6, 3.6, 3.6, 2.5, 1.5, 0.6, 1.4, 2.1]},
-            index= [pd.Timestamp('2022-01-01 00:00:00+0000', tz='UTC'), 
-                          pd.Timestamp('2022-01-01 00:30:00+0000', tz='UTC'), 
-                          pd.Timestamp('2022-01-01 01:00:00+0000', tz='UTC'),  
-                          pd.Timestamp('2022-01-01 01:30:00+0000', tz='UTC'), 
-                          pd.Timestamp('2022-01-01 02:00:00+0000', tz='UTC'), 
-                          pd.Timestamp('2022-01-01 01:00:00+0000', tz='UTC'), 
-                          pd.Timestamp('2022-01-01 01:30:00+0000', tz='UTC'), 
-                          pd.Timestamp('2022-01-01 02:00:00+0000', tz='UTC')])
+            {
+                "creation_datetime": [
+                    pd.Timestamp("2022-01-01 00:00:00+0000", tz="UTC"),
+                    pd.Timestamp("2022-01-01 00:00:00+0000", tz="UTC"),
+                    pd.Timestamp("2022-01-01 00:00:00+0000", tz="UTC"),
+                    pd.Timestamp("2022-01-01 00:00:00+0000", tz="UTC"),
+                    pd.Timestamp("2022-01-01 00:00:00+0000", tz="UTC"),
+                    pd.Timestamp("2022-01-01 01:00:00+0000", tz="UTC"),
+                    pd.Timestamp("2022-01-01 01:00:00+0000", tz="UTC"),
+                    pd.Timestamp("2022-01-01 01:00:00+0000", tz="UTC"),
+                ],
+                "source": [
+                    "harm_arome",
+                    np.nan,
+                    "harm_arome",
+                    np.nan,
+                    "harm_arome",
+                    "harm_arome",
+                    np.nan,
+                    "harm_arome",
+                ],
+                "tAhead": [0.0, 0.5, 1.0, 1.5, 2.0, 0.0, 0.5, 1.0],
+                "windspeed": [3.6, 3.6, 3.6, 2.5, 1.5, 0.6, 1.4, 2.1],
+            },
+            index=[
+                pd.Timestamp("2022-01-01 00:00:00+0000", tz="UTC"),
+                pd.Timestamp("2022-01-01 00:30:00+0000", tz="UTC"),
+                pd.Timestamp("2022-01-01 01:00:00+0000", tz="UTC"),
+                pd.Timestamp("2022-01-01 01:30:00+0000", tz="UTC"),
+                pd.Timestamp("2022-01-01 02:00:00+0000", tz="UTC"),
+                pd.Timestamp("2022-01-01 01:00:00+0000", tz="UTC"),
+                pd.Timestamp("2022-01-01 01:30:00+0000", tz="UTC"),
+                pd.Timestamp("2022-01-01 02:00:00+0000", tz="UTC"),
+            ],
+        )
         expected_response.index.name = "datetime"
 
         self.assertTrue(response.equals(expected_response))
