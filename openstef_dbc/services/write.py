@@ -369,7 +369,7 @@ class Write:
 
         # Calculate tAheads
         timediffs = (
-            influx_df.index.tz_localize(None) - forecast_created_time
+            influx_df.index - forecast_created_time
         ).total_seconds() / 3600
         # Round it to the first bigger desired_t_ahead
         influx_df["tAhead"] = round_down_time_differences(timediffs, desired_t_aheads)
@@ -473,7 +473,7 @@ class Write:
             data=data,
             source=source,
             forecast_created_time=forecast_created_time,
-            table=table + "_tAheads",
+            table=table + "_tAhead",
             dbname=dbname,
             desired_t_aheads=desired_t_aheads,
             casting_dict=casting_dict,
