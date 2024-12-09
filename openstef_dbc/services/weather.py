@@ -371,6 +371,182 @@ class Weather:
 
         return result
 
+    def get_weather_tAhead_data(
+        self,
+        location: Union[Tuple[float, float], str],
+        weatherparams: List[str],
+        datetime_start: datetime = None,
+        datetime_end: datetime = None,
+        source: Union[List[str], str] = "optimum",
+        resolution: str = "15min",
+        country: str = "NL",
+        number_locations: int = 1,
+    ) -> pd.DataFrame:
+        """Get weather data from database.
+
+        Additionally, weatherdata from several sources is combined to a single forecast.
+        When the source equals "optimum", data from harmonie is preferred,
+            completed by data from harm_arome and DSN
+
+        Args:
+            location (str): Location. Should be in the stored locations. e.g. Volkel
+            weatherparams  (str or list of str): weatherparams that are required.
+                Params include: ["clouds", "radiation", "temp", "winddeg", "windspeed", "windspeed_100m", "pressure",
+                "humidity", "rain", 'mxlD', 'snowDepth', 'clearSky_ulf', 'clearSky_dlf', 'ssrunoff']
+            datetime_start (datetime) : start date time. Default: 14 days ago
+            datetime_end (datetime): end date time. Default: now + 2 days.
+            source (str or list of str): which weather models should be used.
+                Options: "OWM", "DSN", "WUN", "harmonie", "harm_arome", "harm_arome_fallback", "icon", "optimum",
+                Default: 'optimum'. This combines harmonie, harm_arome, icon and DSN,
+                taking the (heuristicly) best available source for each moment in time
+            resolution (str): Time resolution of the returned data, default: "15T"
+            country (str): Country code (2-letter: ISO 3166-1). e.g. NL
+            number_locations (int): number of weather locations desired
+        Returns:
+            pd.DataFrame: The most recent weather prediction
+
+        Example:
+            client = influxdb.DataFrameClient()
+            df = QueryWeatherData(client, location='Volkel',
+                                  weatherParams=["clouds", "radiation"], source='optimum')
+            print(df.head())
+        """
+
+        if datetime_start is None:
+            datetime_start = datetime.utcnow() - timedelta(days=14)
+
+        datetime_start = pd.to_datetime(datetime_start)
+
+        if datetime_end is None:
+            datetime_end = datetime.utcnow() + timedelta(days=2)
+
+        datetime_end = pd.to_datetime(datetime_end)
+
+        # Convert to UTC and remove UTC as note
+        if datetime_start.tz is not None:
+            datetime_start = datetime_start.tz_convert("UTC").tz_localize(None)
+
+        if datetime_end.tz is not None:
+            datetime_end = datetime_end.tz_convert("UTC").tz_localize(None)
+
+        # Get data from an hour earlier to correct for radiation shift later
+        datetime_start_original = datetime_start.tz_localize("UTC")
+
+        datetime_start -= timedelta(hours=1)
+
+        location_name = self._get_nearest_weather_locations(
+            location=location, country=country, number_locations=number_locations
+        )
+
+        # Make a list of the source and weatherparams.
+        # Like this, it also works if source is a string instead of multiple values
+        if isinstance(source, str):
+            source = [source]
+        if isinstance(weatherparams, str):
+            weatherparams = [weatherparams]
+
+        # Try to get the data from influx.
+        if "optimum" in source:
+            # so the query return all
+            source = [
+                "harm_arome",
+                "harm_arome_fallback",
+                "GFS_50",
+                "harmonie",
+                "icon",
+                "DSN",
+            ]
+            combine_sources = True
+        else:
+            combine_sources = False
+
+        # Initialize binding params
+        bind_params = {
+            "_start": datetime_start,
+            "_stop": datetime_end,
+        }
+
+        # Initialise strings for the querying influx, it is not possible to parameterize this string
+        weather_params_str = '" or r._field == "'.join(weatherparams)
+        weather_models_str = '" or r.source == "'.join(source)
+        weather_location_name_str = '" or r.input_city == "'.join(
+            location_name.to_list()
+        )
+
+        # Create the query
+        query = f"""
+            from(bucket: "forecast_latest/autogen") 
+                |> range(start: {bind_params["_start"].strftime('%Y-%m-%dT%H:%M:%SZ')}, stop: {bind_params["_stop"].strftime('%Y-%m-%dT%H:%M:%SZ')}) 
+                |> filter(fn: (r) => r._measurement == "weather_tAhead" and (r._field == "{weather_params_str}") and (r.source == "{weather_models_str}") and (r.input_city == "{weather_location_name_str}"))
+        """
+
+        # Execute Query
+        result = _DataInterface.get_instance().exec_influx_query(query)
+
+        # For multiple Fields a list is returned.
+        if isinstance(result, list):
+            result = pd.concat(result)[["_value", "_field", "_time", "source"]]
+
+        # Check if response is empty
+        if not result.empty:
+            result = parse_influx_result(result, ["source", "input_city", "tAhead"])
+        else:
+            self.logger.warning("No weatherdata found. Returning empty dataframe")
+            return pd.DataFrame(
+                index=genereate_datetime_index(
+                    start=datetime_start,
+                    end=datetime_end,
+                    freq=resolution,
+                )
+            )
+
+        # Create a single dataframe with combined sources
+        if combine_sources:
+            self.logger.info("Combining sources into single dataframe")
+            result = self._combine_weather_sources(result)
+
+        # Changing interpolation strategy if indexes ares duplicated due to tAhead
+        interpolation_grouping = ['input_city']
+        index_duplicates = result.index.duplicated().any()
+        if index_duplicates:
+            # Compute creation_datetime
+            result['creation_datetime'] = result.index - pd.to_timedelta(result['tAhead'], unit="hour")
+            interpolation_grouping +=['creation_datetime']
+
+        # Interpolate if nescesarry by input_city and additionnal groups
+        result = (
+            result.groupby(interpolation_grouping)
+            .resample(resolution)
+            .interpolate(limit=11)
+            .drop(columns=interpolation_grouping)
+            .reset_index(interpolation_grouping)
+        )
+
+        # Shift radiation by 30 minutes if resolution allows it
+        if "radiation" in result.columns:
+            shift_delta = -timedelta(minutes=30)
+            if shift_delta % pd.Timedelta(resolution) == timedelta(0):
+                result["radiation"] = (
+                    result.groupby(interpolation_grouping)["radiation"]
+                    .shift(1, shift_delta)
+                )
+
+        # Drop extra rows not neccesary
+        result = result[result.index >= datetime_start_original]
+
+        if number_locations == 1:
+            result = result.drop(columns="input_city")
+        else:
+            # Adding distance information en km
+            result = (
+                result.reset_index()
+                .merge(location_name.reset_index(), how="left", on="input_city")
+                .set_index("datetime")
+            )
+
+        return result
+
+
     def get_datetime_last_stored_knmi_weatherdata(self) -> datetime:
         """Returns datetime of latest KNMI run in influx Database. If no run is found return first unix time."""
         query = """

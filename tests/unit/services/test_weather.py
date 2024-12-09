@@ -56,6 +56,13 @@ multiple_location_weatherdata = pd.read_csv(
     parse_dates=["_time"],
 )
 
+combined_weatherdata_with_tAhead = pd.read_csv(
+    DATA_FOLDER / "combined_weatherdata_with_tAhead_test_data.csv",
+    sep=";",
+    index_col=0,
+    parse_dates=["_time"],
+)
+
 locations = [
     {"city": "Rotterdam", "lat": 51.926517, "lon": 4.462456, "country": "NL"},
     {"city": "Amsterdam", "lat": 52.377956, "lon": 4.897070, "country": "NL"},
@@ -231,6 +238,64 @@ class TestWeather(BaseTestCase):
                 freq="30min",
             ),
         )
+        expected_response.index.name = "datetime"
+
+        self.assertTrue(response.equals(expected_response))
+        
+        
+    @patch("openstef_dbc.services.weather._DataInterface")
+    def test_get_single_location_weather_data_with_tAhead(self, MockDataInterface):
+        """Data: dataframe contains weather data of multiple
+        locations for same timpestamp with np.nan-values
+
+        Expected: return same dataframe
+        """
+
+        datetime_start = pd.to_datetime("2022-01-01 00:00:00+00:00")
+        datetime_end = pd.to_datetime("2022-01-01 02:00:00+00:00")
+
+        mock_Datainterface = MagicMock()
+        MockDataInterface.get_instance.return_value = mock_Datainterface
+        mock_Datainterface.exec_influx_query.return_value = combined_weatherdata_with_tAhead
+        
+        weather = Weather()
+        # Mocking influx query and get_weather_forecast_locations
+        weather.get_weather_forecast_locations = lambda country, active: locations
+
+        nearest_location = weather._get_nearest_weather_locations(
+            location=[52, 4.7], number_locations=1
+        ).to_list()
+
+        response = weather.get_weather_tAhead_data(
+            location=[52, 4.7],
+            weatherparams="windspeed",
+            datetime_start=datetime_start,
+            datetime_end=datetime_end,
+            number_locations=1,
+            resolution="30min",
+        )
+        response.windspeed = np.round(response.windspeed, 1)
+        
+        expected_response = pd.DataFrame(
+            {'creation_datetime': [pd.Timestamp('2022-01-01 00:00:00+0000', tz='UTC'), 
+                                   pd.Timestamp('2022-01-01 00:00:00+0000', tz='UTC'), 
+                                   pd.Timestamp('2022-01-01 00:00:00+0000', tz='UTC'), 
+                                   pd.Timestamp('2022-01-01 00:00:00+0000', tz='UTC'), 
+                                   pd.Timestamp('2022-01-01 00:00:00+0000', tz='UTC'), 
+                                   pd.Timestamp('2022-01-01 01:00:00+0000', tz='UTC'), 
+                                   pd.Timestamp('2022-01-01 01:00:00+0000', tz='UTC'), 
+                                   pd.Timestamp('2022-01-01 01:00:00+0000', tz='UTC')],
+             'source': ['harm_arome', np.nan, 'harm_arome', np.nan, 'harm_arome', 'harm_arome', np.nan, 'harm_arome'], 
+             'tAhead': [0.0, 0.5, 1.0, 1.5, 2.0, 0.0, 0.5, 1.0], 
+            'windspeed': [3.6, 3.6, 3.6, 2.5, 1.5, 0.6, 1.4, 2.1]},
+            index= [pd.Timestamp('2022-01-01 00:00:00+0000', tz='UTC'), 
+                          pd.Timestamp('2022-01-01 00:30:00+0000', tz='UTC'), 
+                          pd.Timestamp('2022-01-01 01:00:00+0000', tz='UTC'),  
+                          pd.Timestamp('2022-01-01 01:30:00+0000', tz='UTC'), 
+                          pd.Timestamp('2022-01-01 02:00:00+0000', tz='UTC'), 
+                          pd.Timestamp('2022-01-01 01:00:00+0000', tz='UTC'), 
+                          pd.Timestamp('2022-01-01 01:30:00+0000', tz='UTC'), 
+                          pd.Timestamp('2022-01-01 02:00:00+0000', tz='UTC')])
         expected_response.index.name = "datetime"
 
         self.assertTrue(response.equals(expected_response))
