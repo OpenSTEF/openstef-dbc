@@ -263,10 +263,6 @@ class TestWeather(BaseTestCase):
         # Mocking influx query and get_weather_forecast_locations
         weather.get_weather_forecast_locations = lambda country, active: locations
 
-        nearest_location = weather._get_nearest_weather_locations(
-            location=[52, 4.7], number_locations=1
-        ).to_list()
-
         response = weather.get_weather_tAhead_data(
             location=[52, 4.7],
             weatherparams="windspeed",
