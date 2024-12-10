@@ -156,11 +156,20 @@ class TestWeather(BaseTestCase):
             datetime_end=datetime_end,
             number_locations=2,
             resolution="30min",
+            source="harm_arome",
         )
         response.windspeed = np.round(response.windspeed, 1)
 
         expected_response = pd.DataFrame(
             {
+                "source": [
+                    "harm_arome",
+                    "harm_arome",
+                    "harm_arome",
+                    "harm_arome",
+                    "harm_arome",
+                    "harm_arome",
+                ],
                 "input_city": [
                     "Amsterdam",
                     "Amsterdam",
@@ -168,14 +177,6 @@ class TestWeather(BaseTestCase):
                     "Rotterdam",
                     "Rotterdam",
                     "Rotterdam",
-                ],
-                "source": [
-                    "harm_arome",
-                    np.nan,
-                    "harm_arome",
-                    "harm_arome",
-                    np.nan,
-                    "harm_arome",
                 ],
                 "windspeed": [6.9, 4.0, 1.2, 7.6, 4.5, 1.5],
                 "distance": [44.2, 44.2, 44.2, 18.3, 18.3, 18.3],
@@ -190,7 +191,6 @@ class TestWeather(BaseTestCase):
             ),
         )
         expected_response.index.name = "datetime"
-
         self.assertTrue(response.equals(expected_response))
 
     @patch("openstef_dbc.services.weather._DataInterface")
@@ -232,7 +232,7 @@ class TestWeather(BaseTestCase):
 
         expected_response = pd.DataFrame(
             {
-                "source": ["harm_arome", np.nan, "harm_arome"],
+                "source": ["optimum", "optimum", "optimum"],
                 "windspeed": [7.6, 4.5, 1.5],
             },
             index=pd.date_range(
@@ -242,7 +242,7 @@ class TestWeather(BaseTestCase):
             ),
         )
         expected_response.index.name = "datetime"
-
+        
         self.assertTrue(response.equals(expected_response))
 
     @patch("openstef_dbc.services.weather._DataInterface")
@@ -266,18 +266,29 @@ class TestWeather(BaseTestCase):
         # Mocking influx query and get_weather_forecast_locations
         weather.get_weather_forecast_locations = lambda country, active: locations
 
-        response = weather.get_weather_tAhead_data(
+        response = weather.get_weather_data(
             location=[52, 4.7],
             weatherparams="windspeed",
             datetime_start=datetime_start,
             datetime_end=datetime_end,
             number_locations=1,
             resolution="30min",
+            type="multiple_tAheads",
         )
         response.windspeed = np.round(response.windspeed, 1)
 
         expected_response = pd.DataFrame(
             {
+                "source": [
+                    "optimum",
+                    "optimum",
+                    "optimum",
+                    "optimum",
+                    "optimum",
+                    "optimum",
+                    "optimum",
+                    "optimum",
+                ],
                 "created": [
                     pd.Timestamp("2022-01-01 00:00:00+0000", tz="UTC"),
                     pd.Timestamp("2022-01-01 00:00:00+0000", tz="UTC"),
@@ -287,16 +298,6 @@ class TestWeather(BaseTestCase):
                     pd.Timestamp("2022-01-01 01:00:00+0000", tz="UTC"),
                     pd.Timestamp("2022-01-01 01:00:00+0000", tz="UTC"),
                     pd.Timestamp("2022-01-01 01:00:00+0000", tz="UTC"),
-                ],
-                "source": [
-                    "harm_arome",
-                    np.nan,
-                    "harm_arome",
-                    np.nan,
-                    "harm_arome",
-                    "harm_arome",
-                    np.nan,
-                    "harm_arome",
                 ],
                 "tAhead": [0.0, 0.5, 1.0, 1.5, 2.0, 0.0, 0.5, 1.0],
                 "windspeed": [3.6, 3.6, 3.6, 2.5, 1.5, 0.6, 1.4, 2.1],
