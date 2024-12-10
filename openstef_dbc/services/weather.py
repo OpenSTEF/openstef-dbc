@@ -370,7 +370,9 @@ class Weather:
         if "radiation" in result.columns:
             shift_delta = -timedelta(minutes=30)
             if shift_delta % pd.Timedelta(resolution) == timedelta(0):
-                result["radiation"] = result.groupby(grouping_indices)["radiation"].shift(1, shift_delta)
+                result["radiation"] = result.groupby(grouping_indices)[
+                    "radiation"
+                ].shift(1, shift_delta)
 
         # Drop extra rows not neccesary
         result = result[result.index >= datetime_start_original]
