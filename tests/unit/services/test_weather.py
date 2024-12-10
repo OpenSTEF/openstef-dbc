@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pandas as pd
 import numpy as np
+from datetime import datetime, timedelta
 from openstef_dbc.services.weather import Weather
 from openstef_dbc.data_interface import _DataInterface
 from tests.unit.utils.base import BaseTestCase
@@ -68,9 +69,11 @@ locations = [
     {"city": "Amsterdam", "lat": 52.377956, "lon": 4.897070, "country": "NL"},
 ]
 
+weather = Weather()
 
 @patch("openstef_dbc.services.weather.Write", MagicMock())
 class TestWeather(BaseTestCase):
+             
     @patch("openstef_dbc.services.weather._DataInterface", MagicMock())
     def test_combine_weather_sources_fill_nan_values(self):
         """Data: dataframe contains weather data of multiple sources for same timpestamp with np.nan-values
@@ -275,7 +278,7 @@ class TestWeather(BaseTestCase):
 
         expected_response = pd.DataFrame(
             {
-                "creation_datetime": [
+                "created": [
                     pd.Timestamp("2022-01-01 00:00:00+0000", tz="UTC"),
                     pd.Timestamp("2022-01-01 00:00:00+0000", tz="UTC"),
                     pd.Timestamp("2022-01-01 00:00:00+0000", tz="UTC"),
@@ -312,7 +315,61 @@ class TestWeather(BaseTestCase):
         expected_response.index.name = "datetime"
 
         self.assertTrue(response.equals(expected_response))
+        
+    def test_source_run_valid_input(self):
+        """Test with valid input."""
+        datetime_input = pd.Series(datetime(2024, 12, 10, 15, 30))  # December 10 2024 at 15:30 
+        tAhead = pd.Series(6)
+        expected_result = pd.Series(datetime(2024, 12, 10, 9, 30))  # 6 hours ahead
+        pd.testing.assert_series_equal(weather._get_source_run(datetime_input, tAhead), expected_result)
 
+    def test_source_run_vzero_tAhead(self):
+        """Test with tAhead equal to 0 (no substrasction)."""
+        datetime_input = pd.Series(datetime(2024, 12, 10, 15, 30))
+        tAhead = pd.Series(0)
+        pd.testing.assert_series_equal(weather._get_source_run(datetime_input, tAhead), datetime_input)
+
+    def test_source_run_negative_tAhead(self):
+        """Test with negative tAhead """
+        datetime_input = pd.Series(datetime(2024, 12, 10, 15, 30))
+        tAhead = pd.Series(-3)
+        expected_result = pd.Series(datetime(2024, 12, 10, 18, 30))  # 3 heures after
+        pd.testing.assert_series_equal(weather._get_source_run(datetime_input, tAhead), expected_result)
+
+    def test_source_run_large_tAhead(self):
+        """Test with very large tAhead """
+        datetime_input = pd.Series(datetime(2024, 12, 10, 15, 30))
+        tAhead = pd.Series(1000)
+        expected_result = pd.Series(datetime(2024, 10, 29, 23, 30))  # 1000 heures ahead
+        pd.testing.assert_series_equal(weather._get_source_run(datetime_input, tAhead), expected_result)
+
+    def test_source_run_invalid_datetime_input(self):
+        """Test with unvalid datetime."""
+        datetime_input = pd.Series("2024-12-10 15:30")  # Not a datetime object
+        tAhead = pd.Series(6)
+        with self.assertRaises(ValueError):
+            weather._get_source_run(datetime_input, tAhead)
+
+    def test_source_run_invalid_tAhead(self):
+        """Test with unvalid tAhead """
+        datetime_input = pd.Series(datetime(2024, 12, 10, 15, 30))
+        tAhead = pd.Series("six")  # Not a number
+        with self.assertRaises(ValueError):
+            weather._get_source_run(datetime_input, tAhead)
+
+    def test_source_run_float_tAhead(self):
+        """Test with a float tAhead."""
+        datetime_input = pd.Series(datetime(2024, 12, 10, 15, 30))
+        tAhead = pd.Series(2.5)
+        expected_result = pd.Series(datetime(2024, 12, 10, 13, 0))  # 2 hours and 30 minutes ahead
+        pd.testing.assert_series_equal(weather._get_source_run(datetime_input, tAhead), expected_result)
+    
+    def test_source_run_int_tAhead(self):
+        """Test with a int tAhead."""
+        datetime_input = pd.Series(datetime(2024, 12, 10, 15, 30))
+        tAhead = pd.Series(2)
+        expected_result = pd.Series(datetime(2024, 12, 10, 13, 30))  # 2 hours
+        pd.testing.assert_series_equal(weather._get_source_run(datetime_input, tAhead), expected_result)
 
 if __name__ == "__main__":
     unittest.main()

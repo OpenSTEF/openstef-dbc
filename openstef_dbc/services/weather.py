@@ -153,6 +153,29 @@ class Weather:
 
         return location
 
+    def _get_source_run(self, forecast_datetime: pd.Series, tAhead: pd.Series) -> pd.Series:
+        """Compute the datetime when weather forecast was created
+
+        Args:
+            forecast_datetime (pd.Series[datetime]): forecasted datetime.
+            tAhead (pd.Series[(int, float)]: forecasting horizon in hours
+        
+        Retuns :
+            pd.Series of new datetimes
+        """
+        
+        if not pd.api.types.is_datetime64_any_dtype(forecast_datetime):
+            raise ValueError("forecast_datetime must be a Series of datetime.")
+        
+        if not pd.api.types.is_numeric_dtype(tAhead):
+            raise ValueError("tahead must be a Series of intoru float.")
+        
+        if len(forecast_datetime) != len(tAhead):
+            raise ValueError("forecast_datetime and tAhead must have the same length.")
+
+        # Compute new datetimes
+        return forecast_datetime - pd.to_timedelta(tAhead, unit="h")
+    
     def _combine_weather_sources(
         self, result: pd.DataFrame, source_order: List = None
     ) -> pd.DataFrame:
@@ -375,8 +398,8 @@ class Weather:
         self,
         location: Union[Tuple[float, float], str],
         weatherparams: List[str],
-        datetime_start: datetime = None,
-        datetime_end: datetime = None,
+        datetime_start: datetime = datetime.utcnow() - timedelta(days=14),
+        datetime_end: datetime = datetime.utcnow() + timedelta(days=2),
         source: Union[List[str], str] = "optimum",
         resolution: str = "15min",
         country: str = "NL",
@@ -412,14 +435,9 @@ class Weather:
             print(df.head())
         """
 
-        if datetime_start is None:
-            datetime_start = datetime.utcnow() - timedelta(days=14)
-
         datetime_start = pd.to_datetime(datetime_start)
-
-        if datetime_end is None:
-            datetime_end = datetime.utcnow() + timedelta(days=2)
-
+        # Get data from an hour earlier to correct for radiation shift later
+        datetime_start_original = datetime_start
         datetime_end = pd.to_datetime(datetime_end)
 
         # Convert to UTC and remove UTC as note
@@ -428,9 +446,6 @@ class Weather:
 
         if datetime_end.tz is not None:
             datetime_end = datetime_end.tz_convert("UTC").tz_localize(None)
-
-        # Get data from an hour earlier to correct for radiation shift later
-        datetime_start_original = datetime_start.tz_localize("UTC")
 
         datetime_start -= timedelta(hours=1)
 
@@ -505,17 +520,11 @@ class Weather:
             self.logger.info("Combining sources into single dataframe")
             result = self._combine_weather_sources(result)
 
-        # Changing interpolation strategy if indexes ares duplicated due to tAhead
-        interpolation_grouping = ["input_city"]
-        index_duplicates = result.index.duplicated().any()
-        if index_duplicates:
-            # Compute creation_datetime
-            result["creation_datetime"] = result.index - pd.to_timedelta(
-                result["tAhead"], unit="hour"
-            )
-            interpolation_grouping += ["creation_datetime"]
-
+        # Compute source_run
+        result["created"] = self._get_source_run(result.index, result.tAhead)
+    
         # Interpolate if nescesarry by input_city and additionnal groups
+        interpolation_grouping = ["input_city", "created"]
         result = (
             result.groupby(interpolation_grouping)
             .resample(resolution)
