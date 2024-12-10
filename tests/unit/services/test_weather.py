@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pandas as pd
 import numpy as np
+from datetime import datetime, timedelta
 from openstef_dbc.services.weather import Weather
 from openstef_dbc.data_interface import _DataInterface
 from tests.unit.utils.base import BaseTestCase
@@ -56,10 +57,19 @@ multiple_location_weatherdata = pd.read_csv(
     parse_dates=["_time"],
 )
 
+combined_weatherdata_with_tAhead = pd.read_csv(
+    DATA_FOLDER / "combined_weatherdata_with_tAhead_test_data.csv",
+    sep=";",
+    index_col=0,
+    parse_dates=["_time"],
+)
+
 locations = [
     {"city": "Rotterdam", "lat": 51.926517, "lon": 4.462456, "country": "NL"},
     {"city": "Amsterdam", "lat": 52.377956, "lon": 4.897070, "country": "NL"},
 ]
+
+weather = Weather()
 
 
 @patch("openstef_dbc.services.weather.Write", MagicMock())
@@ -146,11 +156,20 @@ class TestWeather(BaseTestCase):
             datetime_end=datetime_end,
             number_locations=2,
             resolution="30min",
+            source="harm_arome",
         )
         response.windspeed = np.round(response.windspeed, 1)
 
         expected_response = pd.DataFrame(
             {
+                "source": [
+                    "harm_arome",
+                    "harm_arome",
+                    "harm_arome",
+                    "harm_arome",
+                    "harm_arome",
+                    "harm_arome",
+                ],
                 "input_city": [
                     "Amsterdam",
                     "Amsterdam",
@@ -158,14 +177,6 @@ class TestWeather(BaseTestCase):
                     "Rotterdam",
                     "Rotterdam",
                     "Rotterdam",
-                ],
-                "source": [
-                    "harm_arome",
-                    np.nan,
-                    "harm_arome",
-                    "harm_arome",
-                    np.nan,
-                    "harm_arome",
                 ],
                 "windspeed": [6.9, 4.0, 1.2, 7.6, 4.5, 1.5],
                 "distance": [44.2, 44.2, 44.2, 18.3, 18.3, 18.3],
@@ -180,7 +191,6 @@ class TestWeather(BaseTestCase):
             ),
         )
         expected_response.index.name = "datetime"
-
         self.assertTrue(response.equals(expected_response))
 
     @patch("openstef_dbc.services.weather._DataInterface")
@@ -222,7 +232,7 @@ class TestWeather(BaseTestCase):
 
         expected_response = pd.DataFrame(
             {
-                "source": ["harm_arome", np.nan, "harm_arome"],
+                "source": ["optimum", "optimum", "optimum"],
                 "windspeed": [7.6, 4.5, 1.5],
             },
             index=pd.date_range(
@@ -234,6 +244,149 @@ class TestWeather(BaseTestCase):
         expected_response.index.name = "datetime"
 
         self.assertTrue(response.equals(expected_response))
+
+    @patch("openstef_dbc.services.weather._DataInterface")
+    def test_get_single_location_weather_data_with_tAhead(self, MockDataInterface):
+        """Data: dataframe contains weather data of multiple
+        locations for same timpestamp with np.nan-values
+
+        Expected: return same dataframe
+        """
+
+        datetime_start = pd.to_datetime("2022-01-01 00:00:00+00:00")
+        datetime_end = pd.to_datetime("2022-01-01 02:00:00+00:00")
+
+        mock_Datainterface = MagicMock()
+        MockDataInterface.get_instance.return_value = mock_Datainterface
+        mock_Datainterface.exec_influx_query.return_value = (
+            combined_weatherdata_with_tAhead
+        )
+
+        weather = Weather()
+        # Mocking influx query and get_weather_forecast_locations
+        weather.get_weather_forecast_locations = lambda country, active: locations
+
+        response = weather.get_weather_data(
+            location=[52, 4.7],
+            weatherparams="windspeed",
+            datetime_start=datetime_start,
+            datetime_end=datetime_end,
+            number_locations=1,
+            resolution="30min",
+            type="multiple_tAheads",
+        )
+        response.windspeed = np.round(response.windspeed, 1)
+
+        expected_response = pd.DataFrame(
+            {
+                "source": [
+                    "optimum",
+                    "optimum",
+                    "optimum",
+                    "optimum",
+                    "optimum",
+                    "optimum",
+                    "optimum",
+                    "optimum",
+                ],
+                "created": [
+                    pd.Timestamp("2022-01-01 00:00:00+0000", tz="UTC"),
+                    pd.Timestamp("2022-01-01 00:00:00+0000", tz="UTC"),
+                    pd.Timestamp("2022-01-01 00:00:00+0000", tz="UTC"),
+                    pd.Timestamp("2022-01-01 00:00:00+0000", tz="UTC"),
+                    pd.Timestamp("2022-01-01 00:00:00+0000", tz="UTC"),
+                    pd.Timestamp("2022-01-01 01:00:00+0000", tz="UTC"),
+                    pd.Timestamp("2022-01-01 01:00:00+0000", tz="UTC"),
+                    pd.Timestamp("2022-01-01 01:00:00+0000", tz="UTC"),
+                ],
+                "tAhead": [0.0, 0.5, 1.0, 1.5, 2.0, 0.0, 0.5, 1.0],
+                "windspeed": [3.6, 3.6, 3.6, 2.5, 1.5, 0.6, 1.4, 2.1],
+            },
+            index=[
+                pd.Timestamp("2022-01-01 00:00:00+0000", tz="UTC"),
+                pd.Timestamp("2022-01-01 00:30:00+0000", tz="UTC"),
+                pd.Timestamp("2022-01-01 01:00:00+0000", tz="UTC"),
+                pd.Timestamp("2022-01-01 01:30:00+0000", tz="UTC"),
+                pd.Timestamp("2022-01-01 02:00:00+0000", tz="UTC"),
+                pd.Timestamp("2022-01-01 01:00:00+0000", tz="UTC"),
+                pd.Timestamp("2022-01-01 01:30:00+0000", tz="UTC"),
+                pd.Timestamp("2022-01-01 02:00:00+0000", tz="UTC"),
+            ],
+        )
+        expected_response.index.name = "datetime"
+
+        self.assertTrue(response.equals(expected_response))
+
+    def test_source_run_valid_input(self):
+        """Test with valid input."""
+        datetime_input = pd.Series(
+            datetime(2024, 12, 10, 15, 30)
+        )  # December 10 2024 at 15:30
+        tAhead = pd.Series(6)
+        expected_result = pd.Series(datetime(2024, 12, 10, 9, 30))  # 6 hours ahead
+        pd.testing.assert_series_equal(
+            weather._get_source_run(datetime_input, tAhead), expected_result
+        )
+
+    def test_source_run_vzero_tAhead(self):
+        """Test with tAhead equal to 0 (no substrasction)."""
+        datetime_input = pd.Series(datetime(2024, 12, 10, 15, 30))
+        tAhead = pd.Series(0)
+        pd.testing.assert_series_equal(
+            weather._get_source_run(datetime_input, tAhead), datetime_input
+        )
+
+    def test_source_run_negative_tAhead(self):
+        """Test with negative tAhead"""
+        datetime_input = pd.Series(datetime(2024, 12, 10, 15, 30))
+        tAhead = pd.Series(-3)
+        expected_result = pd.Series(datetime(2024, 12, 10, 18, 30))  # 3 heures after
+        pd.testing.assert_series_equal(
+            weather._get_source_run(datetime_input, tAhead), expected_result
+        )
+
+    def test_source_run_large_tAhead(self):
+        """Test with very large tAhead"""
+        datetime_input = pd.Series(datetime(2024, 12, 10, 15, 30))
+        tAhead = pd.Series(1000)
+        expected_result = pd.Series(datetime(2024, 10, 29, 23, 30))  # 1000 heures ahead
+        pd.testing.assert_series_equal(
+            weather._get_source_run(datetime_input, tAhead), expected_result
+        )
+
+    def test_source_run_invalid_datetime_input(self):
+        """Test with unvalid datetime."""
+        datetime_input = pd.Series("2024-12-10 15:30")  # Not a datetime object
+        tAhead = pd.Series(6)
+        with self.assertRaises(ValueError):
+            weather._get_source_run(datetime_input, tAhead)
+
+    def test_source_run_invalid_tAhead(self):
+        """Test with unvalid tAhead"""
+        datetime_input = pd.Series(datetime(2024, 12, 10, 15, 30))
+        tAhead = pd.Series("six")  # Not a number
+        with self.assertRaises(ValueError):
+            weather._get_source_run(datetime_input, tAhead)
+
+    def test_source_run_float_tAhead(self):
+        """Test with a float tAhead."""
+        datetime_input = pd.Series(datetime(2024, 12, 10, 15, 30))
+        tAhead = pd.Series(2.5)
+        expected_result = pd.Series(
+            datetime(2024, 12, 10, 13, 0)
+        )  # 2 hours and 30 minutes ahead
+        pd.testing.assert_series_equal(
+            weather._get_source_run(datetime_input, tAhead), expected_result
+        )
+
+    def test_source_run_int_tAhead(self):
+        """Test with a int tAhead."""
+        datetime_input = pd.Series(datetime(2024, 12, 10, 15, 30))
+        tAhead = pd.Series(2)
+        expected_result = pd.Series(datetime(2024, 12, 10, 13, 30))  # 2 hours
+        pd.testing.assert_series_equal(
+            weather._get_source_run(datetime_input, tAhead), expected_result
+        )
 
 
 if __name__ == "__main__":

@@ -1,0 +1,6 @@
+;_time;_value;_field;_measurement;input_city;source;tAhead
+0;2022-01-01 00:00:00+00:00;3.6144495010375977;windspeed;weather;Rotterdam;harm_arome;0
+1;2022-01-01 01:00:00+00:00;3.5552268028259277;windspeed;weather;Rotterdam;harm_arome;1
+7;2022-01-01 02:00:00+00:00;1.4958148002624512;windspeed;weather;Rotterdam;harm_arome;2
+8;2022-01-01 01:00:00+00:00;0.625495970249176;windspeed;weather;Rotterdam;harm_arome;0
+14;2022-01-01 02:00:00+00:00;2.078191041946411;windspeed;weather;Rotterdam;harm_arome;1
