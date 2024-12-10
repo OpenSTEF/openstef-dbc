@@ -9,7 +9,7 @@ import pandas as pd
 import re
 
 from openstef_dbc.data_interface import _DataInterface
-from openstef_dbc.utils import parse_influx_result
+from openstef_dbc.utils import floor_to_closest_time_resolution, parse_influx_result
 
 FIELDS_OF_INTEREST = [
     "forecast",
@@ -50,6 +50,9 @@ class Predictions:
                 minutes=15
             )  # To make the ouput the same as the original influx client.
 
+        # Round end_time to last resolution_minutes interval
+        end_time = floor_to_closest_time_resolution(end_time, pj["resolution_minutes"])
+
         bind_params = {
             "pid": str(pj["id"]),
             "_start": start_time.astimezone(pytz.UTC),
@@ -78,7 +81,7 @@ class Predictions:
         # Return result
         if not result.empty:
             # Shifting is needed to output the same as with the old influx client
-            return parse_influx_result(result).shift(-15, freq="T")
+            return parse_influx_result(result).shift(-15, freq="min")
         else:
             return pd.Series()
 
@@ -206,7 +209,7 @@ class Predictions:
         # Return result
         if not result.empty:
             # Shifting is needed to output the same as with the old influx client
-            return parse_influx_result(result).shift(-15, freq="T")
+            return parse_influx_result(result).shift(-15, freq="min")
         else:
             return pd.Series()
 
@@ -336,7 +339,7 @@ class Predictions:
         if not result.empty:
             # Shifting is needed to output the same as with the old influx client
             result = parse_influx_result(result, aditional_indices=["tAhead"]).shift(
-                -15, freq="T"
+                -15, freq="min"
             )
         else:
             return pd.Series()

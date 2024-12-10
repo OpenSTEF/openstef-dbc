@@ -11,7 +11,7 @@ SPDX-License-Identifier: MPL-2.0
 
 # Openstef-dbc - Database connector for openstef (reference)
 
-This repository houses the python package [openstef-dbc](https://pypi.org/project/openstef-dbc/), which provides a database interface to OpenSTEF (reference). It can be usefull to explorte [openstef](https://github.com/openstef/short-term-forecasting) and [openstef-reference](https://github.com/openstef/openstef-reference). 
+This repository houses the python package [openstef-dbc](https://pypi.org/project/openstef-dbc/), which provides a database interface to OpenSTEF (reference). It can be usefull to explore [openstef](https://github.com/openstef/short-term-forecasting) and [openstef-reference](https://github.com/openstef/openstef-reference). 
 
 ## Table of contents 
 - [Install](#install)

@@ -15,6 +15,7 @@ from influxdb_client.client.warnings import MissingPivotFunction
 
 from openstef_dbc.data_interface import _DataInterface
 from openstef_dbc.services.write import Write
+from openstef_dbc.settings import Settings
 from openstef_dbc.utils import genereate_datetime_index, parse_influx_result
 
 warnings.simplefilter("ignore", MissingPivotFunction)
@@ -86,7 +87,7 @@ class Weather:
             location_coordinates = location
 
         # Now we have the coordinates of the input_city. Next, find nearest weather location
-        distances = pd.DataFrame(columns=["distance", "input_city"])
+        distance_dfs = []
         for weather_location in weather_locations:
             coordinates = (weather_location["lat"], weather_location["lon"])
 
@@ -101,9 +102,9 @@ class Weather:
             )
             city = weather_location["city"]
             distance_df = pd.DataFrame([{"distance": distance, "input_city": city}])
-            distances = pd.concat([distances, distance_df])
+            distance_dfs.append(distance_df)
 
-        distances = distances.set_index("distance")
+        distances = pd.concat(distance_dfs).set_index("distance")
 
         nearest_location = distances["input_city"].sort_index().iloc[0:number_locations]
 
@@ -208,14 +209,7 @@ class Weather:
         # step 1: Create list of multiple dataframes,
         # check which of the 'optimum' sources are actually in the list
         if source_order is None:
-            source_order = [
-                "harm_arome",
-                "harm_arome_fallback",
-                "GFS_50",
-                "harmonie",
-                "icon",
-                "DSN",
-            ]
+            source_order = Settings.optimum_weather_sources
 
         active_sources = [s for s in source_order if s in set(result.source)]
         # for each source a seperate dataframe
@@ -259,7 +253,7 @@ class Weather:
                 Options: "OWM", "DSN", "WUN", "harmonie", "harm_arome", "harm_arome_fallback", "icon", "optimum",
                 Default: 'optimum'. This combines harmonie, harm_arome, icon and DSN,
                 taking the (heuristicly) best available source for each moment in time
-            resolution (str): Time resolution of the returned data, default: "15T"
+            resolution (str): Time resolution of the returned data, default: "15min"
             country (str): Country code (2-letter: ISO 3166-1). e.g. NL
             number_locations (int): number of weather locations desired
             type (chr) : type of weather forecast (smallest_tAhead of multiple_tAheads)
@@ -299,14 +293,7 @@ class Weather:
         # Try to get the data from influx.
         if "optimum" in source:
             # so the query return all
-            source = [
-                "harm_arome",
-                "harm_arome_fallback",
-                "GFS_50",
-                "harmonie",
-                "icon",
-                "DSN",
-            ]
+            source = Settings.optimum_weather_sources
             combine_sources = True
         else:
             combine_sources = False

@@ -24,6 +24,9 @@ class Singleton(type):
             )
         return cls._instances[cls]
 
+    def clear(cls):
+        cls._instances = {}
+
     @classmethod
     def get_instance(cls, instance_cls):
         return cls._instances[instance_cls]

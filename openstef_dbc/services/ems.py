@@ -37,7 +37,7 @@ class Ems:
             sid(Union[str, List[str]]): System id's
             datetime_start (datetime): Start datetime.
             datetime_end (datetime): End datetime.
-            forecast_resolution (str): The forecast resolution, for example '15T'
+            forecast_resolution (str): The forecast resolution, for example '15min'
             aggregated (boolean): Should the results be aggregated per sid or not.
             average_output (boolean):  Should the agregation be an average or not.
             include_n_entries_column (boolean): Should the number of systems agregated be returned or not.
@@ -84,27 +84,31 @@ class Ems:
         # Prepare query
         if aggregated:
             forecast_resolution_timedelta = timedelta(
-                minutes=int(forecast_resolution[:-1])
+                minutes=int(pd.Timedelta(forecast_resolution).total_seconds() / 60)
             )
             # Extending the range is necessary to make sure the final timestamps are also in
             # the reponse after aggregations.
             bind_params["dend"] = (
                 datetime_end + 2 * forecast_resolution_timedelta
             ).isoformat()
+
+            forecast_resolution_influx_format = forecast_resolution.replace(
+                "T", "m"
+            ).replace("min", "m")
             query = f"""
                 data = from(bucket: "realised/autogen") 
                     |> range(start: {bind_params['dstart']}, stop: {bind_params['dend']}) 
                     |> filter(fn: (r) => r._measurement == "power")
                     |> filter(fn: (r) => r._field == "output")
                     |> filter(fn: (r) => {sidsection})
-                    |> aggregateWindow(every: {forecast_resolution.replace("T", "m")}, fn: mean)
+                    |> aggregateWindow(every: {forecast_resolution_influx_format}, fn: mean)
 
                 data
-                    |> group() |> aggregateWindow(every: {forecast_resolution.replace("T", "m")}, fn: sum)
+                    |> group() |> aggregateWindow(every: {forecast_resolution_influx_format}, fn: sum)
                     |> yield(name: "load")
 
                 data
-                    |> group() |> aggregateWindow(every: {forecast_resolution.replace("T", "m")}, fn: count)
+                    |> group() |> aggregateWindow(every: {forecast_resolution_influx_format}, fn: count)
                     |> yield(name: "nEntries")
             """
         else:
@@ -170,7 +174,7 @@ class Ems:
         pid: int,
         datetime_start: datetime.datetime,
         datetime_end: datetime.datetime,
-        forecast_resolution: str = "15T",
+        forecast_resolution: str = "15min",
         aggregated: bool = True,
         ignore_factor: bool = False,
     ) -> pd.DataFrame:
@@ -285,7 +289,7 @@ class Ems:
         pid: int,
         datetime_start: datetime.datetime,
         datetime_end: datetime.datetime,
-        forecast_resolution: str = "15T",
+        forecast_resolution: str = "15min",
     ) -> pd.DataFrame:
         """Gets load data for a pid.
         This method optimizes the way it retrieves data and is therefore less flexible as get_load_pid.

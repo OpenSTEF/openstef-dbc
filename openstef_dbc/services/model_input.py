@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 
 from datetime import datetime, timedelta
-from typing import Tuple, Union
+from typing import Tuple, Union, List
 
 import numpy as np
 import pandas as pd
@@ -30,6 +30,7 @@ class ModelInput:
         datetime_end: str = None,
         forecast_resolution: str = "15min",
         market_price: str = "APX",
+        weather_source: Union[List[str], str] = "optimum",
     ) -> pd.DataFrame:
         """Get model input.
 
@@ -47,6 +48,7 @@ class ModelInput:
                 (see pandas Date Offset frequency strings). Defaults to "15min".
             market_price (str, optional): Name of the market place if market data is requested.
                 Default to "APX".
+            weather_source (str or list of str, optional): which weather models should be used in preferred order.
         Returns:
             pd.DataFrame: Model input.
         """
@@ -83,6 +85,7 @@ class ModelInput:
             location=location,
             country=country,
             market_price=market_price,
+            source=weather_source,
         )
 
         # Create model input with datetime index
@@ -163,7 +166,7 @@ class ModelInput:
         )
 
         # Interpolate weather data to 15 minute values
-        weather_data = weather_data.resample(str(forecast_resolution) + "T").asfreq()
+        weather_data = weather_data.resample(str(forecast_resolution) + "min").asfreq()
         for col in weather_params:
             if col in weather_data:
                 weather_data.loc[:, col] = weather_data.loc[:, col].interpolate(
@@ -242,7 +245,7 @@ class ModelInput:
         )
 
         # interpolate results to 15 minute values
-        windspeed = windspeed.resample(str(forecast_resolution) + "T").asfreq()
+        windspeed = windspeed.resample(str(forecast_resolution) + "min").asfreq()
         windspeed = windspeed.interpolate("cubic")
 
         return pd.DataFrame(windspeed.windspeed_100m)
