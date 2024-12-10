@@ -234,7 +234,7 @@ class Weather:
         resolution: str = "15min",
         country: str = "NL",
         number_locations: int = 1,
-        type: chr = "smallest_tAhead",
+        type: str = "smallest_tAhead",
     ) -> pd.DataFrame:
         """Get weather data from database.
 
@@ -256,7 +256,7 @@ class Weather:
             resolution (str): Time resolution of the returned data, default: "15min"
             country (str): Country code (2-letter: ISO 3166-1). e.g. NL
             number_locations (int): number of weather locations desired
-            type (chr) : type of weather forecast (smallest_tAhead of multiple_tAheads)
+            type (str) : type of weather forecast (smallest_tAhead of multiple_tAheads)
         Returns:
             pd.DataFrame: The most recent weather prediction
 
