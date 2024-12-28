@@ -153,7 +153,9 @@ class Predictor:
                     start=datetime_start, end=datetime_end, freq=forecast_resolution
                 )
             )
-        electricity_price.rename(columns=dict(Price="day-ahead-electricity-price"), inplace=True)
+        electricity_price.rename(
+            columns=dict(Price="day-ahead-electricity-price"), inplace=True
+        )
 
         if forecast_resolution and electricity_price.empty is False:
             electricity_price = electricity_price.resample(forecast_resolution).ffill()
