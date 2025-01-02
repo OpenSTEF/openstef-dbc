@@ -154,6 +154,31 @@ class Weather:
 
         return location
 
+    def _get_source_run(
+        self, forecast_datetime: pd.Series, tAhead: pd.Series
+    ) -> pd.Series:
+        """Compute the datetime when weather forecast was created
+
+        Args:
+            forecast_datetime (pd.Series[datetime]): forecasted datetime.
+            tAhead (pd.Series[(int, float)]: forecasting horizon in hours
+
+        Retuns :
+            pd.Series of new datetimes
+        """
+
+        if not pd.api.types.is_datetime64_any_dtype(forecast_datetime):
+            raise ValueError("forecast_datetime must be a Series of datetime.")
+
+        if not pd.api.types.is_numeric_dtype(tAhead):
+            raise ValueError("tahead must be a Series of int or float.")
+
+        if len(forecast_datetime) != len(tAhead):
+            raise ValueError("forecast_datetime and tAhead must have the same length.")
+
+        # Compute new datetimes
+        return forecast_datetime - pd.to_timedelta(tAhead, unit="h")
+
     def _combine_weather_sources(
         self, result: pd.DataFrame, source_order: List = None
     ) -> pd.DataFrame:
@@ -203,12 +228,13 @@ class Weather:
         self,
         location: Union[Tuple[float, float], str],
         weatherparams: List[str],
-        datetime_start: datetime = None,
-        datetime_end: datetime = None,
+        datetime_start: datetime = datetime.utcnow() - timedelta(days=14),
+        datetime_end: datetime = datetime.utcnow() + timedelta(days=2),
         source: Union[List[str], str] = "optimum",
         resolution: str = "15min",
         country: str = "NL",
         number_locations: int = 1,
+        type: str = "smallest_tAhead",
     ) -> pd.DataFrame:
         """Get weather data from database.
 
@@ -230,6 +256,7 @@ class Weather:
             resolution (str): Time resolution of the returned data, default: "15min"
             country (str): Country code (2-letter: ISO 3166-1). e.g. NL
             number_locations (int): number of weather locations desired
+            type (str) : type of weather forecast (smallest_tAhead of multiple_tAheads)
         Returns:
             pd.DataFrame: The most recent weather prediction
 
@@ -239,16 +266,6 @@ class Weather:
                                   weatherParams=["clouds", "radiation"], source='optimum')
             print(df.head())
         """
-
-        if datetime_start is None:
-            datetime_start = datetime.utcnow() - timedelta(days=14)
-
-        datetime_start = pd.to_datetime(datetime_start)
-
-        if datetime_end is None:
-            datetime_end = datetime.utcnow() + timedelta(days=2)
-
-        datetime_end = pd.to_datetime(datetime_end)
 
         # Convert to UTC and remove UTC as note
         if datetime_start.tz is not None:
@@ -294,11 +311,20 @@ class Weather:
             location_name.to_list()
         )
 
+        if type == "smallest_tAhead":
+            weather_measurement_str = "weather"
+            influx_indices = ["source", "input_city"]
+            grouping_indices = ["source", "input_city"]
+        elif type == "multiple_tAheads":
+            weather_measurement_str = "weather_tAhead"
+            influx_indices = ["source", "input_city", "tAhead"]
+            grouping_indices = ["source", "input_city", "created"]
+
         # Create the query
         query = f"""
             from(bucket: "forecast_latest/autogen") 
                 |> range(start: {bind_params["_start"].strftime('%Y-%m-%dT%H:%M:%SZ')}, stop: {bind_params["_stop"].strftime('%Y-%m-%dT%H:%M:%SZ')}) 
-                |> filter(fn: (r) => r._measurement == "weather" and (r._field == "{weather_params_str}") and (r.source == "{weather_models_str}") and (r.input_city == "{weather_location_name_str}"))
+                |> filter(fn: (r) => r._measurement == "{weather_measurement_str}" and (r._field == "{weather_params_str}") and (r.source == "{weather_models_str}") and (r.input_city == "{weather_location_name_str}"))
         """
 
         # Execute Query
@@ -310,7 +336,7 @@ class Weather:
 
         # Check if response is empty
         if not result.empty:
-            result = parse_influx_result(result, ["source", "input_city"])
+            result = parse_influx_result(result, influx_indices)
         else:
             self.logger.warning("No weatherdata found. Returning empty dataframe")
             return pd.DataFrame(
@@ -325,26 +351,28 @@ class Weather:
         if combine_sources:
             self.logger.info("Combining sources into single dataframe")
             result = self._combine_weather_sources(result)
+            result["source"] = "optimum"
 
-        # Interpolate if necesarry by input_city and source
+        # Compute source_run
+        if type == "multiple_tAheads":
+            result["created"] = self._get_source_run(result.index, result.tAhead)
+
+        # Interpolate if nescesarry by input_city, source (and tAhead)
         with pd.option_context("future.no_silent_downcasting", True):
             result = (
-                result.groupby(["input_city"])
+                result.groupby(grouping_indices)
                 .resample(resolution, include_groups=False)
-                .asfreq()
+                .interpolate(limit=11)
+                .reset_index(grouping_indices)
             )
-            result.loc[:, result.columns != "source"] = result.loc[
-                :, result.columns != "source"
-            ].interpolate(limit=11)
-            result = result.reset_index("input_city")
 
         # Shift radiation by 30 minutes if resolution allows it
         if "radiation" in result.columns:
             shift_delta = -timedelta(minutes=30)
             if shift_delta % pd.Timedelta(resolution) == timedelta(0):
-                result["radiation"] = result.groupby(["input_city"])["radiation"].shift(
-                    1, shift_delta
-                )
+                result["radiation"] = result.groupby(grouping_indices)[
+                    "radiation"
+                ].shift(1, shift_delta)
 
         # Drop extra rows not neccesary
         result = result[result.index >= datetime_start_original]
