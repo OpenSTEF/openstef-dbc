@@ -171,7 +171,7 @@ class Weather:
             raise ValueError("forecast_datetime must be a Series of datetime.")
 
         if not pd.api.types.is_numeric_dtype(tAhead):
-            raise ValueError("tahead must be a Series of intoru float.")
+            raise ValueError("tahead must be a Series of int or float.")
 
         if len(forecast_datetime) != len(tAhead):
             raise ValueError("forecast_datetime and tAhead must have the same length.")
