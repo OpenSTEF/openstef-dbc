@@ -338,14 +338,6 @@ class Weather:
             ].interpolate(limit=11)
             result = result.reset_index("input_city")
 
-        # Shift radiation by 30 minutes if resolution allows it
-        if "radiation" in result.columns:
-            shift_delta = -timedelta(minutes=30)
-            if shift_delta % pd.Timedelta(resolution) == timedelta(0):
-                result["radiation"] = result.groupby(["input_city"])["radiation"].shift(
-                    1, shift_delta
-                )
-
         # Drop extra rows not neccesary
         result = result[result.index >= datetime_start_original]
 
