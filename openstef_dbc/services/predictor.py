@@ -154,7 +154,7 @@ class Predictor:
                 )
             )
         electricity_price.rename(
-            columns=dict(Price="day-ahead-electricity-price"), inplace=True
+            columns=dict(Price="day_ahead_electricity_price"), inplace=True
         )
 
         if forecast_resolution and electricity_price.empty is False:
