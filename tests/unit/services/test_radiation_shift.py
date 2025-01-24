@@ -37,9 +37,7 @@ class TestRadiationShift(unittest.TestCase):
         # Mock other functions
         weather = Weather()
 
-        weather._get_nearest_weather_locations = (
-            lambda location, country, number_locations: pd.Series(location, index=[8])
-        )
+        weather._get_nearest_weather_locations = (lambda location, country, number_locations: pd.Series(location, index=[8]))
         weather._combine_weather_sources = lambda x: x
 
         # Run function
