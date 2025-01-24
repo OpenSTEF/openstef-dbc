@@ -337,17 +337,7 @@ class Write:
         dbname: str = "forecast_latest",
         tag_columns: List[str] = None,
         casting_dict: Dict[str, type] = {},
-        desired_t_aheads: List[float] = [
-            1.0,
-            12.0,
-            15.0,
-            24.0,
-            36.0,
-            39.0,
-            48.0,
-            4 * 24.0,
-            6 * 24.0,
-        ],
+        desired_t_aheads: List[float] = [],
     ):
         """Write weather data to the database. This function writes the data to a table containing with the forecasts for different t_ahead values.
 
@@ -407,6 +397,17 @@ class Write:
         table: str = "weather",
         dbname: str = "forecast_latest",
         tag_columns: List[str] = None,
+        desired_t_aheads: List[float] = [
+            1.0,
+            12.0,
+            15.0,
+            24.0,
+            36.0,
+            39.0,
+            48.0,
+            4 * 24.0,
+            6 * 24.0,
+        ],
     ):
         """Write weather forecast data to the database.
         This function writes the data both to a table containing the latest forecasts,
@@ -418,6 +419,7 @@ class Write:
             table: (str) table name
             dbname: (str) database name
             tag_columns: (list) the column names used as tags in influx
+            desired_t_aheads: (list) the t_ahead values for which the forecasts should be written
 
         Returns:
             None
@@ -467,6 +469,7 @@ class Write:
             dbname=dbname,
             casting_dict=casting_dict,
             tag_columns=tag_columns,
+            desired_t_aheads=desired_t_aheads
         )
 
     def write_realised(self, df: pd.DataFrame, sid: str):
