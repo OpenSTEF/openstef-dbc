@@ -64,7 +64,7 @@ class DataBase(metaclass=Singleton):
     )
     # predictor methods
     get_predictors = _predictor.get_predictors
-    get_electricity_price = _predictor.get_electricity_price
+    get_electricity_price = _predictor.get_day_ahead_electricity_price
     get_load_profiles = _predictor.get_load_profiles
     # historic cdb data service
     get_load_sid = _historic_cdb_data_service.get_load_sid
