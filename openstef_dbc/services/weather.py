@@ -267,6 +267,10 @@ class Weather:
             print(df.head())
         """
 
+        # Converting to datetime objet with tz attribute
+        datetime_start = pd.to_datetime(datetime_start)
+        datetime_end = pd.to_datetime(datetime_end)
+
         # Convert to UTC and remove UTC as note
         if datetime_start.tz is not None:
             datetime_start = datetime_start.tz_convert("UTC").tz_localize(None)
