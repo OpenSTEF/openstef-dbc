@@ -257,11 +257,6 @@ class Weather:
         if datetime_end.tz is not None:
             datetime_end = datetime_end.tz_convert("UTC").tz_localize(None)
 
-        # Get data from an hour earlier to correct for radiation shift later
-        datetime_start_original = datetime_start.tz_localize("UTC")
-
-        datetime_start -= timedelta(hours=1)
-
         location_name = self._get_nearest_weather_locations(
             location=location, country=country, number_locations=number_locations
         )
@@ -337,9 +332,6 @@ class Weather:
                 :, result.columns != "source"
             ].interpolate(limit=11)
             result = result.reset_index("input_city")
-
-        # Drop extra rows not neccesary
-        result = result[result.index >= datetime_start_original]
 
         if number_locations == 1:
             result = result.drop(columns="input_city")
