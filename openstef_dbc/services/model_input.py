@@ -29,7 +29,7 @@ class ModelInput:
         datetime_start: str = None,
         datetime_end: str = None,
         forecast_resolution: str = "15min",
-        market_price: str = "APX",
+        entsoe_bidding_zone: str = "NL",
         weather_source: Union[List[str], str] = "optimum",
     ) -> pd.DataFrame:
         """Get model input.
@@ -46,8 +46,8 @@ class ModelInput:
             datetime_end (datetime, optional): End datetime. Defaults to None.
             forecast_resolution (str, optional): Time resolution of model input
                 (see pandas Date Offset frequency strings). Defaults to "15min".
-            market_price (str, optional): Name of the market place if market data is requested.
-                Default to "APX".
+            entsoe_bidding_zone (str, optional): Name of the market place if market data is requested.
+                Default to "NL".
             weather_source (str or list of str, optional): which weather models should be used in preferred order.
         Returns:
             pd.DataFrame: Model input.
@@ -84,7 +84,7 @@ class ModelInput:
             forecast_resolution=forecast_resolution,
             location=location,
             country=country,
-            market_price=market_price,
+            entsoe_bidding_zone=entsoe_bidding_zone,
             source=weather_source,
         )
 
