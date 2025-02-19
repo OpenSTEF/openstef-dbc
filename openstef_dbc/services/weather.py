@@ -278,11 +278,6 @@ class Weather:
         if datetime_end.tz is not None:
             datetime_end = datetime_end.tz_convert("UTC").tz_localize(None)
 
-        # Get data from an hour earlier to correct for radiation shift later
-        datetime_start_original = datetime_start.tz_localize("UTC")
-
-        datetime_start -= timedelta(hours=1)
-
         location_name = self._get_nearest_weather_locations(
             location=location, country=country, number_locations=number_locations
         )
@@ -369,17 +364,6 @@ class Weather:
                 .interpolate(limit=11)
                 .reset_index(grouping_indices)
             )
-
-        # Shift radiation by 30 minutes if resolution allows it
-        if "radiation" in result.columns:
-            shift_delta = -timedelta(minutes=30)
-            if shift_delta % pd.Timedelta(resolution) == timedelta(0):
-                result["radiation"] = result.groupby(grouping_indices)[
-                    "radiation"
-                ].shift(1, shift_delta)
-
-        # Drop extra rows not neccesary
-        result = result[result.index >= datetime_start_original]
 
         if number_locations == 1:
             result = result.drop(columns="input_city")
