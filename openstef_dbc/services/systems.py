@@ -40,22 +40,22 @@ class Systems:
             "radius": str(radius),
         }
         query = """
-                    SELECT `sid`, `lat`, `lon`,`region`, ( 6371 * acos( cos( radians(%(lat)s) ) \
-                * cos( radians( lat ) ) * cos( radians( lon ) - radians(%(lon)s) ) + sin( radians(%(lat)s) ) \
+                    SELECT `sid`, `lat`, `lon`,`region`, ( 6371 * acos( cos( radians(:lat) ) \
+                * cos( radians( lat ) ) * cos( radians( lon ) - radians(:lon) ) + sin( radians(:lat) ) \
                 * sin( radians( lat ) ) ) ) AS `distance` \
                 FROM `systems`
-                WHERE `qual` > '%(quality)s'
+                WHERE `qual` > ':quality'
                 """
 
         # Extend query
         if freq is not None:
             bind_params["freq"] = str(freq)
-            query += """ AND `freq` <= %(freq)s"""
+            query += """ AND `freq` <= :freq"""
         if lag_systems is not None:
-            query += """ AND `lagSystems` <= %(quality)s"""
+            query += """ AND `lagSystems` <= :quality"""
 
         # Limit radius to given input radius
-        query += """ HAVING `distance` < %(radius)s ORDER BY `distance`;"""
+        query += """ HAVING `distance` < :radius ORDER BY `distance`;"""
 
         result = _DataInterface.get_instance().exec_sql_query(query, bind_params)
         return result
@@ -82,7 +82,7 @@ class Systems:
         SELECT * from systems
         INNER JOIN predictions_systems
             ON predictions_systems.system_id=systems.sid
-        WHERE predictions_systems.prediction_id=%(pid)s
+        WHERE predictions_systems.prediction_id=:pid
         """
 
         systems = _DataInterface.get_instance().exec_sql_query(
@@ -111,12 +111,12 @@ class Systems:
 
         if limit is not None:
             bind_params["limit"] = limit
-            limit_query = f"LIMIT %(limit)s"
+            limit_query = f"LIMIT :limit"
 
         query = f"""
             SELECT sid, qual, freq, lag
             FROM systems
-            WHERE left(sid, 3) = 'pv_' AND autoupdate = %(autoupdate)s
+            WHERE left(sid, 3) = 'pv_' AND autoupdate = :autoupdate
             ORDER BY RAND() {limit_query}
         """
 
@@ -138,7 +138,7 @@ class Systems:
                 sa.apiKey 
             FROM `systems` as s 
             LEFT JOIN `systemsApiKeys` as sa ON s.measurements_customer_api_key_id = sa.id 
-            WHERE s.sid = %(system)s;
+            WHERE s.sid = :system;
         """
 
         result = _DataInterface.get_instance().exec_sql_query(query, bind_params)

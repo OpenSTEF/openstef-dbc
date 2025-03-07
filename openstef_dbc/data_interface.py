@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 import requests
 import sqlalchemy
-
+from sqlalchemy import text, bindparam
 from openstef_dbc import Singleton
 from openstef_dbc.ktp_api import KtpApi
 from openstef_dbc.log import logging
@@ -266,7 +266,7 @@ class _DataInterface(metaclass=Singleton):
             with self.sql_engine.connect() as connection:
                 if params is None:
                     params = {}
-                cursor = connection.execute(query, **params)
+                cursor = connection.execute(text(query).bindparams([bindparam(p, expanding=True) for p in params]))
                 if cursor.cursor is not None:
                     return pd.DataFrame(cursor.fetchall())
         except sqlalchemy.exc.OperationalError as e:
