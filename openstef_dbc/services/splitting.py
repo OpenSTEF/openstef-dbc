@@ -50,7 +50,7 @@ class Splitting:
         result = _DataInterface.get_instance().exec_sql_query(query, bind_params)
 
         # Make output dict
-        if result is not None:
+        if not result.empty:
             result = result.set_index("coef_name")
             if mean:
                 result = result.to_dict()["AVG(ec.coef_value)"]
