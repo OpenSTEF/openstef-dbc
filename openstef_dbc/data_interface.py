@@ -289,7 +289,7 @@ class _DataInterface(metaclass=Singleton):
     def exec_sql_write(self, statement: str, params: dict = None) -> None:
         try:
             with self.sql_engine.connect() as connection:
-                response = connection.execute(statement, params=params)
+                response = connection.execute(text(statement).bindparams(**params))
 
                 self.logger.info(
                     f"Added {response.rowcount} new systems to the systems table in the {self.sql_db_type} database"
