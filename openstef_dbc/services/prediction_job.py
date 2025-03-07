@@ -214,7 +214,7 @@ class PredictionJobRetriever:
             LEFT JOIN `customers` as cu ON cak.cid = cu.id 
             LEFT JOIN `customers_predictions` as cp ON cu.id = cp.customer_id 
             LEFT JOIN `predictions` as p ON p.id = cp.prediction_id 
-            WHERE cak.api_key = :apiKey 
+            WHERE cak.apiKey = :apiKey 
         """
         result = _DataInterface.get_instance().exec_sql_query(query, bind_params)
         if isinstance(result, pd.DataFrame) and result.empty:
@@ -289,7 +289,7 @@ class PredictionJobRetriever:
             WHERE
                 p.id = pq.prediction_id AND
                 qs.id = pq.quantile_set_id AND
-                p.id IN  :prediction_jobs_ids_str
+                p.id IN  ({prediction_jobs_ids_str})
             ORDER BY prediction_id
             ;
         """

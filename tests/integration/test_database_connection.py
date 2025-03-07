@@ -13,6 +13,7 @@ import unittest
 
 from openstef_dbc.data_interface import _DataInterface
 from openstef_dbc.database import DataBase
+from openstef.data_classes.prediction_job import PredictionJobDataClass
 from openstef_dbc.services.prediction_job import PredictionJobRetriever
 from tests.integration.mock_influx_db_admin import MockInfluxDBAdmin
 
@@ -39,15 +40,19 @@ class TestDataBaseConnexion(unittest.TestCase):
         
         pj_retriever = PredictionJobRetriever()
         
-        pjs = pj_retriever.get_prediction_jobs()       
+        response = pj_retriever.get_prediction_jobs()       
+        assert isinstance(response, list)
+        assert isinstance(response[0], PredictionJobDataClass)
+
         
         
     def test_get_pids_for_api_key(self):
         
         pj_retriever = PredictionJobRetriever()
 
-        pj_retriever.get_pids_for_api_key('random_api_key')
-    
+        response = pj_retriever.get_pids_for_api_key('random_api_key')
+        assert isinstance(response, list)
+
     
     # def test_get_ean_for_pid(self):
     
