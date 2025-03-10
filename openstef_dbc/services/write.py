@@ -27,7 +27,9 @@ class Write:
             "lon": location[1],
         }
 
-        statement = "INSERT INTO :table_name (regionInput, lat,lon) VALUES (:loc, :lat, :lon)"
+        statement = (
+            "INSERT INTO :table_name (regionInput, lat,lon) VALUES (:loc, :lat, :lon)"
+        )
 
         _DataInterface.get_instance().exec_sql_write(statement, params=bind_params)
 
