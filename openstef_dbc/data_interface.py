@@ -290,7 +290,7 @@ class _DataInterface(metaclass=Singleton):
         try:
             with self.sql_engine.connect() as connection:
                 response = connection.execute(text(statement).bindparams(**params))
-
+                connection.commit()
                 self.logger.info(
                     f"Added {response.rowcount} new systems to the systems table in the {self.sql_db_type} database"
                 )
