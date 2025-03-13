@@ -64,7 +64,6 @@ class TestDataBaseConnexion(unittest.TestCase):
 
     @unittest.skip  # Skip because it need the db to be set up
     def test_add_quantiles_to_prediction_jobs(self):
-
         pj_retriever = PredictionJobRetriever()
         pjs = pj_retriever.get_prediction_jobs()
 
