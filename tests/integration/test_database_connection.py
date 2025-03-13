@@ -37,7 +37,6 @@ class TestDataBaseConnexion(unittest.TestCase):
 
     @unittest.skip  # Skip because it need the db to be set up
     def test_sql_db_available(self):
-
         assert self.di.check_sql_available() == True
 
     @unittest.skip  # Skip because it need the db to be set up
