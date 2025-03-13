@@ -57,7 +57,6 @@ class TestDataBaseConnexion(unittest.TestCase):
 
     @unittest.skip  # Skip because it need the db to be set up
     def test_get_ean_for_pid(self):
-
         pj_retriever = PredictionJobRetriever()
 
         response = pj_retriever.get_ean_for_pid(1)
