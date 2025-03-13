@@ -73,7 +73,6 @@ class TestDataBaseConnexion(unittest.TestCase):
 
     @unittest.skip  # Skip because it need the db to be set up
     def test_get_systems_near_location(self):
-
         system = Systems()
         response = system.get_systems_near_location(location=[0.0, 0.0])
         assert isinstance(response, pd.DataFrame)
