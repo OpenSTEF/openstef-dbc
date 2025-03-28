@@ -214,7 +214,7 @@ class PredictionJobRetriever:
             LEFT JOIN `customers` as cu ON cak.cid = cu.id 
             LEFT JOIN `customers_predictions` as cp ON cu.id = cp.customer_id 
             LEFT JOIN `predictions` as p ON p.id = cp.prediction_id 
-            WHERE cak.api_key = %(apiKey)s 
+            WHERE cak.apiKey = :apiKey 
         """
         result = _DataInterface.get_instance().exec_sql_query(query, bind_params)
         if isinstance(result, pd.DataFrame) and result.empty:
@@ -264,7 +264,7 @@ class PredictionJobRetriever:
             SELECT
                 p.ean 
             FROM `predictions` as p  
-            WHERE p.id = %(pid)s 
+            WHERE p.id = :pid 
         """
         result = _DataInterface.get_instance().exec_sql_query(query, bind_params)
         if isinstance(result, pd.DataFrame) and result.empty:

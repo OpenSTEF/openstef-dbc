@@ -36,21 +36,21 @@ class Splitting:
             bind_params = {"pid": pj["id"], "dstart": start_date.isoformat()}
             query = (
                 "SELECT ec.coef_name, AVG(ec.coef_value) FROM energy_split_coefs as ec "
-                "WHERE ec.pid = %(pid)s AND ec.created > %(dstart)s GROUP BY ec.coef_name "
+                "WHERE ec.pid = :pid AND ec.created > :dstart GROUP BY ec.coef_name "
             )
         # Retrieve latest coefficients otherwise
         else:
             bind_params = {"pid": pj["id"]}
             query = (
-                "SELECT ec.coef_name,ec.coef_value FROM energy_split_coefs as ec WHERE  ec.pid = %(pid)s "
+                "SELECT ec.coef_name,ec.coef_value FROM energy_split_coefs as ec WHERE  ec.pid = :pid "
                 "AND ec.created = (SELECT max(energy_split_coefs.created) from energy_split_coefs "
-                "WHERE energy_split_coefs.pid = %(pid)s)"
+                "WHERE energy_split_coefs.pid = :pid)"
             )
         # Execute query
         result = _DataInterface.get_instance().exec_sql_query(query, bind_params)
 
         # Make output dict
-        if result is not None:
+        if not result.empty:
             result = result.set_index("coef_name")
             if mean:
                 result = result.to_dict()["AVG(ec.coef_value)"]

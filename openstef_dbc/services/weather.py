@@ -43,7 +43,7 @@ class Weather:
         query = """
             SELECT input_city as city, lat, lon, country
             FROM weatherforecastlocations
-            WHERE country = %(country)s AND active = %(active)s
+            WHERE country = :country AND active = :active
         """
         result = _DataInterface.get_instance().exec_sql_query(query, bind_params)
 
@@ -136,7 +136,7 @@ class Weather:
 
         # Query corresponding (lat, lon) from SQL database
         binding_params = {"city": location_name}
-        query = "SELECT lat, lon from NameToLatLon where regionInput = %(city)s"
+        query = "SELECT lat, lon from NameToLatLon where regionInput = :city"
         location = _DataInterface.get_instance().exec_sql_query(query, binding_params)
 
         # If not found

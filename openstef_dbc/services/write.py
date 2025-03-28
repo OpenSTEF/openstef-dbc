@@ -21,13 +21,14 @@ class Write:
 
     def write_location(self, location_name: str, location: Tuple[float, float]) -> None:
         bind_params = {
-            "table_name": "NameToLatLon",
             "loc": location_name,
             "lat": location[0],
             "lon": location[1],
         }
 
-        statement = "INSERT INTO %(table_name)s (regionInput, lat,lon) VALUES (%(loc)s, %(lat)s, %(lon)s)"
+        statement = (
+            "INSERT INTO NameToLatLon (regionInput, lat,lon) VALUES (:loc, :lat, :lon)"
+        )
 
         _DataInterface.get_instance().exec_sql_write(statement, params=bind_params)
 
