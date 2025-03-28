@@ -267,7 +267,6 @@ class _DataInterface(metaclass=Singleton):
                 if params is None:
                     params = {}
                 cursor = connection.execute(text(query).bindparams(**params))
-                # cursor = connection.execute(text(query).bindparams([bindparam(p, expanding=True) for p in params]))
                 if cursor.cursor is not None:
                     return pd.DataFrame(cursor.fetchall())
         except sqlalchemy.exc.OperationalError as e:
