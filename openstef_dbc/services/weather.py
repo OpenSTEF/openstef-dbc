@@ -377,7 +377,9 @@ class Weather:
 
         return result
 
-    def get_datetime_last_stored_knmi_weatherdata(self, source: str = "harm_arome") -> datetime:
+    def get_datetime_last_stored_knmi_weatherdata(
+        self, source: str = "harm_arome"
+    ) -> datetime:
         """Returns datetime of latest KNMI run in influx Database. If no run is found return first unix time."""
         query = f"""
             from(bucket: "forecast_latest/autogen" )   
