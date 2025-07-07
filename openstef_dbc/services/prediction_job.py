@@ -4,7 +4,7 @@
 
 import json
 from typing import List, Optional, Union
-from pydantic import ValidationError
+from pydantic.v1 import ValidationError
 import pandas as pd
 
 from openstef.data_classes.prediction_job import PredictionJobDataClass
