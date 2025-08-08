@@ -6,6 +6,7 @@ import unittest
 from unittest.mock import patch
 import pandas as pd
 from openstef.data_classes.prediction_job import PredictionJobDataClass
+from pydantic.v1.error_wrappers import ValidationError
 from openstef_dbc.services.prediction_job import PredictionJobRetriever
 
 
