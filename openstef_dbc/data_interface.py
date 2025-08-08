@@ -42,7 +42,8 @@ class _DataInterface(metaclass=Singleton):
                 sql_db_port (int): SQL database port.
                 sql_db_database_name (str): SQL database name.
                 proxies Union[dict[str, str], None]: Proxies.
-                sql_db_type (str, optional): SQL Database type engine to use('mysql' or 'postgresql'), if not defined mysql is used by default.
+                sql_db_type (str, optional): SQL Database type engine to use('mysql', 'postgresql' or 'none'), if not defined mysql is used by default.
+                    Note: 'none' will result in no SQL engine being created. Hence all functionality that requires a SQL engine will not work.
         """
 
         self.logger = logging.get_logger(self.__class__.__name__)
@@ -65,6 +66,8 @@ class _DataInterface(metaclass=Singleton):
                 port=config.sql_db_port,
                 db=config.sql_db_database_name,
             )
+        elif self.sql_db_type == SupportedSqlTypes.NONE.name:
+            self.sql_engine = None
         else:
             self.sql_engine = self._create_mysql_engine(
                 username=config.sql_db_username,
@@ -326,3 +329,4 @@ class _DataInterface(metaclass=Singleton):
 class SupportedSqlTypes(Enum):
     MYSQL = "mysql"
     POSTGRESQL = "postgresql"
+    NONE = "none"
