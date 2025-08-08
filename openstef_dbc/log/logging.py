@@ -240,8 +240,7 @@ def _configure_logging_deployed(loglevel):
 
 
 def get_logger(name=__name__):
-
-    # if logging is not yet configured
+    # if logging is not yet configures
     if __configured is False:
         # configure logging using defaults
         configure_logging()
