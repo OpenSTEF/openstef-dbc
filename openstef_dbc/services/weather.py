@@ -331,7 +331,9 @@ class Weather:
 
         # For multiple Fields a list is returned.
         if isinstance(result, list):
-            result = pd.concat(result)[["_value", "_field", "_time", "source"]]
+            result = pd.concat(result)[
+                ["_value", "_field", "_time", "source", "input_city"]
+            ]
 
         # Check if response is empty
         if not result.empty:
