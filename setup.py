@@ -29,7 +29,7 @@ def read_long_description_from_readme():
 
 setup(
     name="openstef_dbc",
-    version="3.8.4",
+    version="3.8.5",
     packages=find_packages(include=["openstef_dbc", "openstef_dbc.*"]),
     description="Database Connection for OpenSTEF",
     long_description=read_long_description_from_readme(),
@@ -45,7 +45,7 @@ setup(
         # Include anything in the data directory
         "openstef_dbc": ["data/*", "*.license"]
     },
-    python_requires=">=3.7.0",
+    python_requires=">=3.13.0",
     install_requires=read_requirements_from_file(),
     setup_requires=["wheel", "Cython"],
     tests_require=["pytest", "pytest-cov", "flake8"],
@@ -53,9 +53,6 @@ setup(
         r"Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         r"License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.13",
     ],
 )
