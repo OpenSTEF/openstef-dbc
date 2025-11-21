@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2017-2022 Contributors to the OpenSTEF project <korte.termijn.prognoses@alliander.com> # noqa E501>
+# SPDX-FileCopyrightText: 2017-2022 Contributors to the OpenSTEF project <openstef@lfenergy.org> # noqa E501>
 #
 # SPDX-License-Identifier: MPL-2.0
 
@@ -36,7 +36,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/openstef/openstef-dbc",
     author="Alliander N.V",
-    author_email="korte.termijn.prognoses@alliander.com",
+    author_email="openstef@lfenergy.org",
     license="MPL-2.0",
     keywords=["database", "energy", "forecasting", "machinelearning"],
     # See https://setuptools.readthedocs.io/en/latest/userguide/datafiles.html
